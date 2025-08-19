@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - FIFTY 50 MEDTECHIE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../logo.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <!-- Top Navigation (match dashboard) -->
+  <header class="topnav">
+    <div class="brand"><img src="../logo.png" alt="FIFTY 50 MEDTECHIE" /> <span>FIFTY 50 MEDTECHIE</span></div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="about.html">About Us</a>
+      <a href="login.html" class="active">Login</a>
+    </nav>
+    <div class="nav-right">
+      <div class="search-inline"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Search..." aria-label="Search" /></div>
+      <a class="btn-logout" href="#" title=""></a>
+    </div>
+  </header>
+
+  <!-- Login Form -->
+  <main>
+    <div class="login-box">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <label>Username:</label>
+        <input type="text" id="username" required>
+        
+        <label>Password:</label>
+        <input type="password" id="password" required>
+        
+        <button type="submit">Login</button>
+        <button type="button" onclick="createAccount()">Create Account</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <a href="#">Privacy Policy</a> | 
+    <a href="#">Terms of Use</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

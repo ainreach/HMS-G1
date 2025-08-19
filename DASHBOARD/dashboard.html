@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Dashboard - FIFTY 50 MEDTECHIE</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js para sa graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <!-- Top bar (centered rounded) -->
+  <header class="dash-topbar">
+    <div class="topbar-inner">
+      <button class="menu-btn" id="btnToggle" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="brand">
+        <img src="../logo.png" alt="FIFTY 50 MEDTECHIE" />
+        <div class="brand-text">
+          <h2>FIFTY 50 MEDTECHIE</h2>
+          <small>"Trust Us... If You’re Feeling Lucky."</small>
+        </div>
+      </div>
+      <div class="top-right">
+        <select id="roleSel" title="Role"></select>
+        <select id="branchSel" title="Branch"></select>
+        <span class="role"><i class="fa-regular fa-user"></i> <span id="roleText">Role</span></span>
+        <span class="role" style="margin-left:8px;"><i class="fa-solid fa-code-branch"></i> <span id="branchText">Branch</span></span>
+        <a class="btn-logout" href="../HOME%20PAGE/login.html" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+      </div>
+    </div>
+  </header>
+  <!-- Sidebar Layout (simple like screenshot) -->
+  <div class="layout">
+    <aside class="simple-sidebar" id="sidebar">
+      <nav class="side-nav">
+        <a href="dashboard.html" class="active" data-feature="dashboard">Dashboard</a>
+        <a href="registration-records.html" data-feature="ehr">Registration & Records</a>
+        <a href="scheduling.html" data-feature="scheduling">Scheduling</a>
+        <a href="billing.html" data-feature="billing">Billing & Payment</a>
+        <a href="laboratory.html" data-feature="laboratory">Laboratory & Diagnostic</a>
+        <a href="pharmacy.html" data-feature="pharmacy">Pharmacy</a>
+        <a href="reports.html" data-feature="reports">Reports & Analytics</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+    <!-- Quick Actions (Patient) -->
+    <section class="actions">
+      <button class="action-btn" onclick="location.href='scheduling.html'"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</button>
+      <button class="action-btn"><i class="fa-solid fa-pills"></i> View Prescriptions</button>
+      <button class="action-btn"><i class="fa-solid fa-file-waveform"></i> Request Lab</button>
+      <button class="action-btn" onclick="location.href='billing.html'"><i class="fa-solid fa-receipt"></i> Pay Bill</button>
+    </section>
+
+    <!-- KPIs -->
+    <section class="kpi-grid">
+      <article class="kpi-card kpi-primary">
+        <div class="kpi-head"><span>Upcoming Appointments</span><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub up"><i class="fa-solid fa-arrow-trend-up"></i> Next: Aug 20, 10:00 AM</div>
+      </article>
+      <article class="kpi-card kpi-success">
+        <div class="kpi-head"><span>Active Prescriptions</span><i class="fa-solid fa-pills"></i></div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-sub up"><i class="fa-solid fa-arrow-trend-up"></i> 1 refill due soon</div>
+      </article>
+      <article class="kpi-card kpi-warning">
+        <div class="kpi-head"><span>Pending Lab Results</span><i class="fa-solid fa-flask-vial"></i></div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-sub down"><i class="fa-solid fa-hourglass-half"></i> Processing</div>
+      </article>
+      <article class="kpi-card kpi-info">
+        <div class="kpi-head"><span>Outstanding Balance</span><i class="fa-solid fa-receipt"></i></div>
+        <div class="kpi-value">₱1,250</div>
+        <div class="kpi-sub up"><i class="fa-solid fa-arrow-trend-up"></i> Due: Aug 25</div>
+      </article>
+    </section>
+
+    <!-- Panels -->
+    <section class="panels">
+      <article class="panel panel-lg">
+        <div class="panel-head">
+          <h3>My Health Trend</h3>
+          <div class="chips">
+            <button class="chip active">7d</button>
+            <button class="chip">30d</button>
+            <button class="chip">12m</button>
+          </div>
+        </div>
+        <div class="panel-body"><canvas id="lineChart"></canvas></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h3>My Appointments</h3></div>
+        <div class="panel-body"><canvas id="pieChart"></canvas></div>
+      </article>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="panel-head"><h3>Recent Activity</h3></div>
+      <div class="panel-body">
+        <ul class="activity">
+          <li><span class="badge green"></span> 10:05 AM — Appointment confirmed with Dr. Santos</li>
+          <li><span class="badge blue"></span> 09:40 AM — New prescription added: Amoxicillin</li>
+          <li><span class="badge orange"></span> 09:10 AM — Lab request submitted: CBC</li>
+        </ul>
+      </div>
+    </section>
+    </main>
+  </div>
+
+  <script src="rbac.js"></script>
+  <script>
+    // Sidebar collapse toggle (optional)
+    const btn = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (btn && sidebar) {
+      btn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+    }
+    // Line Chart (filled, smooth)
+    const lineCtx = document.getElementById('lineChart');
+    new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+        datasets: [
+          {
+            label: "New Patients",
+            data: [50, 60, 70, 80, 60, 75, 90],
+            borderColor: "#0ea5e9",
+            backgroundColor: "rgba(14, 165, 233, .15)",
+            fill: true,
+            tension: .35,
+            pointRadius: 2
+          },
+          {
+            label: "Returning Patients",
+            data: [40, 35, 50, 65, 70, 55, 80],
+            borderColor: "#f97316",
+            backgroundColor: "rgba(249, 115, 22, .15)",
+            fill: true,
+            tension: .35,
+            pointRadius: 2
+          }
+        ]
+      },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(0,0,0,0.06)' } } } }
+    });
+
+    // Pie Chart
+    const pieCtx = document.getElementById('pieChart');
+    new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ["Confirmed", "Pending", "Cancelled"],
+        datasets: [{ data: [60, 25, 15], backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"], borderWidth: 0 }]
+      },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  </script>
+</body>
+</html>

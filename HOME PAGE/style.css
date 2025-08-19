@@ -1,0 +1,122 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0; padding: 0;
+  background: #f5f5f5;
+  text-align: center;
+}
+
+.navbar {
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 30px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo img { height: 28px; width: auto; vertical-align: middle; }
+.logo h2 { margin: 0; font-size: 18px; letter-spacing: .3px; }
+.logo p { margin: 2px 0 0; font-size: 12px; color: #64748b; }
+.logo span {
+  font-weight: bold;
+  margin-left: 10px;
+}
+.logo small {
+  display: block;
+  font-size: 12px;
+  color: gray;
+}
+
+nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+nav a:hover {
+  color: #0c4a6e;
+}
+
+.user-icon {
+  font-size: 18px;
+}
+
+.welcome-box {
+  margin: 100px auto;
+  border: 2px solid black;
+  width: 400px;
+  padding: 50px;
+  background: white;
+}
+
+/* Homepage content polish */
+.content { max-width: 960px; margin: 0 auto; padding: 40px 24px; text-align: left; }
+.welcome { font-size: 40px; font-weight: 800; color: #004aad; margin: 0 0 16px; }
+.content p { color: #374151; line-height: 1.7; margin: 10px 0; }
+
+.login-box {
+  margin: 100px auto;
+  border: 2px solid black;
+  width: 300px;
+  padding: 20px;
+  background: #f9f9f9;
+}
+
+.login-box h2 {
+  margin-bottom: 20px;
+}
+
+.login-box input {
+  display: block;
+  width: 90%;
+  margin: 10px auto;
+  padding: 8px;
+}
+
+.login-box button {
+  margin: 5px;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+
+footer {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: gray;
+}
+
+/* ===== Top Navigation (match dashboard) ===== */
+.topnav {
+  position: sticky; top: 0; z-index: 20;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 16px; padding: 12px 20px; background: #ffffff;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 6px 20px rgba(15,23,42,0.05);
+}
+.topnav .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: #111827; }
+.topnav .brand i { color: #0ea5e9; }
+.topnav .brand img { height: 20px; width: auto; display: inline-block; }
+.topnav .nav-links { display: flex; justify-content: center; gap: 14px; }
+.topnav .nav-links a { color: #334155; text-decoration: none; padding: 8px 10px; border-radius: 999px; font-weight: bold; }
+.topnav .nav-links a.active, .topnav .nav-links a:hover { background: #e0f2fe; color: #0c4a6e; }
+.topnav .nav-right { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.topnav .search-inline { display: flex; align-items: center; gap: 8px; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 6px 10px; }
+.topnav .search-inline input { border: 0; outline: 0; background: transparent; width: clamp(120px, 20vw, 260px); }
+.btn-logout { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: transparent; text-decoration: none; }
+
+@media (max-width: 640px) {
+  .topnav { grid-template-columns: 1fr auto; grid-auto-flow: row; }
+  .topnav .nav-links { order: 3; justify-content: flex-start; overflow-x: auto; padding-bottom: 6px; }
+  .topnav .nav-right .search-inline { display: none; }
+}
+
+/* Responsive tweak for homepage header logo */
+@media (max-width: 640px) {
+  .logo img { height: 22px; }
+  .topnav .brand img { height: 22px; }
+}
