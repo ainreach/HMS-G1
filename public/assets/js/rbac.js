@@ -86,11 +86,7 @@
       const feature = active ? active.getAttribute('data-feature') : null;
       if (feature && Array.isArray(ACCESS[feature]) && !ACCESS[feature].includes(role)) {
         // Redirect to dashboard if current page is not allowed for the selected role
-        try {
-          if (typeof goto === 'function') { goto('dashboard'); return; }
-        } catch(e) { /* ignore */ }
-        var base = (window.SITE_URL || window.APP_BASE || '/').replace(/\/?$/, '/');
-        window.location.href = base + 'dashboard';
+        window.location.href = 'dashboard.html';
       }
     } catch(e) { /* no-op */ }
   }
