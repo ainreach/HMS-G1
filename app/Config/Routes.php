@@ -7,7 +7,6 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Pages::home');
 $routes->get('/dashboard', 'Pages::dashboard');
-<<<<<<< HEAD
 $routes->get('/dashboard/admin', 'Admin::dashboard', ['filter' => 'role:admin']);
 $routes->get('/dashboard/doctor', 'Doctor::dashboard', ['filter' => 'role:doctor']);
 $routes->get('/dashboard/nurse', 'Nurse::dashboard', ['filter' => 'role:nurse']);
@@ -78,9 +77,6 @@ $routes->get('/pharmacy/inventory', 'Pharmacy::inventory', ['filter' => 'role:ph
 // Lab Staff functional routes
 $routes->get('/lab/results/new', 'Labstaff::newResult', ['filter' => 'role:lab_staff']);
 $routes->post('/lab/results', 'Labstaff::storeResult', ['filter' => 'role:lab_staff']);
-
-=======
->>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
 $routes->get('/laboratory', 'Pages::laboratory');
 $routes->get('/pharmacy', 'Pages::pharmacy');
 $routes->get('/scheduling', 'Pages::scheduling');
@@ -88,7 +84,6 @@ $routes->get('/billing', 'Pages::billing');
 
 // Auth and misc pages
 $routes->get('/about', 'Pages::about');
-<<<<<<< HEAD
 $routes->get('/register', 'Pages::register');
 $routes->get('/privacy', 'Pages::privacy');
 $routes->get('/terms', 'Pages::terms');
@@ -96,21 +91,12 @@ $routes->get('/news', 'Pages::news');
 $routes->get('/physicians', 'Pages::physicians');
 $routes->get('/services', 'Pages::services');
 $routes->get('/notifications', 'Pages::notifications');
-=======
-$routes->get('/login', 'Pages::login');
-$routes->get('/register', 'Pages::register');
->>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
-
-// Dashboard pages
-$routes->get('/records', 'Pages::records');
-$routes->get('/reports', 'Pages::reports');
-<<<<<<< HEAD
-
-// Authentication (role selection + per-role login)
 $routes->get('/login', 'Auth::select');
 $routes->post('/login', 'Auth::doLoginSingle');
 $routes->get('/login/(:segment)', 'Auth::login/$1');
 $routes->post('/login/(:segment)', 'Auth::doLogin/$1');
 $routes->get('/logout', 'Auth::logout');
-=======
->>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
+
+// Dashboard pages
+$routes->get('/records', 'Pages::records');
+$routes->get('/reports', 'Pages::reports');

@@ -44,13 +44,8 @@
   </main>
 
   <footer>
-<<<<<<< HEAD
     <a href="<?= site_url('privacy') ?>">Privacy Policy</a> | 
     <a href="<?= site_url('terms') ?>">Terms of Use</a>
-=======
-    <a href="#">Privacy Policy</a> | 
-    <a href="#">Terms of Use</a>
->>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
   </footer>
 
   <script>
@@ -66,3 +61,5 @@
   <script src="<?= base_url('assets/js/script.js') ?>"></script>
 </body>
 </html>
+
+
