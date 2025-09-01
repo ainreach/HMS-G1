@@ -49,6 +49,7 @@
 
         <nav class="main-nav" aria-label="Primary">
           <a class="active" href="<?= site_url('/') ?>">Home</a>
+<<<<<<< HEAD
           <a href="<?= site_url('news') ?>">News</a>
           <a href="<?= site_url('physicians') ?>">Physicians</a>
           <a href="<?= site_url('services') ?>">Service</a>
@@ -56,6 +57,15 @@
 
         <div class="right-actions">
           <a href="<?= site_url('notifications') ?>" title="Notifications"><i class="fa-regular fa-bell"></i></a>
+=======
+          <a href="#">News</a>
+          <a href="#">Physicians</a>
+          <a href="#">Service</a>
+        </nav>
+
+        <div class="right-actions">
+          <a href="#" title="Notifications"><i class="fa-regular fa-bell"></i></a>
+>>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
           <a href="<?= site_url('about') ?>">ABOUT US</a>
           <a href="<?= site_url('login') ?>">LOGIN</a>
         </div>
@@ -96,7 +106,11 @@
     </section>
 
     <footer class="footer">
+<<<<<<< HEAD
       <a href="<?= site_url('privacy') ?>">Privacy Policy</a> · <a href="<?= site_url('terms') ?>">Terms of Use</a>
+=======
+      <a href="#">Privacy Policy</a> · <a href="#">Terms of Use</a>
+>>>>>>> 06dc0c9b022abb6f0feca36ea29ea8f5038375ea
     </footer>
   </body>
 </html>
