@@ -25,47 +25,53 @@
 </nav></aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
-      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Today Appointments</span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">—</div></article>
-      <article class="kpi-card kpi-info"><div class="kpi-head"><span>Pending Results</span><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">—</div></article>
+        <article class="kpi-card kpi-primary">
+            <div class="kpi-head"><span>Today's Appointments</span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div>
+            <div class="kpi-value" aria-live="polite"><?= count($appointments) ?></div>
+        </article>
+        <article class="kpi-card kpi-info">
+            <div class="kpi-head"><span>Total Prescriptions</span><i class="fa-solid fa-pills" aria-hidden="true"></i></div>
+            <div class="kpi-value" aria-live="polite"><?= count($prescriptions) ?></div>
+        </article>
     </section>
 
     <section class="panel" style="margin-top:16px">
-      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
-      <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="<?= site_url('doctor/records/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">New Medical Record</a>
-        <a class="btn" href="<?= site_url('doctor/lab-requests/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Request Lab Test</a>
-        <a class="btn" href="<?= site_url('doctor/records/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Write Note</a>
-      </div>
+        <div class="panel-head">
+            <h2 style="margin:0;font-size:1.1rem">Quick Actions</h2>
+        </div>
+        <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn" href="<?= site_url('doctor/patient_records') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">View Patient Records</a>
+        </div>
     </section>
 
     <section class="panel" style="margin-top:16px">
-      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Today's Patients</h2></div>
-      <div class="panel-body" style="overflow:auto">
-        <table class="table" style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Time</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Reason</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Juan D.</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">09:00</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Follow-up</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Waiting</td>
-            </tr>
-            <tr>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Maria C.</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">10:15</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Consultation</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">In progress</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <div class="panel-head">
+            <h2 style="margin:0;font-size:1.1rem">Recent Appointments</h2>
+        </div>
+        <div class="panel-body" style="overflow:auto">
+            <table class="table" style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
+                        <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($appointments)) : ?>
+                        <?php foreach ($appointments as $appointment) : ?>
+                            <tr>
+                                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['patient_name']) ?></td>
+                                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['appointment_date']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr>
+                            <td colspan="2" style="padding:8px;border-bottom:1px solid #f3f4f6;text-align:center;">No appointments found.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </section>
   </main></div>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>

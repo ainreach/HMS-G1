@@ -5,8 +5,87 @@ class Doctor extends BaseController
 {
     public function dashboard()
     {
+        $patientModel = new \App\Models\PatientModel();
+        $appointmentModel = new \App\Models\AppointmentModel();
+        $prescriptionModel = new \App\Models\PrescriptionModel();
+
+        $patients = $patientModel->findAll();
+        $appointments = $appointmentModel->where('doctor_id', session('user_id'))->findAll();
+        $prescriptions = $prescriptionModel->where('doctor_id', session('user_id'))->findAll();
+
+        $data = [
+            'patients' => $patients,
+            'appointments' => $appointments,
+            'prescriptions' => $prescriptions,
+        ];
+
         helper('url');
-        return view('doctor/dashboard');
+        return view('doctor/dashboard', $data);
+    }
+
+    public function patient_records()
+    {
+        $patientModel = new \App\Models\PatientModel();
+        $data['patients'] = $patientModel->findAll();
+        return view('doctor/patient_records', $data);
+    }
+
+    public function view_patient_record($patient_id)
+    {
+        $patientModel = new \App\Models\PatientModel();
+        $medicalRecordModel = new \App\Models\MedicalRecordModel();
+
+        $data['patient'] = $patientModel->find($patient_id);
+        $data['records'] = $medicalRecordModel->where('patient_id', $patient_id)->findAll();
+
+        return view('doctor/view_patient_record', $data);
+    }
+
+    public function create_prescription($patient_id)
+    {
+        $data['patient_id'] = $patient_id;
+        return view('doctor/create_prescription', $data);
+    }
+
+    public function store_prescription()
+    {
+        $prescriptionModel = new \App\Models\PrescriptionModel();
+
+        $data = [
+            'patient_id' => $this->request->getPost('patient_id'),
+            'doctor_id' => session('user_id'),
+            'medication' => $this->request->getPost('medication'),
+            'dosage' => $this->request->getPost('dosage'),
+            'frequency' => $this->request->getPost('frequency'),
+            'start_date' => $this->request->getPost('start_date'),
+            'end_date' => $this->request->getPost('end_date'),
+        ];
+
+        $prescriptionModel->save($data);
+
+        return redirect()->to('/doctor/patient_records');
+    }
+
+    public function request_test($patient_id)
+    {
+        $data['patient_id'] = $patient_id;
+        return view('doctor/request_test', $data);
+    }
+
+    public function store_test_request()
+    {
+        $labTestModel = new \App\Models\LabTestModel();
+
+        $data = [
+            'patient_id' => $this->request->getPost('patient_id'),
+            'doctor_id' => session('user_id'),
+            'test_name' => $this->request->getPost('test_name'),
+            'test_date' => $this->request->getPost('test_date'),
+        ];
+
+        $labTestModel->save($data);
+
+        return redirect()->to('/doctor/patient_records');
     }
 
     public function newRecord()
