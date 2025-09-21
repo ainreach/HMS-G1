@@ -20,8 +20,11 @@
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Pharmacy navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/pharmacist') ?>" class="active" aria-current="page">Overview</a>
+  <a href="<?= site_url('pharmacy/prescriptions') ?>" data-feature="pharmacy">Prescriptions</a>
   <a href="<?= site_url('pharmacy/dispense/new') ?>" data-feature="pharmacy">Dispense</a>
   <a href="<?= site_url('pharmacy/inventory') ?>" data-feature="pharmacy">Inventory</a>
+  <a href="<?= site_url('pharmacy/low-stock-alerts') ?>" data-feature="pharmacy">Low Stock</a>
+  <a href="<?= site_url('pharmacy/medicine-expiry') ?>" data-feature="pharmacy">Expiry Alerts</a>
 </nav></aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
@@ -33,8 +36,10 @@
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn" href="<?= site_url('pharmacy/dispense/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Dispense</a>
-        <a class="btn" href="#" onclick="alert('Receiving workflow coming soon');return false;" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Receive Stock</a>
-        <a class="btn" href="#" onclick="alert('PO workflow coming soon');return false;" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Create PO</a>
+        <a class="btn" href="<?= site_url('pharmacy/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Prescriptions</a>
+        <a class="btn" href="<?= site_url('pharmacy/add-stock') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Add Stock</a>
+        <a class="btn" href="<?= site_url('pharmacy/low-stock-alerts') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Low Stock Alerts</a>
+        <a class="btn" href="<?= site_url('pharmacy/medicine-expiry') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Expiry Alerts</a>
       </div>
     </section>
 

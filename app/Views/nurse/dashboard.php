@@ -20,13 +20,17 @@
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Nurse navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/nurse') ?>" class="active" aria-current="page">Overview</a>
-  <a href="<?= site_url('records') ?>" data-feature="ehr">Patient Records</a>
-  <a href="<?= site_url('scheduling') ?>" data-feature="scheduling">Scheduling</a>
+  <a href="<?= site_url('nurse/ward-patients') ?>" data-feature="ehr">Ward Patients</a>
+  <a href="<?= site_url('nurse/lab-samples') ?>" data-feature="laboratory">Lab Samples</a>
+  <a href="<?= site_url('nurse/treatment-updates') ?>" data-feature="ehr">Treatment Updates</a>
+  <a href="<?= site_url('nurse/vitals/new') ?>" data-feature="ehr">Record Vitals</a>
 </nav></aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Active Patients</span><i class="fa-solid fa-bed-pulse" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($activePatients ?? 0) ?></div></article>
       <article class="kpi-card kpi-info"><div class="kpi-head"><span>Pending Tasks</span><i class="fa-solid fa-list-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($pendingTasks ?? 0) ?></div></article>
+      <article class="kpi-card kpi-success"><div class="kpi-head"><span>Vitals Recorded</span><i class="fa-solid fa-heartbeat" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($vitalsRecorded ?? 0) ?></div></article>
+      <article class="kpi-card kpi-warning"><div class="kpi-head"><span>Lab Samples</span><i class="fa-solid fa-vial" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($pendingLabSamples ?? 0) ?></div></article>
     </section>
 
     <section class="panel" style="margin-top:16px">
@@ -34,6 +38,9 @@
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn" href="<?= site_url('nurse/vitals/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Record Vitals</a>
         <a class="btn" href="<?= site_url('nurse/notes/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Update Care Notes</a>
+        <a class="btn" href="<?= site_url('nurse/ward-patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Ward Patients</a>
+        <a class="btn" href="<?= site_url('nurse/lab-samples') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Samples</a>
+        <a class="btn" href="<?= site_url('nurse/treatment-updates') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Treatment Updates</a>
       </div>
     </section>
 
@@ -50,22 +57,86 @@
             </tr>
           </thead>
           <tbody>
-            <?php if (!empty($tasks)) : foreach ($tasks as $t) : ?>
+            <?php if (!empty($appointments)) : foreach ($appointments as $appointment) : ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($t['patient']) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($t['task']) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(date('m/d H:i', strtotime(($t['due_date'] ?? date('Y-m-d')).' '.($t['due_time'] ?? '00:00')))) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($t['status']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['first_name'] . ' ' . $appointment['last_name']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['reason'] ?: 'Check-up') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['appointment_time']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($appointment['status'] ?: 'Scheduled')) ?></td>
               </tr>
             <?php endforeach; else: ?>
               <tr>
-                <td colspan="4" style="padding:10px;color:#6b7280;text-align:center">No upcoming ward tasks.</td>
+                <td colspan="4" style="padding:10px;color:#6b7280;text-align:center">No appointments today.</td>
               </tr>
             <?php endif; ?>
           </tbody>
         </table>
       </div>
     </section>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
+      <!-- Recent Vital Signs -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 style="margin:0;font-size:1.1rem">Recent Vital Signs</h2>
+        </div>
+        <div class="panel-body" style="overflow:auto">
+          <table class="table" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Date</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Vitals</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (!empty($recentVitals)) : foreach ($recentVitals as $vital) : ?>
+                <tr>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($vital['first_name'] . ' ' . $vital['last_name']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(date('M j, H:i', strtotime($vital['visit_date']))) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($vital['vital_signs']) ?></td>
+                </tr>
+              <?php endforeach; else: ?>
+                <tr>
+                  <td colspan="3" style="padding:10px;color:#6b7280;text-align:center">No recent vitals recorded.</td>
+                </tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pending Lab Samples -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2 style="margin:0;font-size:1.1rem">Pending Lab Samples</h2>
+        </div>
+        <div class="panel-body" style="overflow:auto">
+          <table class="table" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Test</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (!empty($pendingSamples)) : foreach ($pendingSamples as $sample) : ?>
+                <tr>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($sample['first_name'] . ' ' . $sample['last_name']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($sample['test_name']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($sample['priority'] ?: 'Routine')) ?></td>
+                </tr>
+              <?php endforeach; else: ?>
+                <tr>
+                  <td colspan="3" style="padding:10px;color:#6b7280;text-align:center">No pending samples.</td>
+                </tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
   </main></div>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
 </body></html>
