@@ -95,6 +95,12 @@ $routes->get('/reception/appointments/new', 'Reception::newAppointment', ['filte
 $routes->post('/reception/appointments', 'Reception::storeAppointment', ['filter' => 'role:receptionist']);
 
 // Doctor functional routes
+$routes->get('/doctor/patient_records', 'Doctor::patient_records', ['filter' => 'role:doctor']);
+$routes->get('/doctor/view_patient_record/(:num)', 'Doctor::view_patient_record/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/create_prescription/(:num)', 'Doctor::create_prescription/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/store_prescription', 'Doctor::store_prescription', ['filter' => 'role:doctor']);
+$routes->get('/doctor/request_test/(:num)', 'Doctor::request_test/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/store_test_request', 'Doctor::store_test_request', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records/new', 'Doctor::newRecord', ['filter' => 'role:doctor']);
 $routes->post('/doctor/records', 'Doctor::storeRecord', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records', 'Doctor::patientRecords', ['filter' => 'role:doctor']);

@@ -80,7 +80,7 @@ class Pages extends BaseController
         $list = $patients->select('id,patient_id,first_name,last_name,date_of_birth,phone,is_active,created_at')
                          ->orderBy('created_at','DESC')
                          ->findAll(50);
-        return view('dashboard/records', ['patients' => $list]);
+        return view('doctor/patient_records', ['patients' => $list]);
     }
 
     public function reports()

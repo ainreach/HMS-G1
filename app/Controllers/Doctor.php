@@ -5,60 +5,22 @@ class Doctor extends BaseController
 {
     public function dashboard()
     {
-        helper('url');
-        $appointmentModel = model('App\\Models\\AppointmentModel');
-        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
-        $labTestModel = model('App\\Models\\LabTestModel');
-        $patientModel = model('App\\Models\\PatientModel');
-        $userModel = model('App\\Models\\UserModel');
+        $patientModel = new \App\Models\PatientModel();
+        $appointmentModel = new \App\Models\AppointmentModel();
+        $prescriptionModel = new \App\Models\PrescriptionModel();
 
-        $today = date('Y-m-d');
-        $doctorId = session('user_id') ?: 1; // Fallback for testing
+        $patients = $patientModel->findAll();
+        $appointments = $appointmentModel->where('doctor_id', session('user_id'))->findAll();
+        $prescriptions = $prescriptionModel->where('doctor_id', session('user_id'))->findAll();
 
-        // KPIs
-        $todayAppointments = $appointmentModel
-            ->where('DATE(appointment_date)', $today)
-            ->where('doctor_id', $doctorId)
-            ->countAllResults();
-
-        $pendingLabResults = $labTestModel
-            ->where('doctor_id', $doctorId)
-            ->where('status !=', 'completed')
-            ->countAllResults();
-
-        // Today's appointments with patient names
-        $appointments = $appointmentModel
-            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
-            ->join('patients', 'patients.id = appointments.patient_id')
-            ->where('DATE(appointments.appointment_date)', $today)
-            ->where('appointments.doctor_id', $doctorId)
-            ->orderBy('appointments.appointment_time', 'ASC')
-            ->findAll(10);
-
-        // Recent medical records
-        $recentRecords = $medicalRecordModel
-            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
-            ->join('patients', 'patients.id = medical_records.patient_id')
-            ->where('medical_records.doctor_id', $doctorId)
-            ->orderBy('medical_records.visit_date', 'DESC')
-            ->findAll(5);
-
-        // Pending lab tests
-        $pendingTests = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
-            ->join('patients', 'patients.id = lab_tests.patient_id')
-            ->where('lab_tests.doctor_id', $doctorId)
-            ->where('lab_tests.status !=', 'completed')
-            ->orderBy('lab_tests.requested_date', 'DESC')
-            ->findAll(5);
-
-        return view('doctor/dashboard', [
-            'todayAppointments' => $todayAppointments,
-            'pendingLabResults' => $pendingLabResults,
+        $data = [
+            'patients' => $patients,
             'appointments' => $appointments,
-            'recentRecords' => $recentRecords,
-            'pendingTests' => $pendingTests,
-        ]);
+            'prescriptions' => $prescriptions,
+        ];
+
+        helper('url');
+        return view('doctor/dashboard');
     }
 
     public function newRecord()
