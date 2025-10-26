@@ -21,7 +21,10 @@ class Session extends BaseConfig
      *
      * @var class-string<BaseHandler>
      */
-    public string $driver = 'CodeIgniter\Session\Handlers\DatabaseHandler';
+    // Use file-based sessions by default to avoid requiring a DB table.
+    // Change to 'CodeIgniter\\Session\\Handlers\\DatabaseHandler' only
+    // if you have created the `ci_sessions` table and want DB-backed sessions.
+    public string $driver = 'CodeIgniter\Session\Handlers\FileHandler';
 
     /**
      * --------------------------------------------------------------------------
@@ -57,7 +60,9 @@ class Session extends BaseConfig
      *
      * IMPORTANT: You are REQUIRED to set a valid save path!
      */
-    public string $savePath = 'ci_sessions';
+    // For the file handler, use the writable/session directory (absolute path).
+    // WRITEPATH is a CodeIgniter constant that points to the writable/ folder.
+    public string $savePath = WRITEPATH . 'session';
 
     /**
      * --------------------------------------------------------------------------

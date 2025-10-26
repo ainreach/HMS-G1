@@ -28,8 +28,8 @@
 </nav></aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
-      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Today Appointments</span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">—</div></article>
-      <article class="kpi-card kpi-info"><div class="kpi-head"><span>Pending Results</span><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">—</div></article>
+      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Today Appointments</span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($todayAppointments ?? 0) ?></div></article>
+      <article class="kpi-card kpi-info"><div class="kpi-head"><span>Pending Results</span><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($pendingLabResults ?? 0) ?></div></article>
     </section>
 
     <section class="panel" style="margin-top:16px">
@@ -37,7 +37,9 @@
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn" href="<?= site_url('doctor/records/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">New Medical Record</a>
         <a class="btn" href="<?= site_url('doctor/lab-requests/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Request Lab Test</a>
-        <a class="btn" href="<?= site_url('doctor/records/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Write Note</a>
+        <a class="btn" href="<?= site_url('doctor/patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">View Patients</a>
+        <a class="btn" href="<?= site_url('doctor/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Prescriptions</a>
+        <a class="btn" href="<?= site_url('doctor/lab-results') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Results</a>
       </div>
     </section>
 
@@ -54,18 +56,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Juan D.</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">09:00</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Follow-up</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Waiting</td>
-            </tr>
-            <tr>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Maria C.</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">10:15</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">Consultation</td>
-              <td style="padding:8px;border-bottom:1px solid #f3f4f6">In progress</td>
-            </tr>
+            <?php if (!empty($appointments)) : foreach ($appointments as $appointment) : ?>
+              <tr>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['first_name'] . ' ' . $appointment['last_name']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['appointment_time']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['reason'] ?: 'Consultation') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($appointment['status'] ?: 'Scheduled')) ?></td>
+              </tr>
+            <?php endforeach; else: ?>
+              <tr>
+                <td colspan="4" style="padding:10px;color:#6b7280;text-align:center">No appointments today.</td>
+              </tr>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>

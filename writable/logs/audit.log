@@ -1,0 +1,3 @@
+[2025-09-01 00:24:16] user=it_mike action=backup_export_csv details=Exported users CSV (9 rows)
+[2025-09-01 00:24:20] user=it_mike action=backup_export_csv_fallback details=ZipArchive missing, returned users CSV
+[2025-09-17 05:45:04] user=acct_noel action=statement_export_csv details=payments=1
