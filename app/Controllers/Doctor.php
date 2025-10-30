@@ -5,6 +5,20 @@ class Doctor extends BaseController
 {
     public function dashboard()
     {
+        $patientModel = new \App\Models\PatientModel();
+        $appointmentModel = new \App\Models\AppointmentModel();
+        $prescriptionModel = new \App\Models\PrescriptionModel();
+
+        $patients = $patientModel->findAll();
+        $appointments = $appointmentModel->where('doctor_id', session('user_id'))->findAll();
+        $prescriptions = $prescriptionModel->where('doctor_id', session('user_id'))->findAll();
+
+        $data = [
+            'patients' => $patients,
+            'appointments' => $appointments,
+            'prescriptions' => $prescriptions,
+        ];
+
         helper('url');
         $appointmentModel = model('App\\Models\\AppointmentModel');
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');

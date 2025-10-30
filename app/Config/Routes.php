@@ -9,7 +9,76 @@ $routes->get('/', 'Pages::home');
 $routes->get('/dashboard', 'Pages::dashboard');
 $routes->get('/dashboard/admin', 'Admin::dashboard', ['filter' => 'role:admin']);
 $routes->get('/dashboard/doctor', 'Doctor::dashboard', ['filter' => 'role:doctor']);
+<<<<<<< HEAD
 $routes->get('/dashboard/nurse', 'Nurse::dashboard', ['filter' => 'role:nurse']);
+=======
+// =============================================
+// NURSE ROUTES
+// =============================================
+
+// Main Nurse Dashboard Group
+$routes->group('dashboard', ['namespace' => 'App\Controllers'], function($routes) {
+    $opts = ['filter' => 'role:nurse'];
+    
+    // New standardized dashboard routes with named routes
+    $routes->group('nurse', $opts, function($routes) {
+        // Dashboard/Overview
+        $routes->get('', 'Nurse::dashboard', ['as' => 'nurse.overview']);
+        $routes->get('/', 'Nurse::dashboard');
+        
+        // Ward Patients
+        $routes->get('ward-patients', 'Nurse::wardPatients', ['as' => 'nurse.wardPatients']);
+        $routes->get('patient/(:num)', 'Nurse::patientMonitoring/$1', ['as' => 'nurse.patientMonitoring']);
+        
+        // Lab Samples
+        $routes->get('lab-samples', 'Nurse::labSamples', ['as' => 'nurse.labSamples']);
+        $routes->get('lab-samples/collect/(:num)', 'Nurse::collectSample/$1', ['as' => 'nurse.collectSample']);
+        
+        // Treatment Updates
+        $routes->get('treatment-updates', 'Nurse::treatmentUpdates', ['as' => 'nurse.treatmentUpdates']);
+        $routes->post('treatment-update', 'Nurse::updateTreatment', ['as' => 'nurse.updateTreatment']);
+        
+        // Vitals
+        $routes->get('vitals/new', 'Nurse::newVitals', ['as' => 'nurse.newVitals']);
+        $routes->post('vitals/store', 'Nurse::storeVitals', ['as' => 'nurse.storeVitals']);
+        
+        // Alias for patient-monitoring (backward compatibility)
+        $routes->get('patient-monitoring/(:num)', 'Nurse::patientMonitoring/$1', ['as' => 'nurse.patientMonitoring.alias']);
+        
+        // Notes
+        $routes->get('notes/new', 'Nurse::newNote', ['as' => 'nurse.newNote']);
+        $routes->post('notes/store', 'Nurse::storeNote', ['as' => 'nurse.storeNote']);
+    });
+});
+
+// Legacy routes for backward compatibility
+$routes->group('nurse', ['filter' => 'role:nurse', 'namespace' => 'App\Controllers'], function($routes) {
+    // Dashboard
+    $routes->get('', 'Nurse::dashboard');
+    $routes->get('dashboard', 'Nurse::dashboard');
+    
+    // Ward Patients
+    $routes->get('ward-patients', 'Nurse::wardPatients');
+    $routes->get('patient/(:num)', 'Nurse::patientMonitoring/$1');
+    $routes->get('patient-monitoring/(:num)', 'Nurse::patientMonitoring/$1');
+    
+    // Lab Samples
+    $routes->get('lab-samples', 'Nurse::labSamples');
+    $routes->get('lab-samples/collect/(:num)', 'Nurse::collectSample/$1');
+    
+    // Treatment Updates
+    $routes->get('treatment-updates', 'Nurse::treatmentUpdates');
+    $routes->post('treatment-update', 'Nurse::updateTreatment');
+    
+    // Vitals
+    $routes->get('vitals/new', 'Nurse::newVitals');
+    $routes->post('vitals/store', 'Nurse::storeVitals');
+    
+    // Notes
+    $routes->get('notes/new', 'Nurse::newNote');
+    $routes->post('notes/store', 'Nurse::storeNote');
+});
+>>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
 $routes->get('/dashboard/receptionist', 'Reception::dashboard', ['filter' => 'role:receptionist']);
 $routes->get('/dashboard/lab', 'Labstaff::dashboard', ['filter' => 'role:lab_staff']);
 $routes->get('/dashboard/pharmacist', 'Pharmacy::dashboard', ['filter' => 'role:pharmacist']);
@@ -95,6 +164,12 @@ $routes->get('/reception/appointments/new', 'Reception::newAppointment', ['filte
 $routes->post('/reception/appointments', 'Reception::storeAppointment', ['filter' => 'role:receptionist']);
 
 // Doctor functional routes
+$routes->get('/doctor/patient_records', 'Doctor::patient_records', ['filter' => 'role:doctor']);
+$routes->get('/doctor/view_patient_record/(:num)', 'Doctor::view_patient_record/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/create_prescription/(:num)', 'Doctor::create_prescription/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/store_prescription', 'Doctor::store_prescription', ['filter' => 'role:doctor']);
+$routes->get('/doctor/request_test/(:num)', 'Doctor::request_test/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/store_test_request', 'Doctor::store_test_request', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records/new', 'Doctor::newRecord', ['filter' => 'role:doctor']);
 $routes->post('/doctor/records', 'Doctor::storeRecord', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records', 'Doctor::patientRecords', ['filter' => 'role:doctor']);
@@ -110,6 +185,7 @@ $routes->get('/doctor/patients/new', 'Doctor::newPatient', ['filter' => 'role:do
 $routes->post('/doctor/patients', 'Doctor::storePatient', ['filter' => 'role:doctor,admin']);
 
 // Nurse functional routes
+<<<<<<< HEAD
 $routes->get('/nurse/vitals/new', 'Nurse::newVitals', ['filter' => 'role:nurse']);
 $routes->post('/nurse/vitals', 'Nurse::storeVitals', ['filter' => 'role:nurse']);
 $routes->get('/nurse/notes/new', 'Nurse::newNote', ['filter' => 'role:nurse']);
@@ -120,6 +196,21 @@ $routes->get('/nurse/lab-samples', 'Nurse::labSamples', ['filter' => 'role:nurse
 $routes->post('/nurse/lab-samples/(:num)/collect', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
 $routes->get('/nurse/treatment-updates', 'Nurse::treatmentUpdates', ['filter' => 'role:nurse']);
 $routes->post('/nurse/treatment-updates', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
+<<<<<<< HEAD
+=======
+=======
+$routes->get('nurse/vitals/new', 'Nurse::newVitals', ['filter' => 'role:nurse']);
+$routes->post('nurse/vitals', 'Nurse::storeVitals', ['filter' => 'role:nurse']);
+$routes->get('nurse/notes/new', 'Nurse::newNote', ['filter' => 'role:nurse']);
+$routes->post('nurse/notes', 'Nurse::storeNote', ['filter' => 'role:nurse']);
+$routes->get('nurse/ward-patients', 'Nurse::wardPatients', ['filter' => 'role:nurse']);
+$routes->get('nurse/ward-patients/(:num)', 'Nurse::patientMonitoring/$1', ['filter' => 'role:nurse']);
+$routes->get('nurse/lab-samples', 'Nurse::labSamples', ['filter' => 'role:nurse']);
+$routes->post('nurse/lab-samples/(:num)/collect', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
+$routes->get('nurse/treatment-updates', 'Nurse::treatmentUpdates', ['filter' => 'role:nurse']);
+$routes->post('nurse/treatment-updates', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
+>>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
+>>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 
 // Pharmacy functional routes
 $routes->get('/pharmacy/dispense/new', 'Pharmacy::newDispense', ['filter' => 'role:pharmacist']);
