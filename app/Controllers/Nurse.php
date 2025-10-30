@@ -76,6 +76,127 @@ class Nurse extends BaseController
         ]);
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Parse vitals input from various formats to a structured array
+     * 
+     * @param string $input The input string from the form
+     * @return array Structured vitals data
+     */
+    protected function parseVitalsInput(string $input): array
+    {
+        // Try to decode as JSON first
+        $decoded = json_decode($input, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+        
+        // If not valid JSON, try to parse as key:value pairs
+        $result = [];
+        $lines = preg_split('/\R+/', trim($input));
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            // Try to match key: value pattern
+            if (preg_match('/^\s*([^:]+?)\s*[:=]\s*(.+?)\s*$/', $line, $matches)) {
+                $key = trim($matches[1]);
+                $value = trim($matches[2]);
+                $result[$key] = is_numeric($value) ? (strpos($value, '.') !== false ? (float)$value : (int)$value) : $value;
+            } else {
+                // If no key:value format, add as a note
+                if (!isset($result['notes'])) {
+                    $result['notes'] = [];
+                }
+                $result['notes'][] = $line;
+            }
+        }
+        
+        // If we have notes as array, implode them
+        if (isset($result['notes']) && is_array($result['notes'])) {
+            $result['notes'] = implode("\n", $result['notes']);
+        }
+        
+        // Set a timestamp
+        $result['recorded_at'] = date('Y-m-d H:i:s');
+        
+        return $result;
+    }
+    
+    /**
+     * Normalize vitals input to JSON string
+     * 
+     * @param mixed $input Raw input from form
+     * @return string JSON string
+     */
+    protected function normalizeVitalsToJson($input): string
+    {
+        // Handle empty input
+        if (empty($input)) {
+            return json_encode(['notes' => ''], JSON_UNESCAPED_UNICODE);
+        }
+        
+        // If already an array, encode directly
+        if (is_array($input)) {
+            return json_encode($input, JSON_UNESCAPED_UNICODE);
+        }
+        
+        // Convert to string and trim
+        $input = trim((string)$input);
+        
+        // Try to decode as JSON first
+        $decoded = json_decode($input, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        }
+        
+        // Try to parse as key:value pairs
+        $result = [];
+        $lines = preg_split('/\R+/', $input);
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            
+            // Match key: value pattern
+            if (preg_match('/^\s*([A-Za-z0-9 _-]+?)\s*[:=]\s*(.+?)\s*$/', $line, $matches)) {
+                $key = trim($matches[1]);
+                $value = trim($matches[2]);
+                
+                // Convert numeric values to proper types
+                if (is_numeric($value)) {
+                    $value = strpos($value, '.') !== false ? (float)$value : (int)$value;
+                }
+                
+                $result[$key] = $value;
+            } else {
+                // If line doesn't match key:value, add to notes
+                if (!isset($result['notes'])) {
+                    $result['notes'] = [];
+                }
+                $result['notes'][] = $line;
+            }
+        }
+        
+        // If we collected notes as array, implode them
+        if (isset($result['notes']) && is_array($result['notes'])) {
+            $result['notes'] = implode("\n", $result['notes']);
+        }
+        
+        // If no structured data, use the original input as notes
+        if (empty($result)) {
+            $result = ['notes' => $input];
+        }
+        
+        // Add a timestamp
+        $result['recorded_at'] = date('Y-m-d H:i:s');
+        
+        return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+    
+>>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
     public function newVitals()
     {
         helper('url');
@@ -84,6 +205,7 @@ class Nurse extends BaseController
 
     public function storeVitals()
     {
+<<<<<<< HEAD
         helper(['url','form']);
         $patientId = (int) $this->request->getPost('patient_id');
         $vitals    = $this->request->getPost('vitals');
@@ -102,6 +224,52 @@ class Nurse extends BaseController
         $model = new \App\Models\MedicalRecordModel();
         $model->insert($data);
         return redirect()->to(site_url('dashboard/nurse'))->with('success', 'Vitals recorded.');
+=======
+        helper(['url', 'form']);
+        
+        // Get and validate required fields
+        $patientId = (int) ($this->request->getPost('patient_id') ?? 0);
+        
+        if (!$patientId) {
+            return redirect()->back()->with('error', 'Patient is required.')->withInput();
+        }
+        
+        // Get raw input
+        $vitalsInput = $this->request->getPost('vital_signs') ?: $this->request->getPost('vitals');
+        
+        // Normalize to JSON string
+        $vitalsJson = $this->normalizeVitalsToJson($vitalsInput);
+        
+        // Prepare data with proper type handling
+        $data = [
+            'patient_id'     => $patientId,
+            'appointment_id' => (($v = trim((string)$this->request->getPost('appointment_id'))) === '') ? null : (int)$v,
+            'doctor_id'      => (($v = trim((string)$this->request->getPost('doctor_id'))) === '') ? null : (int)$v,
+            'vital_signs'    => $vitalsJson,
+            'record_number'  => 'NV-' . date('YmdHis'),
+            'visit_date'     => date('Y-m-d H:i:s'),
+            'branch_id'      => 1, // Default branch
+        ];
+        
+        // Save through model with validation
+        $model = new \App\Models\MedicalRecordModel();
+        
+        try {
+            if ($model->save($data) === false) {
+                return redirect()->back()
+                    ->with('errors', $model->errors())
+                    ->withInput();
+            }
+            
+            return redirect()->to(site_url('dashboard/nurse'))
+                ->with('message', 'Vitals recorded successfully.');
+                
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error saving vitals: ' . $e->getMessage())
+                ->withInput();
+        }
+>>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
     }
 
     public function newNote()

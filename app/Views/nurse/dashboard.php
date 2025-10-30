@@ -36,11 +36,19 @@
     <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+<<<<<<< HEAD
         <a class="btn" href="<?= site_url('nurse/vitals/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Record Vitals</a>
         <a class="btn" href="<?= site_url('nurse/notes/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Update Care Notes</a>
         <a class="btn" href="<?= site_url('nurse/ward-patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Ward Patients</a>
         <a class="btn" href="<?= site_url('nurse/lab-samples') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Samples</a>
         <a class="btn" href="<?= site_url('nurse/treatment-updates') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Treatment Updates</a>
+=======
+        <a class="btn" href="<?= site_url('index.php/nurse/vitals/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Record Vitals</a>
+        <a class="btn" href="<?= site_url('index.php/nurse/notes/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Update Care Notes</a>
+        <a class="btn" href="<?= site_url('index.php/nurse/ward-patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Ward Patients</a>
+        <a class="btn" href="<?= site_url('index.php/nurse/lab-samples') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Samples</a>
+        <a class="btn" href="<?= site_url('index.php/nurse/treatment-updates') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Treatment Updates</a>
+>>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
       </div>
     </section>
 
