@@ -164,4 +164,151 @@ class Pharmacy extends BaseController
 
         return redirect()->to(site_url('dashboard/pharmacist'))->with('success', 'Medicine dispensed successfully.');
     }
+
+    public function prescriptions()
+    {
+        helper('url');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        
+        $prescriptions = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->join('users', 'users.id = medical_records.doctor_id')
+            ->where('medical_records.medications_prescribed IS NOT NULL')
+            ->where('medical_records.medications_prescribed !=', '')
+            ->orderBy('medical_records.visit_date', 'DESC')
+            ->findAll(50);
+
+        return view('pharmacy/prescriptions', ['prescriptions' => $prescriptions]);
+    }
+
+    public function dispensingHistory()
+    {
+        helper('url');
+        // This would require a dispensing_log table to track actual dispensing
+        // For now, we'll show a placeholder
+        $dispensingHistory = [];
+        
+        return view('pharmacy/dispensing_history', ['dispensingHistory' => $dispensingHistory]);
+    }
+
+    public function medicineSearch()
+    {
+        helper('url');
+        $searchTerm = $this->request->getGet('q');
+        $medicineModel = model('App\\Models\\MedicineModel');
+        
+        $medicines = $medicineModel
+            ->where('is_active', 1)
+            ->groupStart()
+                ->like('name', $searchTerm)
+                ->orLike('generic_name', $searchTerm)
+                ->orLike('medicine_code', $searchTerm)
+            ->groupEnd()
+            ->orderBy('name', 'ASC')
+            ->findAll(20);
+
+        return $this->response->setJSON($medicines);
+    }
+
+    public function lowStockAlerts()
+    {
+        helper('url');
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        $medicineModel = model('App\\Models\\MedicineModel');
+        
+        $db = \Config\Database::connect();
+        $builder = $db->table('inventory i')
+            ->select('i.medicine_id, SUM(i.quantity_in_stock) AS on_hand, MIN(i.reorder_level) AS reorder_level')
+            ->groupBy('i.medicine_id')
+            ->having('on_hand <= reorder_level')
+            ->having('reorder_level >', 0);
+        $rows = $builder->get()->getResultArray();
+
+        $alerts = [];
+        foreach ($rows as $row) {
+            $medicine = $medicineModel->find($row['medicine_id']);
+            if ($medicine) {
+                $alerts[] = [
+                    'medicine' => $medicine,
+                    'on_hand' => $row['on_hand'],
+                    'reorder_level' => $row['reorder_level'],
+                ];
+            }
+        }
+
+        return view('pharmacy/low_stock_alerts', ['alerts' => $alerts]);
+    }
+
+    public function addStock()
+    {
+        helper('url');
+        $medicineModel = model('App\\Models\\MedicineModel');
+        $medicines = $medicineModel->where('is_active', 1)->orderBy('name', 'ASC')->findAll(100);
+        
+        return view('pharmacy/add_stock', ['medicines' => $medicines]);
+    }
+
+    public function storeStock()
+    {
+        helper(['url', 'form']);
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        
+        $data = [
+            'medicine_id' => (int) $this->request->getPost('medicine_id'),
+            'batch_number' => $this->request->getPost('batch_number'),
+            'expiry_date' => $this->request->getPost('expiry_date'),
+            'quantity_in_stock' => (int) $this->request->getPost('quantity'),
+            'reorder_level' => (int) $this->request->getPost('reorder_level'),
+            'location' => $this->request->getPost('location') ?: 'Main Store',
+            'last_updated_by' => session('user_id') ?: 0,
+        ];
+
+        $inventoryModel->insert($data);
+        return redirect()->to(site_url('pharmacy/inventory'))->with('success', 'Stock added successfully.');
+    }
+
+    public function prescriptionFulfillment()
+    {
+        helper('url');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        
+        $prescriptions = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->join('users', 'users.id = medical_records.doctor_id')
+            ->where('medical_records.medications_prescribed IS NOT NULL')
+            ->where('medical_records.medications_prescribed !=', '')
+            ->where('medical_records.visit_date >=', date('Y-m-d', strtotime('-7 days')))
+            ->orderBy('medical_records.visit_date', 'DESC')
+            ->findAll(20);
+
+        return view('pharmacy/prescription_fulfillment', ['prescriptions' => $prescriptions]);
+    }
+
+    public function medicineExpiry()
+    {
+        helper('url');
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        $medicineModel = model('App\\Models\\MedicineModel');
+        
+        $expiringSoon = $inventoryModel
+            ->where('expiry_date <=', date('Y-m-d', strtotime('+30 days')))
+            ->where('expiry_date >=', date('Y-m-d'))
+            ->orderBy('expiry_date', 'ASC')
+            ->findAll(20);
+
+        $medicines = [];
+        foreach ($expiringSoon as $item) {
+            $medicine = $medicineModel->find($item['medicine_id']);
+            if ($medicine) {
+                $medicines[] = [
+                    'inventory' => $item,
+                    'medicine' => $medicine,
+                ];
+            }
+        }
+
+        return view('pharmacy/medicine_expiry', ['medicines' => $medicines]);
+    }
 }

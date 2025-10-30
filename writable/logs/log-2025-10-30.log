@@ -1,0 +1,451 @@
+CRITICAL - 2025-10-30 12:23:47 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:23:57 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:24:00 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:24:07 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:24:15 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:25:17 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:25:27 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:25:35 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:25:37 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:26:14 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:26:21 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:27:14 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:27:16 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:27:18 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:27:20 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:29:09 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:29:26 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:29:35 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:29:39 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:29:55 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:30:03 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:30:14 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:30:32 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:30:56 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:30:58 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:34:37 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:39:41 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:45:44 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:45:48 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:48:57 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:51:50 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 12:51:58 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ERROR - 2025-10-30 13:09:05 --> mysqli_sql_exception: Duplicate entry 'E-0001' for key 'employee_id' in C:\xampp\htdocs\HMS\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 C:\xampp\htdocs\HMS\system\Database\MySQLi\Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 C:\xampp\htdocs\HMS\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 C:\xampp\htdocs\HMS\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 C:\xampp\htdocs\HMS\system\Database\BaseBuilder.php(1841): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', NULL, false)
+#4 C:\xampp\htdocs\HMS\system\Database\BaseBuilder.php(2230): CodeIgniter\Database\BaseBuilder->batchExecute('_insertBatch', 100)
+#5 C:\xampp\htdocs\HMS\app\Database\Seeds\UsersSeeder.php(102): CodeIgniter\Database\BaseBuilder->insertBatch(Array)
+#6 C:\xampp\htdocs\HMS\system\Database\Seeder.php(149): App\Database\Seeds\UsersSeeder->run()
+#7 C:\xampp\htdocs\HMS\system\Commands\Database\Seed.php(79): CodeIgniter\Database\Seeder->call('App\\Database\\Se...')
+#8 C:\xampp\htdocs\HMS\system\CLI\Commands.php(74): CodeIgniter\Commands\Database\Seed->run(Array)
+#9 C:\xampp\htdocs\HMS\system\CLI\Console.php(47): CodeIgniter\CLI\Commands->run('db:seed', Array)
+#10 C:\xampp\htdocs\HMS\system\Boot.php(388): CodeIgniter\CLI\Console->run()
+#11 C:\xampp\htdocs\HMS\system\Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#12 C:\xampp\htdocs\HMS\spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#13 {main}
+CRITICAL - 2025-10-30 13:11:42 --> ErrorException: Undefined property: Config\App::$debug
+[Method: GET, Route: dashboard/it]
+in APPPATH\Controllers\Itstaff.php on line 255.
+ 1 APPPATH\Controllers\Itstaff.php(255): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined property: Config\\App::$debug', 'C:\\xampp\\htdocs\\HMS\\app\\Controllers\\Itstaff.php', 255)
+ 2 APPPATH\Controllers\Itstaff.php(41): App\Controllers\Itstaff->getSecurityAlerts()
+ 3 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Itstaff->dashboard()
+ 4 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Itstaff))
+ 5 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 6 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 7 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 8 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 13:21:34 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/ward_patients.php"
+[Method: GET, Route: nurse/ward-patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/ward_patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/ward_patients', [], true)
+ 3 APPPATH\Controllers\Nurse.php(147): view('nurse/ward_patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->wardPatients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-30 13:21:38 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/lab_samples.php"
+[Method: GET, Route: nurse/lab-samples]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/lab_samples.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/lab_samples', [], true)
+ 3 APPPATH\Controllers\Nurse.php(194): view('nurse/lab_samples', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->labSamples()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ERROR - 2025-10-30 13:42:22 --> mysqli_sql_exception: Duplicate entry 'E-0001' for key 'employee_id' in C:\xampp\htdocs\HMS\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 C:\xampp\htdocs\HMS\system\Database\MySQLi\Connection.php(327): mysqli->query('INSERT INTO `us...', 0)
+#1 C:\xampp\htdocs\HMS\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('INSERT INTO `us...')
+#2 C:\xampp\htdocs\HMS\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('INSERT INTO `us...')
+#3 C:\xampp\htdocs\HMS\system\Database\BaseBuilder.php(1841): CodeIgniter\Database\BaseConnection->query('INSERT INTO `us...', NULL, false)
+#4 C:\xampp\htdocs\HMS\system\Database\BaseBuilder.php(2230): CodeIgniter\Database\BaseBuilder->batchExecute('_insertBatch', 100)
+#5 C:\xampp\htdocs\HMS\app\Database\Seeds\UsersSeeder.php(102): CodeIgniter\Database\BaseBuilder->insertBatch(Array)
+#6 C:\xampp\htdocs\HMS\system\Database\Seeder.php(149): App\Database\Seeds\UsersSeeder->run()
+#7 C:\xampp\htdocs\HMS\system\Commands\Database\Seed.php(79): CodeIgniter\Database\Seeder->call('App\\Database\\Se...')
+#8 C:\xampp\htdocs\HMS\system\CLI\Commands.php(74): CodeIgniter\Commands\Database\Seed->run(Array)
+#9 C:\xampp\htdocs\HMS\system\CLI\Console.php(47): CodeIgniter\CLI\Commands->run('db:seed', Array)
+#10 C:\xampp\htdocs\HMS\system\Boot.php(388): CodeIgniter\CLI\Console->run()
+#11 C:\xampp\htdocs\HMS\system\Boot.php(133): CodeIgniter\Boot::runCommand(Object(CodeIgniter\CLI\Console))
+#12 C:\xampp\htdocs\HMS\spark(87): CodeIgniter\Boot::bootSpark(Object(Config\Paths))
+#13 {main}

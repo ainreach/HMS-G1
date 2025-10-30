@@ -6,7 +6,59 @@ class Doctor extends BaseController
     public function dashboard()
     {
         helper('url');
-        return view('doctor/dashboard');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+
+        $today = date('Y-m-d');
+        $doctorId = session('user_id') ?: 1; // Fallback for testing
+
+        // KPIs
+        $todayAppointments = $appointmentModel
+            ->where('DATE(appointment_date)', $today)
+            ->where('doctor_id', $doctorId)
+            ->countAllResults();
+
+        $pendingLabResults = $labTestModel
+            ->where('doctor_id', $doctorId)
+            ->where('status !=', 'completed')
+            ->countAllResults();
+
+        // Today's appointments with patient names
+        $appointments = $appointmentModel
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = appointments.patient_id')
+            ->where('DATE(appointments.appointment_date)', $today)
+            ->where('appointments.doctor_id', $doctorId)
+            ->orderBy('appointments.appointment_time', 'ASC')
+            ->findAll(10);
+
+        // Recent medical records
+        $recentRecords = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->where('medical_records.doctor_id', $doctorId)
+            ->orderBy('medical_records.visit_date', 'DESC')
+            ->findAll(5);
+
+        // Pending lab tests
+        $pendingTests = $labTestModel
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = lab_tests.patient_id')
+            ->where('lab_tests.doctor_id', $doctorId)
+            ->where('lab_tests.status !=', 'completed')
+            ->orderBy('lab_tests.requested_date', 'DESC')
+            ->findAll(5);
+
+        return view('doctor/dashboard', [
+            'todayAppointments' => $todayAppointments,
+            'pendingLabResults' => $pendingLabResults,
+            'appointments' => $appointments,
+            'recentRecords' => $recentRecords,
+            'pendingTests' => $pendingTests,
+        ]);
     }
 
     public function newRecord()
@@ -110,5 +162,121 @@ class Doctor extends BaseController
         $patients = new \App\Models\PatientModel();
         $patients->insert($data);
         return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Patient registered.');
+    }
+
+    public function patientRecords()
+    {
+        helper('url');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $doctorId = session('user_id') ?: 1;
+
+        $records = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->where('medical_records.doctor_id', $doctorId)
+            ->orderBy('medical_records.visit_date', 'DESC')
+            ->findAll(50);
+
+        return view('doctor/patient_records', ['records' => $records]);
+    }
+
+    public function viewRecord($id)
+    {
+        helper('url');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $record = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->where('medical_records.id', $id)
+            ->first();
+
+        if (!$record) {
+            return redirect()->to(site_url('doctor/records'))->with('error', 'Record not found.');
+        }
+
+        return view('doctor/record_view', ['record' => $record]);
+    }
+
+    public function prescriptions()
+    {
+        helper('url');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $doctorId = session('user_id') ?: 1;
+
+        $prescriptions = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->where('medical_records.doctor_id', $doctorId)
+            ->where('medical_records.medications_prescribed IS NOT NULL')
+            ->where('medical_records.medications_prescribed !=', '')
+            ->orderBy('medical_records.visit_date', 'DESC')
+            ->findAll(50);
+
+        return view('doctor/prescriptions', ['prescriptions' => $prescriptions]);
+    }
+
+    public function labResults()
+    {
+        helper('url');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $doctorId = session('user_id') ?: 1;
+
+        $results = $labTestModel
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = lab_tests.patient_id')
+            ->where('lab_tests.doctor_id', $doctorId)
+            ->where('lab_tests.status', 'completed')
+            ->orderBy('lab_tests.result_date', 'DESC')
+            ->findAll(50);
+
+        return view('doctor/lab_results', ['results' => $results]);
+    }
+
+    public function viewLabResult($id)
+    {
+        helper('url');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $result = $labTestModel
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender')
+            ->join('patients', 'patients.id = lab_tests.patient_id')
+            ->where('lab_tests.id', $id)
+            ->first();
+
+        if (!$result) {
+            return redirect()->to(site_url('doctor/lab-results'))->with('error', 'Lab result not found.');
+        }
+
+        return view('doctor/lab_result_view', ['result' => $result]);
+    }
+
+    public function patients()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->findAll(100);
+
+        return view('doctor/patients', ['patients' => $patients]);
+    }
+
+    public function searchPatients()
+    {
+        helper('url');
+        $searchTerm = $this->request->getGet('q');
+        $patientModel = model('App\\Models\\PatientModel');
+        
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->groupStart()
+                ->like('first_name', $searchTerm)
+                ->orLike('last_name', $searchTerm)
+                ->orLike('patient_id', $searchTerm)
+            ->groupEnd()
+            ->orderBy('last_name', 'ASC')
+            ->findAll(20);
+
+        return $this->response->setJSON($patients);
     }
 }

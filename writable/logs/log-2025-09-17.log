@@ -1,0 +1,576 @@
+CRITICAL - 2025-09-17 05:16:49 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "dashboard/records.php"
+[Method: GET, Route: records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('dashboard/records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('dashboard/records', [], true)
+ 3 APPPATH\Controllers\Pages.php(83): view('dashboard/records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pages->records()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pages))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:44:18 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:44:20 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:44:22 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/prescriptions.php"
+[Method: GET, Route: doctor/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/prescriptions', [], true)
+ 3 APPPATH\Controllers\Doctor.php(215): view('doctor/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:44:23 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/lab_results.php"
+[Method: GET, Route: doctor/lab-results]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/lab_results.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/lab_results', [], true)
+ 3 APPPATH\Controllers\Doctor.php(232): view('doctor/lab_results', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->labResults()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:45:47 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/patients.php"
+[Method: GET, Route: reception/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/patients', [], true)
+ 3 APPPATH\Controllers\Reception.php(224): view('Reception/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:45:48 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/appointments.php"
+[Method: GET, Route: reception/appointments]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/appointments.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/appointments', [], true)
+ 3 APPPATH\Controllers\Reception.php(156): view('Reception/appointments', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->appointments()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 05:45:50 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/patient_lookup.php"
+[Method: GET, Route: reception/patient-lookup]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/patient_lookup.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/patient_lookup', [], true)
+ 3 APPPATH\Controllers\Reception.php(250): view('Reception/patient_lookup')
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->patientLookup()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:07 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:09 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/prescriptions.php"
+[Method: GET, Route: doctor/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/prescriptions', [], true)
+ 3 APPPATH\Controllers\Doctor.php(215): view('doctor/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:11 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/lab_results.php"
+[Method: GET, Route: doctor/lab-results]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/lab_results.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/lab_results', [], true)
+ 3 APPPATH\Controllers\Doctor.php(232): view('doctor/lab_results', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->labResults()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:13 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:15 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:16 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/prescriptions.php"
+[Method: GET, Route: doctor/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/prescriptions', [], true)
+ 3 APPPATH\Controllers\Doctor.php(215): view('doctor/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:17 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/lab_results.php"
+[Method: GET, Route: doctor/lab-results]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/lab_results.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/lab_results', [], true)
+ 3 APPPATH\Controllers\Doctor.php(232): view('doctor/lab_results', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->labResults()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:55 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:57 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:58 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/prescriptions.php"
+[Method: GET, Route: doctor/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/prescriptions', [], true)
+ 3 APPPATH\Controllers\Doctor.php(215): view('doctor/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:22:59 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/lab_results.php"
+[Method: GET, Route: doctor/lab-results]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/lab_results.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/lab_results', [], true)
+ 3 APPPATH\Controllers\Doctor.php(232): view('doctor/lab_results', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->labResults()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:24:06 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Lab_staff/test_requests.php"
+[Method: GET, Route: lab/test-requests]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Lab_staff/test_requests.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Lab_staff/test_requests', [], true)
+ 3 APPPATH\Controllers\Labstaff.php(119): view('Lab_staff/test_requests', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Labstaff->testRequests()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Labstaff))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:24:08 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Lab_staff/sample_queue.php"
+[Method: GET, Route: lab/sample-queue]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Lab_staff/sample_queue.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Lab_staff/sample_queue', [], true)
+ 3 APPPATH\Controllers\Labstaff.php(153): view('Lab_staff/sample_queue', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Labstaff->sampleQueue()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Labstaff))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:24:09 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Lab_staff/completed_tests.php"
+[Method: GET, Route: lab/completed-tests]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Lab_staff/completed_tests.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Lab_staff/completed_tests', [], true)
+ 3 APPPATH\Controllers\Labstaff.php(169): view('Lab_staff/completed_tests', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Labstaff->completedTests()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Labstaff))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:24:10 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Lab_staff/statistics.php"
+[Method: GET, Route: lab/statistics]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Lab_staff/statistics.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Lab_staff/statistics', [], true)
+ 3 APPPATH\Controllers\Labstaff.php(232): view('Lab_staff/statistics', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Labstaff->testStatistics()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Labstaff))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:24:36 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/prescriptions.php"
+[Method: GET, Route: pharmacy/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/prescriptions', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(182): view('pharmacy/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:25:35 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/low_stock_alerts.php"
+[Method: GET, Route: pharmacy/low-stock-alerts]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/low_stock_alerts.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/low_stock_alerts', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(240): view('pharmacy/low_stock_alerts', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->lowStockAlerts()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:25:36 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:26:05 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/ward_patients.php"
+[Method: GET, Route: nurse/ward-patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/ward_patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/ward_patients', [], true)
+ 3 APPPATH\Controllers\Nurse.php(147): view('nurse/ward_patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->wardPatients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:26:07 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/lab_samples.php"
+[Method: GET, Route: nurse/lab-samples]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/lab_samples.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/lab_samples', [], true)
+ 3 APPPATH\Controllers\Nurse.php(194): view('nurse/lab_samples', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->labSamples()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:26:08 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/treatment_updates.php"
+[Method: GET, Route: nurse/treatment-updates]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/treatment_updates.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/treatment_updates', [], true)
+ 3 APPPATH\Controllers\Nurse.php(229): view('nurse/treatment_updates', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->treatmentUpdates()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:30:56 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "nurse/ward_patients.php"
+[Method: GET, Route: nurse/ward-patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('nurse/ward_patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('nurse/ward_patients', [], true)
+ 3 APPPATH\Controllers\Nurse.php(147): view('nurse/ward_patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Nurse->wardPatients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Nurse))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:32:13 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:32:15 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:42:40 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:43:03 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:43:28 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:43:30 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:43:32 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/prescriptions.php"
+[Method: GET, Route: doctor/prescriptions]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/prescriptions.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/prescriptions', [], true)
+ 3 APPPATH\Controllers\Doctor.php(215): view('doctor/prescriptions', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->prescriptions()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:43:33 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/lab_results.php"
+[Method: GET, Route: doctor/lab-results]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/lab_results.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/lab_results', [], true)
+ 3 APPPATH\Controllers\Doctor.php(232): view('doctor/lab_results', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->labResults()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:45:17 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:45:27 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:45:35 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patients.php"
+[Method: GET, Route: doctor/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patients', [], true)
+ 3 APPPATH\Controllers\Doctor.php(261): view('doctor/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:45:36 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "doctor/patient_records.php"
+[Method: GET, Route: doctor/records]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('doctor/patient_records.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('doctor/patient_records', [], true)
+ 3 APPPATH\Controllers\Doctor.php(180): view('doctor/patient_records', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Doctor->patientRecords()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Doctor))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:52:51 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/patients.php"
+[Method: GET, Route: reception/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/patients', [], true)
+ 3 APPPATH\Controllers\Reception.php(224): view('Reception/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:52:53 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/appointments.php"
+[Method: GET, Route: reception/appointments]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/appointments.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/appointments', [], true)
+ 3 APPPATH\Controllers\Reception.php(156): view('Reception/appointments', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->appointments()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:52:54 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/patient_lookup.php"
+[Method: GET, Route: reception/patient-lookup]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/patient_lookup.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/patient_lookup', [], true)
+ 3 APPPATH\Controllers\Reception.php(250): view('Reception/patient_lookup')
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->patientLookup()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 14:53:18 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Reception/patients.php"
+[Method: GET, Route: reception/patients]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Reception/patients.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Reception/patients', [], true)
+ 3 APPPATH\Controllers\Reception.php(224): view('Reception/patients', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Reception->patients()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Reception))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 15:00:29 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/add_stock.php"
+[Method: GET, Route: pharmacy/add-stock]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/add_stock.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/add_stock', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(249): view('pharmacy/add_stock', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->addStock()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-09-17 15:00:36 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "pharmacy/medicine_expiry.php"
+[Method: GET, Route: pharmacy/medicine-expiry]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('pharmacy/medicine_expiry.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('pharmacy/medicine_expiry', [], true)
+ 3 APPPATH\Controllers\Pharmacy.php(312): view('pharmacy/medicine_expiry', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): App\Controllers\Pharmacy->medicineExpiry()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Pharmacy))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
