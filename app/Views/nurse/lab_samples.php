@@ -1,62 +1,84 @@
-<?= $this->extend('templates/dashboard') ?>
-
-<?= $this->section('content') ?>
-<div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Lab Samples Collection</h1>
-    </div>
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab Samples - Nurse Dashboard</title>
+  <base href="<?= rtrim(base_url(), '/') ?>/">
+  <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head><body>
+<header class="dash-topbar" role="banner"><div class="topbar-inner">
+  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+  <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
+    <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Nurse</h1><small>Patient monitoring • Treatment updates</small></div>
+  </div>
+  <div class="top-right" aria-label="User session">
+    <span class="role"><i class="fa-regular fa-user"></i>
+      <?= esc(session('username') ?? session('role') ?? 'User') ?>
+    </span>
+    <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
+  </div>
+</div></header>
+<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Nurse navigation"><nav class="side-nav">
+  <a href="<?= site_url('dashboard/nurse') ?>">Overview</a>
+  <a href="<?= site_url('nurse/ward-patients') ?>" data-feature="ehr">Ward Patients</a>
+  <a href="<?= site_url('nurse/lab-samples') ?>" class="active" aria-current="page" data-feature="laboratory">Lab Samples</a>
+  <a href="<?= site_url('nurse/treatment-updates') ?>" data-feature="ehr">Treatment Updates</a>
+  <a href="<?= site_url('nurse/vitals/new') ?>" data-feature="ehr">Record Vitals</a>
+</nav></aside>
+  <main class="content">
+    <h1 style="font-size:1.5rem;margin-bottom:1rem">Lab Samples Collection</h1>
 
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success">
+        <div style="padding:12px;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;margin-bottom:16px;color:#155724">
             <?= session()->getFlashdata('success') ?>
         </div>
     <?php endif; ?>
 
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="labSamplesTable" width="100%" cellspacing="0">
+    <section class="panel">
+        <div class="panel-body" style="overflow:auto">
+                <table class="table" style="width:100%;border-collapse:collapse">
                     <thead>
                         <tr>
-                            <th>Test ID</th>
-                            <th>Patient</th>
-                            <th>Test Type</th>
-                            <th>Requested Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Test ID</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Patient</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Test Type</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Requested Date</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Status</th>
+                            <th style="padding:12px;text-align:left;border-bottom:2px solid #e5e7eb;background:#f9fafb">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($samples as $sample): ?>
                         <tr>
-                            <td>#<?= $sample['id'] ?></td>
-                            <td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb">#<?= $sample['id'] ?></td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb">
                                 <?= $sample['first_name'] . ' ' . $sample['last_name'] ?>
-                                <small class="d-block text-muted">ID: <?= $sample['patient_code'] ?></small>
+                                <small style="display:block;color:#6b7280">ID: <?= $sample['patient_code'] ?></small>
                             </td>
-                            <td><?= $sample['test_type'] ?? 'N/A' ?></td>
-                            <td><?= date('M d, Y H:i', strtotime($sample['requested_date'])) ?></td>
-                            <td>
-                                <span class="badge badge-warning"><?= ucfirst(str_replace('_', ' ', $sample['status'])) ?></span>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb"><?= $sample['test_type'] ?? 'N/A' ?></td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb"><?= date('M d, Y H:i', strtotime($sample['requested_date'])) ?></td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb">
+                                <span style="padding:4px 8px;background:#fef3c7;color:#92400e;border-radius:4px;font-size:0.875rem"><?= ucfirst(str_replace('_', ' ', $sample['status'])) ?></span>
                             </td>
-                            <td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb">
                                 <?php if ($sample['status'] === 'requested'): ?>
-                                    <form action="<?= site_url('index.php/nurse/lab-samples/' . $sample['id'] . '/collect') ?>" method="post" class="d-inline">
+                                    <form action="<?= site_url('nurse/lab-samples/' . $sample['id'] . '/collect') ?>" method="post" style="display:inline">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark this sample as collected?')">
+                                        <button type="submit" style="background:#10b981;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem" onclick="return confirm('Mark this sample as collected?')">
                                             <i class="fas fa-check"></i> Mark Collected
                                         </button>
                                     </form>
                                 <?php else: ?>
-                                    <span class="text-muted">Collected</span>
+                                    <span style="color:#6b7280">Collected</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            </div>
         </div>
-    </div>
+    </section>
+  </main>
 </div>
-<?= $this->endSection() ?>
+</body>
+</html>

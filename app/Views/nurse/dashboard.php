@@ -90,11 +90,18 @@
               </tr>
             </thead>
             <tbody>
-              <?php if (!empty($recentVitals)) : foreach ($recentVitals as $vital) : ?>
+              <?php if (!empty($recentVitals)) : foreach ($recentVitals as $vital) : 
+                $vitals = json_decode($vital['vital_signs'] ?? '{}', true);
+                $vitalDisplay = [];
+                if (!empty($vitals['blood_pressure'])) $vitalDisplay[] = 'BP: ' . $vitals['blood_pressure'];
+                if (!empty($vitals['temperature'])) $vitalDisplay[] = 'Temp: ' . $vitals['temperature'] . '°C';
+                if (!empty($vitals['pulse'])) $vitalDisplay[] = 'Pulse: ' . $vitals['pulse'];
+                $vitalText = !empty($vitalDisplay) ? implode(', ', $vitalDisplay) : 'N/A';
+              ?>
                 <tr>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($vital['first_name'] . ' ' . $vital['last_name']) ?></td>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(date('M j, H:i', strtotime($vital['visit_date']))) ?></td>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($vital['vital_signs']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:0.875rem"><?= esc($vitalText) ?></td>
                 </tr>
               <?php endforeach; else: ?>
                 <tr>

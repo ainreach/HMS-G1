@@ -116,16 +116,35 @@ $routes->get('/doctor/patients/new', 'Doctor::newPatient', ['filter' => 'role:do
 $routes->post('/doctor/patients', 'Doctor::storePatient', ['filter' => 'role:doctor,admin']);
 
 // Nurse functional routes
+// Dashboard
+$routes->get('/nurse', 'Nurse::dashboard', ['filter' => 'role:nurse']);
+$routes->get('/nurse/dashboard', 'Nurse::dashboard', ['filter' => 'role:nurse']);
+
+// Vitals Management
 $routes->get('/nurse/vitals/new', 'Nurse::newVitals', ['filter' => 'role:nurse']);
 $routes->post('/nurse/vitals', 'Nurse::storeVitals', ['filter' => 'role:nurse']);
+$routes->post('/nurse/vitals/store', 'Nurse::storeVitals', ['filter' => 'role:nurse']);
+
+// Notes Management
 $routes->get('/nurse/notes/new', 'Nurse::newNote', ['filter' => 'role:nurse']);
 $routes->post('/nurse/notes', 'Nurse::storeNote', ['filter' => 'role:nurse']);
+$routes->post('/nurse/notes/store', 'Nurse::storeNote', ['filter' => 'role:nurse']);
+
+// Ward Patients & Patient Monitoring
 $routes->get('/nurse/ward-patients', 'Nurse::wardPatients', ['filter' => 'role:nurse']);
 $routes->get('/nurse/ward-patients/(:num)', 'Nurse::patientMonitoring/$1', ['filter' => 'role:nurse']);
+$routes->get('/nurse/patient/(:num)', 'Nurse::patientMonitoring/$1', ['filter' => 'role:nurse']);
+$routes->get('/nurse/patient-monitoring/(:num)', 'Nurse::patientMonitoring/$1', ['filter' => 'role:nurse']);
+
+// Lab Samples
 $routes->get('/nurse/lab-samples', 'Nurse::labSamples', ['filter' => 'role:nurse']);
+$routes->get('/nurse/lab-samples/collect/(:num)', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
 $routes->post('/nurse/lab-samples/(:num)/collect', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
+
+// Treatment Updates
 $routes->get('/nurse/treatment-updates', 'Nurse::treatmentUpdates', ['filter' => 'role:nurse']);
 $routes->post('/nurse/treatment-updates', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
+$routes->post('/nurse/treatment-update', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
 
 // Pharmacy functional routes
 $routes->get('/pharmacy/dispense/new', 'Pharmacy::newDispense', ['filter' => 'role:pharmacist']);

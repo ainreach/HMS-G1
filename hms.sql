@@ -3,11 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
-<<<<<<< HEAD
 -- Generation Time: Sep 21, 2025 at 11:56 AM
-=======
--- Generation Time: Sep 17, 2025 at 05:03 PM
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -120,7 +116,6 @@ CREATE TABLE `branches` (
 -- --------------------------------------------------------
 
 --
-<<<<<<< HEAD
 -- Table structure for table `ci_sessions`
 --
 
@@ -146,8 +141,6 @@ INSERT INTO `ci_sessions` (`id`, `ip_address`, `timestamp`, `data`) VALUES
 -- --------------------------------------------------------
 
 --
-=======
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 -- Table structure for table `insurance_claims`
 --
 
@@ -242,7 +235,6 @@ CREATE TABLE `lab_tests` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-<<<<<<< HEAD
 --
 -- Dumping data for table `lab_tests`
 --
@@ -250,8 +242,6 @@ CREATE TABLE `lab_tests` (
 INSERT INTO `lab_tests` (`id`, `test_number`, `patient_id`, `doctor_id`, `test_type`, `test_name`, `test_category`, `requested_date`, `sample_collected_date`, `result_date`, `status`, `results`, `normal_range`, `interpretation`, `lab_technician_id`, `branch_id`, `priority`, `cost`, `notes`, `created_at`, `updated_at`) VALUES
 (1, 'LT-20250920070422', 0, 3, 'ordered', 'Nicole Bayani', 'blood', '2025-09-20 07:04:22', NULL, NULL, 'requested', NULL, NULL, NULL, NULL, 1, 'urgent', 0.00, NULL, '2025-09-20 07:04:22', '2025-09-20 07:04:22');
 
-=======
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 -- --------------------------------------------------------
 
 --
@@ -345,12 +335,8 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (13, '2025-08-29-022520', 'App\\Database\\Migrations\\CreatePaymentsTable', 'default', 'App', 1756460218, 2),
 (14, '2025-08-29-024000', 'App\\Database\\Migrations\\CreateInsuranceClaimsTable', 'default', 'App', 1756461080, 3),
 (15, '2025-09-16-003700', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1757954288, 4),
-<<<<<<< HEAD
 (16, '2025-09-16-003701', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1757954382, 5),
 (17, '2025-09-20-065436', 'App\\Database\\Migrations\\CreateSessionsTable', 'default', 'App', 1758351292, 6);
-=======
-(16, '2025-09-16-003701', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1757954382, 5);
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 
 -- --------------------------------------------------------
 
@@ -508,7 +494,6 @@ ALTER TABLE `branches`
   ADD UNIQUE KEY `code` (`code`);
 
 --
-<<<<<<< HEAD
 -- Indexes for table `ci_sessions`
 --
 ALTER TABLE `ci_sessions`
@@ -516,8 +501,6 @@ ALTER TABLE `ci_sessions`
   ADD KEY `timestamp` (`timestamp`);
 
 --
-=======
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 -- Indexes for table `insurance_claims`
 --
 ALTER TABLE `insurance_claims`
@@ -649,11 +632,7 @@ ALTER TABLE `invoices`
 -- AUTO_INCREMENT for table `lab_tests`
 --
 ALTER TABLE `lab_tests`
-<<<<<<< HEAD
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-=======
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 
 --
 -- AUTO_INCREMENT for table `medical_records`
@@ -671,11 +650,7 @@ ALTER TABLE `medicines`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-<<<<<<< HEAD
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-=======
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
->>>>>>> fc82f7bf4647ba55d3800da454c3231d84c8f7d9
 
 --
 -- AUTO_INCREMENT for table `patients`
