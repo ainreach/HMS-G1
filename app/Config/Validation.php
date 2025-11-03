@@ -20,23 +20,11 @@ class Validation extends BaseConfig
      *
      * @var list<string>
      */
-<<<<<<< HEAD
-=======
-    /**
-     * Custom rule sets.
-     *
-     * @var array<string, string>
-     */
->>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
     public array $ruleSets = [
         Rules::class,
         FormatRules::class,
         FileRules::class,
         CreditCardRules::class,
-<<<<<<< HEAD
-=======
-        'App\Validation\CustomRules',
->>>>>>> 2305c0b (Nurse: fix JSON validation + routes + monitoring)
     ];
 
     /**
