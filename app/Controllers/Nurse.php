@@ -301,15 +301,17 @@ class Nurse extends BaseController
     public function wardPatients()
     {
         helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         
-        // Get distinct patients with their most recent visit
-        $patients = $medicalRecordModel
+        // Get all active patients with their most recent visit (if any)
+        $patients = $patientModel
             ->select('patients.id, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, patients.phone, MAX(medical_records.visit_date) as visit_date')
-            ->join('patients', 'patients.id = medical_records.patient_id')
-            ->where('DATE(medical_records.visit_date) >=', date('Y-m-d', strtotime('-7 days')))
+            ->join('medical_records', 'medical_records.patient_id = patients.id', 'left')
+            ->where('patients.is_active', 1)
             ->groupBy('patients.id, patients.first_name, patients.last_name, patients.patient_id, patients.date_of_birth, patients.gender, patients.phone')
             ->orderBy('visit_date', 'DESC')
+            ->orderBy('patients.created_at', 'DESC')
             ->findAll(50);
 
         return view('nurse/ward_patients', ['patients' => $patients]);

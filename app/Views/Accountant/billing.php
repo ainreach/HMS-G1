@@ -10,7 +10,6 @@
 </head>
 <body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Billing & Payments</h1><small>Invoices • Payments • Statements</small></div>
   </div>
@@ -22,27 +21,27 @@
   </div>
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>">Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page">Billing & Payments</a>
-  <a href="<?= site_url('accountant/insurance') ?>">Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>">Financial Reports</a>
+  <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+  <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+  <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
+  <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
 </nav></aside>
   <main class="content">
     <section class="panel">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="<?= site_url('accountant/invoices/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-regular fa-file-lines"></i> Create Invoice</a>
-        <a class="btn" href="<?= site_url('accountant/payments/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-sack-dollar"></i> Record Payment</a>
-        <a class="btn" href="<?= site_url('accountant/statements') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-regular fa-file-pdf"></i> Download Statement</a>
-        <a class="btn" href="<?= site_url('accountant/invoices/export') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-file-csv"></i> Invoices CSV</a>
-        <a class="btn" href="<?= site_url('accountant/finance/export/zip') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-file-zipper"></i> Finance ZIP</a>
+        <a href="<?= site_url('accountant/invoices/new') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-lines"></i> Create Invoice</a>
+        <a href="<?= site_url('accountant/payments/new') ?>" style="background:#10b981;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-sack-dollar"></i> Record Payment</a>
+        <a href="<?= site_url('accountant/statements') ?>" style="background:#6b7280;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-pdf"></i> Download Statement</a>
+        <a href="<?= site_url('accountant/invoices/export') ?>" style="background:#8b5cf6;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-file-csv"></i> Invoices CSV</a>
+        <a href="<?= site_url('accountant/finance/export/zip') ?>" style="background:#f59e0b;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-file-zipper"></i> Finance ZIP</a>
       </div>
     </section>
 
     <section class="kpi-grid" style="margin-top:16px" aria-label="Key indicators">
-      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Open Invoices</span><i class="fa-regular fa-file-invoice"></i></div><div class="kpi-value"><?= esc($openInvoicesCount ?? 0) ?></div></article>
-      <article class="kpi-card kpi-success"><div class="kpi-head"><span>Payments Today</span><i class="fa-solid fa-sack-dollar"></i></div><div class="kpi-value">$<?= number_format((float)($paymentsToday ?? 0), 2) ?></div></article>
-      <article class="kpi-card kpi-info"><div class="kpi-head"><span>AR Balance</span><i class="fa-solid fa-scale-balanced"></i></div><div class="kpi-value">$<?= number_format((float)($arBalance ?? 0), 2) ?></div></article>
+      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Open Invoices</span><i class="fa-solid fa-file-invoice"></i></div><div class="kpi-value"><?= esc($openInvoicesCount ?? 0) ?></div></article>
+      <article class="kpi-card kpi-success"><div class="kpi-head"><span>Payments Today</span><i class="fa-solid fa-money-bill-wave"></i></div><div class="kpi-value">$<?= number_format((float)($paymentsToday ?? 0), 2) ?></div></article>
+      <article class="kpi-card kpi-info"><div class="kpi-head"><span>AR Balance</span><i class="fa-solid fa-wallet"></i></div><div class="kpi-value">$<?= number_format((float)($arBalance ?? 0), 2) ?></div></article>
     </section>
 
     <section class="panel" style="margin-top:16px">

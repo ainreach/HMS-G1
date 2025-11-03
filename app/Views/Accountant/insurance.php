@@ -10,7 +10,6 @@
 </head>
 <body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Insurance Claims</h1><small>Submit • Track • Reconcile</small></div>
   </div>
@@ -22,16 +21,16 @@
   </div>
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>">Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>">Billing & Payments</a>
-  <a href="<?= site_url('accountant/insurance') ?>" class="active" aria-current="page">Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>">Financial Reports</a>
+  <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+  <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+  <a href="<?= site_url('accountant/insurance') ?>" class="active" aria-current="page"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
+  <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
 </nav></aside>
   <main class="content">
     <section class="panel">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="<?= site_url('accountant/claims/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-regular fa-file-medical"></i> New Claim</a>
+        <a href="<?= site_url('accountant/claims/new') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-plus"></i> New Claim</a>
       </div>
     </section>
 

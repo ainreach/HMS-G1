@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Nurse</h1><small>Patient monitoring • Treatment updates</small></div>
   </div>
@@ -19,11 +18,11 @@
   </div>
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Nurse navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/nurse') ?>">Overview</a>
-  <a href="<?= site_url('nurse/ward-patients') ?>" data-feature="ehr">Ward Patients</a>
-  <a href="<?= site_url('nurse/lab-samples') ?>" data-feature="laboratory">Lab Samples</a>
-  <a href="<?= site_url('nurse/treatment-updates') ?>" data-feature="ehr">Treatment Updates</a>
-  <a href="<?= site_url('nurse/vitals/new') ?>" class="active" aria-current="page" data-feature="ehr">Record Vitals</a>
+  <a href="<?= site_url('dashboard/nurse') ?>"><i class="fa-solid fa-house-medical" style="margin-right:8px"></i>Overview</a>
+  <a href="<?= site_url('nurse/ward-patients') ?>" data-feature="ehr"><i class="fa-solid fa-bed-pulse" style="margin-right:8px"></i>Ward Patients</a>
+  <a href="<?= site_url('nurse/lab-samples') ?>" data-feature="laboratory"><i class="fa-solid fa-flask" style="margin-right:8px"></i>Lab Samples</a>
+  <a href="<?= site_url('nurse/treatment-updates') ?>" data-feature="ehr"><i class="fa-solid fa-notes-medical" style="margin-right:8px"></i>Treatment Updates</a>
+  <a href="<?= site_url('nurse/vitals/new') ?>" class="active" aria-current="page" data-feature="ehr"><i class="fa-solid fa-heart-pulse" style="margin-right:8px"></i>Record Vitals</a>
 </nav></aside>
   <main class="content">
     <h1 style="font-size:1.5rem;margin-bottom:1rem">Record Vitals</h1>

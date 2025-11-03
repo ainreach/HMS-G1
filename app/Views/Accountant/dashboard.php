@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Accountant</h1><small>Billing • Payments • Insurance claims</small></div>
   </div>
@@ -19,23 +18,23 @@
   </div>
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>" class="active" aria-current="page">Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>" data-feature="billing">Billing & Payments</a>
-  <a href="<?= site_url('accountant/insurance') ?>" data-feature="insurance">Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>" data-feature="reports">Financial Reports</a>
+  <a href="<?= site_url('dashboard/accountant') ?>" class="active" aria-current="page"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+  <a href="<?= site_url('accountant/billing') ?>" data-feature="billing"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+  <a href="<?= site_url('accountant/insurance') ?>" data-feature="insurance"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
+  <a href="<?= site_url('accountant/reports') ?>" data-feature="reports"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
 </nav></aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
-      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Invoices Today</span><i class="fa-solid fa-file-invoice" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($invoicesToday ?? 0) ?></div></article>
-      <article class="kpi-card kpi-success"><div class="kpi-head"><span>Payments</span><i class="fa-solid fa-sack-dollar" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">$<?= number_format((float)($paymentsToday ?? 0), 2) ?></div></article>
+      <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Invoices Today</span><i class="fa-solid fa-receipt" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($invoicesToday ?? 0) ?></div></article>
+      <article class="kpi-card kpi-success"><div class="kpi-head"><span>Payments</span><i class="fa-solid fa-circle-dollar-to-slot" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite">$<?= number_format((float)($paymentsToday ?? 0), 2) ?></div></article>
     </section>
 
     <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="<?= site_url('accountant/invoices/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Create Invoice</a>
-        <a class="btn" href="<?= site_url('accountant/payments/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Record Payment</a>
-        <a class="btn" href="<?= site_url('accountant/statements') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Download Statement</a>
+        <a href="<?= site_url('accountant/invoices/new') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block">Create Invoice</a>
+        <a href="<?= site_url('accountant/payments/new') ?>" style="background:#10b981;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block">Record Payment</a>
+        <a href="<?= site_url('accountant/statements') ?>" style="background:#6b7280;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block">Download Statement</a>
       </div>
     </section>
 

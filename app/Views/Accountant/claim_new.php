@@ -9,7 +9,7 @@
 </head>
 <body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('accountant/insurance') ?>" class="menu-btn" aria-label="Back">←</a>
+  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-grip"></i></a>
   <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">New Insurance Claim</h1></div>
 </div></header>
 <div class="layout">
