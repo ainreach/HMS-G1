@@ -45,7 +45,7 @@
                         <?php foreach ($patients as $patient): ?>
                         <tr>
                             <td style="padding:12px;border-bottom:1px solid #e5e7eb"><?= $patient['patient_code'] ?></td>
-                            <td style="padding:12px;border-bottom:1px solid #e5e7eb"><?= $patient['first_name'] . ' ' . $patient['last_name'] ?></td>
+                            <td style="padding:12px;border-bottom:1px solid #e5e7eb"><a href="<?= site_url('nurse/patients/view/' . $patient['id']) ?>"><?= $patient['first_name'] . ' ' . $patient['last_name'] ?></a></td>
                             <td style="padding:12px;border-bottom:1px solid #e5e7eb"><?= ucfirst($patient['gender'] ?? '') ?></td>
                             <td style="padding:12px;border-bottom:1px solid #e5e7eb">
                                 <?php 
@@ -64,6 +64,9 @@
                                 <?php endif; ?>
                             </td>
                             <td style="padding:12px;border-bottom:1px solid #e5e7eb">
+                                <a href="<?= site_url('nurse/patients/view/' . $patient['id']) ?>" style="background:#3498db;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block;cursor:pointer; margin-right: 5px;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
                                 <a href="<?= site_url('nurse/ward-patients/' . $patient['id']) ?>" style="background:#0ea5e9;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block;cursor:pointer" onmouseover="this.style.background='#0284c7'" onmouseout="this.style.background='#0ea5e9'">
                                     <i class="fas fa-heartbeat"></i> Monitor
                                 </a>

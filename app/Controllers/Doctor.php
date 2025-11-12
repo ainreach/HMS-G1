@@ -275,6 +275,17 @@ class Doctor extends BaseController
         return view('doctor/patients', ['patients' => $patients]);
     }
 
+    public function viewPatient($id)
+    {
+        helper(['url']);
+        $id = (int) $id;
+        $patient = model('App\Models\PatientModel')->find($id);
+        if (!$patient) {
+            return redirect()->to(site_url('doctor/patients'))->with('error', 'Patient not found.');
+        }
+        return view('admin/patient_view', ['patient' => $patient]);
+    }
+
     public function searchPatients()
     {
         helper('url');

@@ -317,6 +317,17 @@ class Nurse extends BaseController
         return view('nurse/ward_patients', ['patients' => $patients]);
     }
 
+    public function viewPatient($id)
+    {
+        helper(['url']);
+        $id = (int) $id;
+        $patient = model('App\Models\PatientModel')->find($id);
+        if (!$patient) {
+            return redirect()->to(site_url('nurse/ward-patients'))->with('error', 'Patient not found.');
+        }
+        return view('admin/patient_view', ['patient' => $patient]);
+    }
+
     public function patientMonitoring($patientId)
     {
         helper('url');

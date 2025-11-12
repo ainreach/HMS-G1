@@ -26,11 +26,14 @@
               <?php foreach ($patients as $patient): ?>
                 <tr>
                   <td><?= esc($patient['patient_id']) ?></td>
-                  <td><?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?></td>
+                  <td><a href="<?= site_url('admin/patients/view/' . $patient['id']) ?>"><?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?></a></td>
                   <td><?= esc($patient['phone'] ?? 'N/A') ?></td>
                   <td><?= esc($patient['email'] ?? 'N/A') ?></td>
                   <td><?= date('M j, Y', strtotime($patient['created_at'])) ?></td>
                   <td>
+                    <a href="<?= site_url('admin/patients/view/' . $patient['id']) ?>" class="btn btn-info" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                      <i class="fas fa-eye"></i> View
+                    </a>
                     <a href="<?= site_url('admin/patients/edit/' . $patient['id']) ?>" class="btn btn-warning" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                       <i class="fas fa-edit"></i> Edit
                     </a>

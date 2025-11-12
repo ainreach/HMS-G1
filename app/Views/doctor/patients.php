@@ -38,7 +38,7 @@
             <?php if (!empty($patients)) : foreach ($patients as $p) : ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['patient_id'] ?? ('P-' . $p['id'])) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '')) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><a href="<?= site_url('doctor/patients/view/' . $p['id']) ?>"><?= esc(($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '')) ?></a></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(!empty($p['date_of_birth']) ? date('M j, Y', strtotime($p['date_of_birth'])) : '-') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($p['gender'] ?? '')) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['phone'] ?? '-') ?></td>

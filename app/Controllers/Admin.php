@@ -251,17 +251,6 @@ class Admin extends BaseController
         return redirect()->to(site_url('admin/users'))->with('success','User updated.');
     }
 
-    public function deleteUser($id)
-    {
-        helper(['url']);
-        $id = (int) $id;
-        $users = model('App\\Models\\UserModel');
-        if ($users->find($id)) {
-            $users->delete($id);
-            AuditLogger::log('user_delete', 'user_id=' . $id);
-        }
-        return redirect()->to(site_url('admin/users'))->with('success','User deleted.');
-    }
 
     // Patient Management
     public function patients()
@@ -376,6 +365,17 @@ class Admin extends BaseController
         $patients->update($id, $data);
         AuditLogger::log('patient_update', 'patient_id=' . $id);
         return redirect()->to(site_url('admin/patients'))->with('success','Patient updated.');
+    }
+
+    public function viewPatient($id)
+    {
+        helper(['url']);
+        $id = (int) $id;
+        $patient = model('App\Models\PatientModel')->find($id);
+        if (!$patient) {
+            return redirect()->to(site_url('admin/patients'))->with('error', 'Patient not found.');
+        }
+        return view('admin/patient_view', ['patient' => $patient]);
     }
 
     public function deletePatient($id)

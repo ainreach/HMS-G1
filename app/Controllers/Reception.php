@@ -211,6 +211,18 @@ class Reception extends BaseController
         return redirect()->to(site_url('reception/appointments'))->with('success', 'Appointment cancelled successfully.');
     }
 
+    public function viewPatient($id)
+    {
+        helper(['url']);
+        $id = (int) $id;
+        $patient = model('App\Models\PatientModel')->find($id);
+        if (!$patient) {
+            return redirect()->to(site_url('reception/patients'))->with('error', 'Patient not found.');
+        }
+
+        return view('admin/patient_view', ['patient' => $patient]);
+    }
+
     public function patients()
     {
         helper('url');

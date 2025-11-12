@@ -28,10 +28,6 @@
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($u['created_at'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <a class="btn" href="<?= site_url('admin/users/edit/' . $u['id']) ?>" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">Edit</a>
-                  <form method="post" action="<?= site_url('admin/users/delete/' . $u['id']) ?>" style="display:inline" onsubmit="return confirm('Delete this user?');">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn" style="padding:6px 10px;border:1px solid #ef4444;color:#ef4444;border-radius:6px;background:#fff">Delete</button>
-                  </form>
                 </td>
               </tr>
             <?php endforeach; else: ?>

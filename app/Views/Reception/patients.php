@@ -39,21 +39,27 @@
             <tr>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Name</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient ID</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Gender</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Date of Birth</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Phone</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Email</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Address</th>
             </tr>
           </thead>
           <tbody>
             <?php if (!empty($patients)) : foreach ($patients as $p) : ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><a href="<?= site_url('reception/patients/view/' . $p['id']) ?>"><?= esc(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) ?></a></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['patient_id'] ?? '') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($p['gender'] ?? 'N/A')) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['date_of_birth'] ?? 'N/A') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['phone'] ?? 'N/A') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['email'] ?? 'N/A') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($p['address'] ?? 'N/A') ?></td>
               </tr>
             <?php endforeach; else: ?>
               <tr>
-                <td colspan="4" style="padding:10px;color:#6b7280;text-align:center">No patients found.</td>
+                <td colspan="7" style="padding:10px;color:#6b7280;text-align:center">No patients found.</td>
               </tr>
             <?php endif; ?>
           </tbody>
