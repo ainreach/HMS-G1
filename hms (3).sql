@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 21, 2025 at 11:56 AM
+-- Generation Time: Nov 18, 2025 at 05:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -126,18 +126,6 @@ CREATE TABLE `ci_sessions` (
   `data` blob NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `ci_sessions`
---
-
-INSERT INTO `ci_sessions` (`id`, `ip_address`, `timestamp`, `data`) VALUES
-('ci_session:6bf104c2516b1dbb83fb3bb7d93ca4c4', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383335333235373b5f63695f70726576696f75735f75726c7c733a34333a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f6c6f67696e223b5f5f63695f766172737c613a303a7b7d),
-('ci_session:7058014c9cd68159e4f6bffd90e16649', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383335323139323b5f63695f70726576696f75735f75726c7c733a35313a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f64617368626f6172642f6c6162223b726f6c657c733a393a226c61625f7374616666223b757365726e616d657c733a373a226c61625f62656e223b757365725f69647c693a363b),
-('ci_session:8fce445cca04b8a071ad0c844c432664', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383335333239393b5f63695f70726576696f75735f75726c7c733a34333a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f6c6f67696e223b5f5f63695f766172737c613a303a7b7d),
-('ci_session:d4624ca93e4a7fb6afc00e017cde1999', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383434383232323b5f63695f70726576696f75735f75726c7c733a35323a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f61646d696e2f696e766f69636573223b726f6c657c733a353a2261646d696e223b757365726e616d657c733a31303a2261646d696e5f6a616e65223b757365725f69647c693a313b),
-('ci_session:e82dbdd4d2e3ff83e2bc72fce9c89d12', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383434383535363b5f5f63695f766172737c613a303a7b7d5f63695f70726576696f75735f75726c7c733a34333a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f6c6f67696e223b),
-('ci_session:e9f295ceac89ab8890a87c630d16de26', '::1', 4294967295, 0x5f5f63695f6c6173745f726567656e65726174657c693a313735383434383534363b5f63695f70726576696f75735f75726c7c733a35343a22687474703a2f2f6c6f63616c686f73742f484d532f7075626c69632f696e6465782e7068702f61646d696e2f61756469742d6c6f6773223b726f6c657c733a353a2261646d696e223b757365726e616d657c733a31303a2261646d696e5f6a616e65223b757365725f69647c693a313b5f5f63695f766172737c613a303a7b7d);
-
 -- --------------------------------------------------------
 
 --
@@ -158,13 +146,6 @@ CREATE TABLE `insurance_claims` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `insurance_claims`
---
-
-INSERT INTO `insurance_claims` (`id`, `claim_no`, `invoice_no`, `patient_name`, `provider`, `policy_no`, `amount_claimed`, `amount_approved`, `status`, `submitted_at`, `created_at`, `updated_at`) VALUES
-(1, '11222', '2000', 'ain reach nabale', 'jose', '1001', 1000.00, 700.00, 'approved', '2025-08-31 17:31:00', '2025-09-01 00:31:08', '2025-09-01 00:31:08');
 
 -- --------------------------------------------------------
 
@@ -234,13 +215,6 @@ CREATE TABLE `lab_tests` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `lab_tests`
---
-
-INSERT INTO `lab_tests` (`id`, `test_number`, `patient_id`, `doctor_id`, `test_type`, `test_name`, `test_category`, `requested_date`, `sample_collected_date`, `result_date`, `status`, `results`, `normal_range`, `interpretation`, `lab_technician_id`, `branch_id`, `priority`, `cost`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'LT-20250920070422', 0, 3, 'ordered', 'Nicole Bayani', 'blood', '2025-09-20 07:04:22', NULL, NULL, 'requested', NULL, NULL, NULL, NULL, 1, 'urgent', 0.00, NULL, '2025-09-20 07:04:22', '2025-09-20 07:04:22');
 
 -- --------------------------------------------------------
 
@@ -320,23 +294,22 @@ CREATE TABLE `migrations` (
 --
 
 INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`, `batch`) VALUES
-(1, '2024-01-01-000001', 'App\\Database\\Migrations\\CreateUsersTable', 'default', 'App', 1756442412, 1),
-(2, '2024-01-01-000002', 'App\\Database\\Migrations\\CreateBranchesTable', 'default', 'App', 1756442412, 1),
-(3, '2024-01-01-000003', 'App\\Database\\Migrations\\CreatePatientsTable', 'default', 'App', 1756442412, 1),
-(4, '2024-01-01-000004', 'App\\Database\\Migrations\\CreateAppointmentsTable', 'default', 'App', 1756442412, 1),
-(5, '2024-01-01-000005', 'App\\Database\\Migrations\\CreateMedicalRecordsTable', 'default', 'App', 1756442412, 1),
-(6, '2024-01-01-000006', 'App\\Database\\Migrations\\CreateBillingTable', 'default', 'App', 1756442412, 1),
-(7, '2024-01-01-000007', 'App\\Database\\Migrations\\CreateBillingItemsTable', 'default', 'App', 1756442412, 1),
-(8, '2024-01-01-000008', 'App\\Database\\Migrations\\CreateLabTestsTable', 'default', 'App', 1756442412, 1),
-(9, '2024-01-01-000009', 'App\\Database\\Migrations\\CreateMedicinesTable', 'default', 'App', 1756442413, 1),
-(10, '2024-01-01-000010', 'App\\Database\\Migrations\\CreateInventoryTable', 'default', 'App', 1756442413, 1),
-(11, '2025-08-29-000000', 'App\\Database\\Migrations\\CreateUsers', 'default', 'App', 1756460218, 2),
-(12, '2025-08-29-022430', 'App\\Database\\Migrations\\CreateInvoicesTable', 'default', 'App', 1756460218, 2),
-(13, '2025-08-29-022520', 'App\\Database\\Migrations\\CreatePaymentsTable', 'default', 'App', 1756460218, 2),
-(14, '2025-08-29-024000', 'App\\Database\\Migrations\\CreateInsuranceClaimsTable', 'default', 'App', 1756461080, 3),
-(15, '2025-09-16-003700', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1757954288, 4),
-(16, '2025-09-16-003701', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1757954382, 5),
-(17, '2025-09-20-065436', 'App\\Database\\Migrations\\CreateSessionsTable', 'default', 'App', 1758351292, 6);
+(1, '2024-01-01-000001', 'App\\Database\\Migrations\\CreateUsersTable', 'default', 'App', 1763434439, 1),
+(2, '2024-01-01-000002', 'App\\Database\\Migrations\\CreateBranchesTable', 'default', 'App', 1763434439, 1),
+(3, '2024-01-01-000003', 'App\\Database\\Migrations\\CreatePatientsTable', 'default', 'App', 1763434439, 1),
+(4, '2024-01-01-000004', 'App\\Database\\Migrations\\CreateAppointmentsTable', 'default', 'App', 1763434440, 1),
+(5, '2024-01-01-000005', 'App\\Database\\Migrations\\CreateMedicalRecordsTable', 'default', 'App', 1763434440, 1),
+(6, '2024-01-01-000006', 'App\\Database\\Migrations\\CreateBillingTable', 'default', 'App', 1763434440, 1),
+(7, '2024-01-01-000007', 'App\\Database\\Migrations\\CreateBillingItemsTable', 'default', 'App', 1763434440, 1),
+(8, '2024-01-01-000008', 'App\\Database\\Migrations\\CreateLabTestsTable', 'default', 'App', 1763434440, 1),
+(9, '2024-01-01-000009', 'App\\Database\\Migrations\\CreateMedicinesTable', 'default', 'App', 1763434440, 1),
+(10, '2024-01-01-000010', 'App\\Database\\Migrations\\CreateInventoryTable', 'default', 'App', 1763434440, 1),
+(11, '2025-08-29-000000', 'App\\Database\\Migrations\\CreateUsers', 'default', 'App', 1763434441, 1),
+(12, '2025-08-29-022430', 'App\\Database\\Migrations\\CreateInvoicesTable', 'default', 'App', 1763434441, 1),
+(13, '2025-08-29-022520', 'App\\Database\\Migrations\\CreatePaymentsTable', 'default', 'App', 1763434441, 1),
+(14, '2025-08-29-024000', 'App\\Database\\Migrations\\CreateInsuranceClaimsTable', 'default', 'App', 1763434441, 1),
+(15, '2025-09-16-003701', 'App\\Database\\Migrations\\CreatePrescriptionsTable', 'default', 'App', 1763434441, 1),
+(16, '2025-09-20-065436', 'App\\Database\\Migrations\\CreateSessionsTable', 'default', 'App', 1763434441, 1);
 
 -- --------------------------------------------------------
 
@@ -370,13 +343,6 @@ CREATE TABLE `patients` (
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `patients`
---
-
-INSERT INTO `patients` (`id`, `patient_id`, `first_name`, `last_name`, `middle_name`, `date_of_birth`, `gender`, `blood_type`, `phone`, `email`, `address`, `city`, `emergency_contact_name`, `emergency_contact_phone`, `emergency_contact_relation`, `insurance_provider`, `insurance_number`, `allergies`, `medical_history`, `branch_id`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'P-20250917145907', 'Nicole', 'Bayani', NULL, '2004-11-10', 'female', NULL, '9534921530', 'nicolebayani110@gmail.com', 'Purok 4, Conel, General Santos City', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-09-17 14:59:07', '2025-09-17 14:59:07');
-
 -- --------------------------------------------------------
 
 --
@@ -392,13 +358,6 @@ CREATE TABLE `payments` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `payments`
---
-
-INSERT INTO `payments` (`id`, `patient_name`, `invoice_no`, `amount`, `paid_at`, `created_at`, `updated_at`) VALUES
-(1, 'ain reach nabale', NULL, 10000.00, '2025-08-31 17:31:00', '2025-09-01 00:31:41', '2025-09-01 00:31:41');
 
 -- --------------------------------------------------------
 
@@ -449,15 +408,14 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `employee_id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `role`, `branch_id`, `specialization`, `license_number`, `is_active`, `profile_image`, `created_at`, `updated_at`) VALUES
-(1, 'E-0001', 'admin_jane', 'admin_jane@example.com', '$2y$10$Zdly8MYsaOJ5LO2puOGRae7Z9N8bWeztdrypPG47x3SoJkyIR88Ym', 'Jane', 'Admin', NULL, 'admin', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(2, 'E-0002', 'it_mike', 'it_mike@example.com', '$2y$10$9LSc4krgC4ld5EFXCXY0w.Yf9l5xdkmWaMSIoWoUwuuDDJi/0eUl6', 'Mike', 'IT', NULL, 'it_staff', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(3, 'E-0003', 'doc_sara', 'doc_sara@example.com', '$2y$10$Ai09vunk.bM4D60zTTTOT.07Cskux9PzpgIZ/boqKuaKc7mf.KTEi', 'Sara', 'Doctor', NULL, 'doctor', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(4, 'E-0004', 'nurse_lee', 'nurse_lee@example.com', '$2y$10$eNIRsdU1hZ.3pGyP0kg.M.OszIZDTo8rB6HgkrbybZ5NpCgGK6n8K', 'Lee', 'Nurse', NULL, 'nurse', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(5, 'E-0005', 'recep_anna', 'recep_anna@example.com', '$2y$10$zHM9cfWTBf3l9KQcuj311ueAKDSO.JbnSD1SMVpbwIl5loMT1m5Xm', 'Anna', 'Reception', NULL, 'receptionist', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(6, 'E-0006', 'lab_ben', 'lab_ben@example.com', '$2y$10$5wXnSkGiKIRkBG1hPsEpMOrVb.zQgZhTPwv/.eZm1ZHpFRw9MTk.6', 'Ben', 'Lab', NULL, 'lab_staff', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(7, 'E-0007', 'pharm_kate', 'pharm_kate@example.com', '$2y$10$OnJD7bnbbHMj.WXC0JobV.42XjYZ9.0YDP4Kr0D6AO9tnPlujUoLu', 'Kate', 'Pharm', NULL, 'pharmacist', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(8, 'E-0008', 'acct_noel', 'acct_noel@example.com', '$2y$10$vJOx/9yOwaejzDEmcMc9.ufC2FvmxOclGOXBUvqu80hhPfBlSXGum', 'Noel', 'Acct', NULL, 'accountant', NULL, NULL, NULL, 1, NULL, '2025-08-29 06:20:15', '2025-08-29 06:20:15'),
-(9, '2311600074', 'ayenreach', 'ayenreach123@gmail.com', '$2y$10$hEVN/o.o279DbrMJ8ZFWje.FnUqvoB.YDLKoAp7uDA6S3.YC5Yfs.', 'ain reach', 'nabale', NULL, 'admin', NULL, NULL, NULL, 1, NULL, '2025-08-31 23:44:38', '2025-08-31 23:44:38');
+(1, 'E-0001', 'admin_jane', 'admin_jane@example.com', '$2y$10$z1i2ECc3f5FuTihl12NR3.mjmeG0Of.JQNCumst.gqvql2poCs1xu', 'Jane', 'Admin', NULL, 'admin', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(2, 'E-0002', 'it_mike', 'it_mike@example.com', '$2y$10$KoN5gyvX6Ux08DzvBN4Y..QKH4Hk.63ELMtD.ARHXpOoSEOPoez3.', 'Mike', 'IT', NULL, 'it_staff', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(3, 'E-0003', 'doc_sara', 'doc_sara@example.com', '$2y$10$sdqpHuWs/tRdsZNQusAG2eyPp.WwbZFHaYRl1LjaKv47AhbvubsJK', 'Sara', 'Doctor', NULL, 'doctor', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(4, 'E-0004', 'nurse_lee', 'nurse_lee@example.com', '$2y$10$KJV9/ZMl2YpynO.DIAQtROelOAvAPOA8FMWYz7ooQXdpWBJR7Hgk2', 'Lee', 'Nurse', NULL, 'nurse', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(5, 'E-0005', 'recep_anna', 'recep_anna@example.com', '$2y$10$KGPt5pVBUcT3qnSINFCEpuveUTC7JwstMLAVZgSpYNwX1ePwqvzqG', 'Anna', 'Reception', NULL, 'receptionist', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(6, 'E-0006', 'lab_ben', 'lab_ben@example.com', '$2y$10$5bLF18D5l/vEh18gf.o7PeW0Pbp8JCJSwZhTblMMcnSMueDe2D7/K', 'Ben', 'Lab', NULL, 'lab_staff', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(7, 'E-0007', 'pharm_kate', 'pharm_kate@example.com', '$2y$10$SINshjAQGXoPbaZESMgMpOYP3is.5hgRXn2ImN1dLgPR0B7DFZ/FG', 'Kate', 'Pharm', NULL, 'pharmacist', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36'),
+(8, 'E-0008', 'acct_noel', 'acct_noel@example.com', '$2y$10$2HrGLLdwGZuIAB3L4BOo2.a3Ta1W0hXjbhyk33szJy28UhMkJyMxG', 'Noel', 'Acct', NULL, 'accountant', NULL, NULL, NULL, 1, NULL, '2025-11-18 04:27:36', '2025-11-18 04:27:36');
 
 --
 -- Indexes for dumped tables
@@ -469,7 +427,10 @@ INSERT INTO `users` (`id`, `employee_id`, `username`, `email`, `password`, `firs
 ALTER TABLE `appointments`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `appointment_number` (`appointment_number`),
-  ADD KEY `patient_id_doctor_id_appointment_date` (`patient_id`,`doctor_id`,`appointment_date`);
+  ADD KEY `patient_id_doctor_id_appointment_date` (`patient_id`,`doctor_id`,`appointment_date`),
+  ADD KEY `fk_appointments_doctor` (`doctor_id`),
+  ADD KEY `fk_appointments_branch` (`branch_id`),
+  ADD KEY `fk_appointments_created_by` (`created_by`);
 
 --
 -- Indexes for table `billing`
@@ -477,7 +438,10 @@ ALTER TABLE `appointments`
 ALTER TABLE `billing`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `invoice_number` (`invoice_number`),
-  ADD KEY `patient_id_bill_date` (`patient_id`,`bill_date`);
+  ADD KEY `patient_id_bill_date` (`patient_id`,`bill_date`),
+  ADD KEY `fk_billing_appointment` (`appointment_id`),
+  ADD KEY `fk_billing_branch` (`branch_id`),
+  ADD KEY `fk_billing_created_by` (`created_by`);
 
 --
 -- Indexes for table `billing_items`
@@ -505,7 +469,8 @@ ALTER TABLE `ci_sessions`
 --
 ALTER TABLE `insurance_claims`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `claim_no` (`claim_no`);
+  ADD UNIQUE KEY `claim_no` (`claim_no`),
+  ADD KEY `fk_insurance_claims_invoice` (`invoice_no`);
 
 --
 -- Indexes for table `inventory`
@@ -513,14 +478,16 @@ ALTER TABLE `insurance_claims`
 ALTER TABLE `inventory`
   ADD PRIMARY KEY (`id`),
   ADD KEY `medicine_id_branch_id` (`medicine_id`,`branch_id`),
-  ADD KEY `expiry_date` (`expiry_date`);
+  ADD KEY `expiry_date` (`expiry_date`),
+  ADD KEY `fk_inventory_branch` (`branch_id`);
 
 --
 -- Indexes for table `invoices`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `invoice_no` (`invoice_no`);
+  ADD UNIQUE KEY `invoice_no` (`invoice_no`),
+  ADD KEY `idx_invoices_invoice_no` (`invoice_no`);
 
 --
 -- Indexes for table `lab_tests`
@@ -528,7 +495,10 @@ ALTER TABLE `invoices`
 ALTER TABLE `lab_tests`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `test_number` (`test_number`),
-  ADD KEY `patient_id_requested_date` (`patient_id`,`requested_date`);
+  ADD KEY `patient_id_requested_date` (`patient_id`,`requested_date`),
+  ADD KEY `fk_lab_tests_doctor` (`doctor_id`),
+  ADD KEY `fk_lab_tests_technician` (`lab_technician_id`),
+  ADD KEY `fk_lab_tests_branch` (`branch_id`);
 
 --
 -- Indexes for table `medical_records`
@@ -536,7 +506,10 @@ ALTER TABLE `lab_tests`
 ALTER TABLE `medical_records`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `record_number` (`record_number`),
-  ADD KEY `patient_id_visit_date` (`patient_id`,`visit_date`);
+  ADD KEY `patient_id_visit_date` (`patient_id`,`visit_date`),
+  ADD KEY `fk_medical_records_appointment` (`appointment_id`),
+  ADD KEY `fk_medical_records_doctor` (`doctor_id`),
+  ADD KEY `fk_medical_records_branch` (`branch_id`);
 
 --
 -- Indexes for table `medicines`
@@ -564,13 +537,16 @@ ALTER TABLE `patients`
 -- Indexes for table `payments`
 --
 ALTER TABLE `payments`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_payments_invoice` (`invoice_no`);
 
 --
 -- Indexes for table `prescriptions`
 --
 ALTER TABLE `prescriptions`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_prescriptions_patient` (`patient_id`),
+  ADD KEY `fk_prescriptions_doctor` (`doctor_id`);
 
 --
 -- Indexes for table `users`
@@ -614,7 +590,7 @@ ALTER TABLE `branches`
 -- AUTO_INCREMENT for table `insurance_claims`
 --
 ALTER TABLE `insurance_claims`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `inventory`
@@ -632,7 +608,7 @@ ALTER TABLE `invoices`
 -- AUTO_INCREMENT for table `lab_tests`
 --
 ALTER TABLE `lab_tests`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `medical_records`
@@ -650,19 +626,19 @@ ALTER TABLE `medicines`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `prescriptions`
@@ -674,7 +650,91 @@ ALTER TABLE `prescriptions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `appointments`
+--
+ALTER TABLE `appointments`
+  ADD CONSTRAINT `fk_appointments_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_appointments_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_appointments_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_appointments_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `billing`
+--
+ALTER TABLE `billing`
+  ADD CONSTRAINT `fk_billing_appointment` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_billing_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_billing_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_billing_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `billing_items`
+--
+ALTER TABLE `billing_items`
+  ADD CONSTRAINT `fk_billing_items_billing` FOREIGN KEY (`billing_id`) REFERENCES `billing` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `insurance_claims`
+--
+ALTER TABLE `insurance_claims`
+  ADD CONSTRAINT `fk_insurance_claims_invoice` FOREIGN KEY (`invoice_no`) REFERENCES `invoices` (`invoice_no`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `inventory`
+--
+ALTER TABLE `inventory`
+  ADD CONSTRAINT `fk_inventory_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_inventory_medicine` FOREIGN KEY (`medicine_id`) REFERENCES `medicines` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `lab_tests`
+--
+ALTER TABLE `lab_tests`
+  ADD CONSTRAINT `fk_lab_tests_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lab_tests_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lab_tests_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lab_tests_technician` FOREIGN KEY (`lab_technician_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `medical_records`
+--
+ALTER TABLE `medical_records`
+  ADD CONSTRAINT `fk_medical_records_appointment` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_medical_records_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_medical_records_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_medical_records_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `patients`
+--
+ALTER TABLE `patients`
+  ADD CONSTRAINT `fk_patients_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+--
+-- Constraints for table `payments`
+--
+ALTER TABLE `payments`
+  ADD CONSTRAINT `fk_payments_invoice` FOREIGN KEY (`invoice_no`) REFERENCES `invoices` (`invoice_no`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `prescriptions`
+--
+ALTER TABLE `prescriptions`
+  ADD CONSTRAINT `fk_prescriptions_doctor` FOREIGN KEY (`doctor_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_prescriptions_patient` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_users_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
