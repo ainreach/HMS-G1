@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - FIFTY 50 MEDTECHIE</title>
+  <base href="<?= rtrim(base_url(), '/') ?>/">
+  <link rel="icon" type="image/png" href="<?= base_url('assets/img/logo.png') ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #1d4ed8;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --secondary: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #06b6d4;
+      --text: #0f172a;
+      --text-light: #475569;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Header Styles */
+    .dash-topbar {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      box-shadow: var(--shadow-lg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .menu-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+    }
+
+    .brand img {
+      height: 40px;
+      width: 40px;
+      border-radius: 8px;
+    }
+
+    .brand-text h1 {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-text small {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .role {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-weight: 600;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <header class="dash-topbar" role="banner">
+    <div class="topbar-inner">
+      <a class="menu-btn" href="<?= site_url('/') ?>" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+      <div class="brand">
+        <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
+        <div class="brand-text">
+          <h1>FIFTY 50 MEDTECHIE</h1>
+          <small>Hospital Management Dashboard</small>
+        </div>
+      </div>
+      <div class="top-right" aria-label="User session">
+        <span class="role">
+          <i class="fa-regular fa-user"></i>
+          <?= esc(session('username') ?? session('role') ?? 'User') ?>
+        </span>
+        <a href="<?= site_url('logout') ?>" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          Logout
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="simple-sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <nav class="side-nav">
+        <a href="<?= site_url('dashboard') ?>" class="active" aria-current="page">Dashboard</a>
+        <a href="<?= site_url('records') ?>">Registration & Records</a>
+        <a href="<?= site_url('scheduling') ?>">Scheduling</a>
+        <a href="<?= site_url('billing') ?>">Billing</a>
+        <a href="<?= site_url('laboratory') ?>">Laboratory</a>
+        <a href="<?= site_url('pharmacy') ?>">Pharmacy</a>
+        <a href="<?= site_url('reports') ?>">Reports</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="kpi-grid" aria-label="Key indicators">
+        <article class="kpi-card kpi-primary">
+          <div class="kpi-head"><span>Total Patients</span><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+          <div class="kpi-value" aria-live="polite">—</div>
+        </article>
+        <article class="kpi-card kpi-info">
+          <div class="kpi-head"><span>Appointments Today</span><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></div>
+          <div class="kpi-value" aria-live="polite">—</div>
+        </article>
+      </section>
+
+      <section class="panel" style="margin-top:16px">
+        <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
+        <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn" href="<?= site_url('records') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Create Patient</a>
+          <a class="btn" href="<?= site_url('scheduling') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">New Appointment</a>
+          <a class="btn" href="<?= site_url('reports') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Generate Report</a>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:16px">
+        <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Recent Activity</h2></div>
+        <div class="panel-body" style="overflow:auto">
+          <table class="table" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">When</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">User</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="3" style="padding:12px;text-align:center;color:#6b7280">No recent activity.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    window.APP_BASE = '<?= rtrim(site_url('/'), '/') ?>/';
+  </script>
+  <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
+</body>
+</html>
+
+
