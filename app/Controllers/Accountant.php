@@ -147,10 +147,24 @@ class Accountant extends BaseController
     }
 
     public function newInvoice()
-    {
-        helper('url');
-        return view('Accountant/invoice_new');
-    }
+{
+    helper('url');
+    $patientModel = model('App\\Models\\PatientModel');
+    
+    // Fetch active patients
+    $patients = $patientModel->getActivePatients();
+    
+    // Format patients for the dropdown
+    $formattedPatients = array_map(function($patient) {
+        return [
+            'id' => $patient['id'],
+            'name' => $patient['first_name'] . ' ' . $patient['last_name'],
+            'mobile' => $patient['phone'] ?? 'N/A'
+        ];
+    }, $patients);
+
+    return view('Accountant/invoice_new', ['patients' => $formattedPatients]);
+}
 
     public function newPayment()
     {
