@@ -192,6 +192,287 @@ class Pharmacy extends BaseController
         return view('pharmacy/dispensing_history', ['dispensingHistory' => $dispensingHistory]);
     }
 
+    public function medicines()
+    {
+        helper('url');
+        $model = model('App\\Models\\MedicineModel');
+        
+        $perPage = 20;
+        $page = (int)($this->request->getGet('page') ?? 1);
+        $offset = ($page - 1) * $perPage;
+        
+        $search = $this->request->getGet('search');
+        
+        if ($search) {
+            $medicines = $model->like('name', $search)
+                             ->orLike('generic_name', $search)
+                             ->orLike('medicine_code', $search)
+                             ->orderBy('name', 'ASC')
+                             ->findAll($perPage, $offset);
+            $total = $model->like('name', $search)
+                         ->orLike('generic_name', $search)
+                         ->orLike('medicine_code', $search)
+                         ->countAllResults();
+        } else {
+            $medicines = $model->orderBy('name', 'ASC')
+                             ->findAll($perPage, $offset);
+            $total = $model->countAllResults();
+        }
+        
+        return view('pharmacy/medicines_list', [
+            'medicines' => $medicines,
+            'total' => $total,
+            'perPage' => $perPage,
+            'page' => $page,
+            'search' => $search
+        ]);
+    }
+    
+    public function medicineForm($id = null)
+    {
+        helper('form');
+        $model = model('App\\Models\\MedicineModel');
+        $medicine = null;
+        
+        if ($id) {
+            $medicine = $model->find($id);
+            if (!$medicine) {
+                return redirect()->to(site_url('pharmacy/medicines'))->with('error', 'Medicine not found.');
+            }
+        }
+        
+        return view('pharmacy/medicine_form', [
+            'medicine' => $medicine
+        ]);
+    }
+    
+    public function saveMedicine($id = null)
+    {
+        helper(['form', 'url']);
+        $model = model('App\\Models\\MedicineModel');
+        
+        // Validation rules
+        $rules = [
+            'name' => 'required|min_length[3]|max_length[255]',
+            'medicine_code' => 'required|is_unique[medicines.medicine_code,id,'.($id ?? '').']',
+            'purchase_price' => 'required|numeric',
+            'selling_price' => 'required|numeric'
+        ];
+        
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+        
+        $data = [
+            'medicine_code' => $this->request->getPost('medicine_code'),
+            'name' => $this->request->getPost('name'),
+            'generic_name' => $this->request->getPost('generic_name'),
+            'brand_name' => $this->request->getPost('brand_name'),
+            'category' => $this->request->getPost('category'),
+            'dosage_form' => $this->request->getPost('dosage_form'),
+            'strength' => $this->request->getPost('strength'),
+            'unit' => $this->request->getPost('unit'),
+            'manufacturer' => $this->request->getPost('manufacturer'),
+            'supplier' => $this->request->getPost('supplier'),
+            'purchase_price' => $this->request->getPost('purchase_price'),
+            'selling_price' => $this->request->getPost('selling_price'),
+            'requires_prescription' => $this->request->getPost('requires_prescription') ? 1 : 0,
+            'description' => $this->request->getPost('description'),
+            'side_effects' => $this->request->getPost('side_effects'),
+            'contraindications' => $this->request->getPost('contraindications'),
+            'storage_instructions' => $this->request->getPost('storage_instructions'),
+            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+        
+        // Save to database
+        if ($id) {
+            $model->update($id, $data);
+            $message = 'Medicine updated successfully.';
+        } else {
+            $model->insert($data);
+            $message = 'Medicine added successfully.';
+        }
+        
+        return redirect()->to(site_url('pharmacy/medicines'))->with('success', $message);
+    }
+    
+    public function deleteMedicine($id)
+    {
+        $model = model('App\\Models\\MedicineModel');
+        $medicine = $model->find($id);
+        
+        if (!$medicine) {
+            return redirect()->back()->with('error', 'Medicine not found.');
+        }
+        
+        $model->delete($id);
+        return redirect()->to(site_url('pharmacy/medicines'))->with('success', 'Medicine deleted successfully.');
+    }
+    
+    public function medicines()
+    {
+        helper('url');
+        $model = model('App\\Models\\MedicineModel');
+        
+        $perPage = 20;
+        $page = (int)($this->request->getGet('page') ?? 1);
+        $offset = ($page - 1) * $perPage;
+        
+        $search = $this->request->getGet('search');
+        
+        if ($search) {
+            $medicines = $model->like('name', $search)
+                             ->orLike('generic_name', $search)
+                             ->orLike('medicine_code', $search)
+                             ->orderBy('name', 'ASC')
+                             ->findAll($perPage, $offset);
+            $total = $model->like('name', $search)
+                         ->orLike('generic_name', $search)
+                         ->orLike('medicine_code', $search)
+                         ->countAllResults();
+        } else {
+            $medicines = $model->orderBy('name', 'ASC')
+                             ->findAll($perPage, $offset);
+            $total = $model->countAllResults();
+        }
+        
+        $data = [
+            'medicines' => $medicines,
+            'total' => $total,
+            'perPage' => $perPage,
+            'page' => $page,
+            'search' => $search
+        ];
+        
+        return view('pharmacy/medicines_list', $data);
+    }
+    
+    public function medicineForm($id = null)
+    {
+        helper('form');
+        $model = model('App\\Models\\MedicineModel');
+        $medicine = null;
+        
+        if ($id) {
+            $medicine = $model->find($id);
+            if (!$medicine) {
+                return redirect()->to(site_url('pharmacy/medicines'))->with('error', 'Medicine not found.');
+            }
+        }
+        
+        return view('pharmacy/medicine_form', [
+            'medicine' => $medicine
+        ]);
+    }
+    
+    public function saveMedicine($id = null)
+    {
+        helper(['form', 'url']);
+        $model = model('App\\Models\\MedicineModel');
+        
+        // Validation rules
+        $rules = [
+            'name' => 'required|min_length[3]|max_length[255]',
+            'medicine_code' => 'required|is_unique[medicines.medicine_code,id,'.($id ?? '').']',
+            'purchase_price' => 'required|numeric',
+            'selling_price' => 'required|numeric',
+            'image' => [
+                'rules' => 'max_size[image,2048]|is_image[image]|mime_in[image,image/jpg,image/jpeg,image/png,image/webp]',
+                'errors' => [
+                    'max_size' => 'Image size should be less than 2MB',
+                    'is_image' => 'Please upload a valid image file',
+                    'mime_in' => 'Please upload a valid image (JPG, JPEG, PNG, or WebP)'
+                ]
+            ]
+        ];
+        
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+        
+        $data = [
+            'medicine_code' => $this->request->getPost('medicine_code'),
+            'name' => $this->request->getPost('name'),
+            'generic_name' => $this->request->getPost('generic_name'),
+            'brand_name' => $this->request->getPost('brand_name'),
+            'category' => $this->request->getPost('category'),
+            'dosage_form' => $this->request->getPost('dosage_form'),
+            'strength' => $this->request->getPost('strength'),
+            'unit' => $this->request->getPost('unit'),
+            'manufacturer' => $this->request->getPost('manufacturer'),
+            'supplier' => $this->request->getPost('supplier'),
+            'purchase_price' => $this->request->getPost('purchase_price'),
+            'selling_price' => $this->request->getPost('selling_price'),
+            'requires_prescription' => $this->request->getPost('requires_prescription') ? 1 : 0,
+            'description' => $this->request->getPost('description'),
+            'side_effects' => $this->request->getPost('side_effects'),
+            'contraindications' => $this->request->getPost('contraindications'),
+            'storage_instructions' => $this->request->getPost('storage_instructions'),
+            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+        
+        // Handle image upload
+        $imageFile = $this->request->getFile('image');
+        if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
+            $newName = $imageFile->getRandomName();
+            $imageFile->move(ROOTPATH . 'public/uploads/medicines', $newName);
+            $data['image'] = $newName;
+            
+            // Delete old image if exists
+            if ($id) {
+                $oldMedicine = $model->find($id);
+                if ($oldMedicine && !empty($oldMedicine['image'])) {
+                    $oldImagePath = ROOTPATH . 'public/uploads/medicines/' . $oldMedicine['image'];
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+            }
+        } elseif ($this->request->getPost('remove_image') && $id) {
+            // Remove existing image if requested
+            $oldMedicine = $model->find($id);
+            if ($oldMedicine && !empty($oldMedicine['image'])) {
+                $oldImagePath = ROOTPATH . 'public/uploads/medicines/' . $oldMedicine['image'];
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                $data['image'] = null;
+            }
+        }
+        
+        // Save to database
+        if ($id) {
+            $model->update($id, $data);
+            $message = 'Medicine updated successfully.';
+        } else {
+            $model->insert($data);
+            $message = 'Medicine added successfully.';
+        }
+        
+        return redirect()->to(site_url('pharmacy/medicines'))->with('success', $message);
+    }
+    
+    public function deleteMedicine($id)
+    {
+        $model = model('App\\Models\\MedicineModel');
+        $medicine = $model->find($id);
+        
+        if (!$medicine) {
+            return redirect()->back()->with('error', 'Medicine not found.');
+        }
+        
+        // Delete image if exists
+        if (!empty($medicine['image'])) {
+            $imagePath = ROOTPATH . 'public/uploads/medicines/' . $medicine['image'];
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+        }
+        
+        $model->delete($id);
+        return redirect()->to(site_url('pharmacy/medicines'))->with('success', 'Medicine deleted successfully.');
+    }
+    
     public function medicineSearch()
     {
         helper('url');

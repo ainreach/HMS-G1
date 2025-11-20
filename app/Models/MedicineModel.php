@@ -10,8 +10,19 @@ class MedicineModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
 
-    protected $allowedFields    = [
-        'medicine_code','name','generic_name','brand_name','category','dosage_form','strength','unit','manufacturer','supplier','purchase_price','selling_price','requires_prescription','description','side_effects','contraindications','storage_instructions','is_active'
+    protected $allowedFields = [
+        'medicine_code', 'name', 'generic_name', 'brand_name', 'category', 
+        'dosage_form', 'strength', 'unit', 'manufacturer', 'supplier', 
+        'purchase_price', 'selling_price', 'requires_prescription', 
+        'description', 'side_effects', 'contraindications', 
+        'storage_instructions', 'is_active'
+    ];
+
+    protected $validationRules = [
+        'name' => 'required|min_length[3]|max_length[255]',
+        'medicine_code' => 'required|is_unique[medicines.medicine_code,id,{id}]',
+        'purchase_price' => 'required|numeric',
+        'selling_price' => 'required|numeric'
     ];
 
     protected $useTimestamps = true;

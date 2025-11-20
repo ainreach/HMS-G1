@@ -167,6 +167,14 @@ $routes->get('/pharmacy/add-stock', 'Pharmacy::addStock', ['filter' => 'role:pha
 $routes->post('/pharmacy/add-stock', 'Pharmacy::storeStock', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/prescription-fulfillment', 'Pharmacy::prescriptionFulfillment', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/medicine-expiry', 'Pharmacy::medicineExpiry', ['filter' => 'role:pharmacist']);
+$routes->group('pharmacy', ['filter' => 'auth'], function($routes) {
+$routes->get('medicines', 'Pharmacy::medicines');
+$routes->get('medicines/new', 'Pharmacy::medicineForm');
+$routes->get('medicines/edit/(:num)', 'Pharmacy::medicineForm/$1');
+$routes->post('medicines/save/(:num)', 'Pharmacy::saveMedicine/$1');
+$routes->post('medicines/save', 'Pharmacy::saveMedicine');
+$routes->get('medicines/delete/(:num)', 'Pharmacy::deleteMedicine/$1');
+});
 
 // Lab Staff functional routes
 $routes->get('/lab/results/new', 'Labstaff::newResult', ['filter' => 'role:lab_staff']);

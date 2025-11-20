@@ -35,11 +35,24 @@
     <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="<?= site_url('pharmacy/dispense/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Dispense</a>
-        <a class="btn" href="<?= site_url('pharmacy/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Prescriptions</a>
-        <a class="btn" href="<?= site_url('pharmacy/add-stock') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Add Stock</a>
-        <a class="btn" href="<?= site_url('pharmacy/low-stock-alerts') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Low Stock Alerts</a>
-        <a class="btn" href="<?= site_url('pharmacy/medicine-expiry') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Expiry Alerts</a>
+        <a class="btn" href="<?= site_url('pharmacy/medicines/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;background-color:#10b981;color:white">
+          <i class="fas fa-plus"></i> Add Medicine
+        </a>
+        <a class="btn" href="<?= site_url('pharmacy/dispense/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
+          <i class="fas fa-pills"></i> Dispense
+        </a>
+        <a class="btn" href="<?= site_url('pharmacy/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
+          <i class="fas fa-prescription"></i> Prescriptions
+        </a>
+        <a class="btn" href="<?= site_url('pharmacy/add-stock') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
+          <i class="fas fa-boxes-stacked"></i> Add Stock
+        </a>
+        <a class="btn" href="<?= site_url('pharmacy/low-stock-alerts') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
+          <i class="fas fa-exclamation-triangle"></i> Low Stock
+        </a>
+        <a class="btn" href="<?= site_url('pharmacy/medicine-expiry') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
+          <i class="fas fa-calendar-xmark"></i> Expiry Alerts
+        </a>
       </div>
     </section>
 
