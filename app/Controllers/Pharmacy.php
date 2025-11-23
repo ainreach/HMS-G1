@@ -5,6 +5,9 @@ class Pharmacy extends BaseController
 {
     public function dashboard()
     {
+        if (!session()->get('isLoggedIn') || session()->get('role') !== 'pharmacist') {
+            return redirect()->to(site_url('auth/login'))->with('error', 'You must be logged in as a pharmacist to access this page.');
+        }
         helper('url');
         $inventory = model('App\\Models\\InventoryModel');
         $meds      = model('App\\Models\\MedicineModel');
@@ -192,122 +195,6 @@ class Pharmacy extends BaseController
         return view('pharmacy/dispensing_history', ['dispensingHistory' => $dispensingHistory]);
     }
 
-    public function medicines()
-    {
-        helper('url');
-        $model = model('App\\Models\\MedicineModel');
-        
-        $perPage = 20;
-        $page = (int)($this->request->getGet('page') ?? 1);
-        $offset = ($page - 1) * $perPage;
-        
-        $search = $this->request->getGet('search');
-        
-        if ($search) {
-            $medicines = $model->like('name', $search)
-                             ->orLike('generic_name', $search)
-                             ->orLike('medicine_code', $search)
-                             ->orderBy('name', 'ASC')
-                             ->findAll($perPage, $offset);
-            $total = $model->like('name', $search)
-                         ->orLike('generic_name', $search)
-                         ->orLike('medicine_code', $search)
-                         ->countAllResults();
-        } else {
-            $medicines = $model->orderBy('name', 'ASC')
-                             ->findAll($perPage, $offset);
-            $total = $model->countAllResults();
-        }
-        
-        return view('pharmacy/medicines_list', [
-            'medicines' => $medicines,
-            'total' => $total,
-            'perPage' => $perPage,
-            'page' => $page,
-            'search' => $search
-        ]);
-    }
-    
-    public function medicineForm($id = null)
-    {
-        helper('form');
-        $model = model('App\\Models\\MedicineModel');
-        $medicine = null;
-        
-        if ($id) {
-            $medicine = $model->find($id);
-            if (!$medicine) {
-                return redirect()->to(site_url('pharmacy/medicines'))->with('error', 'Medicine not found.');
-            }
-        }
-        
-        return view('pharmacy/medicine_form', [
-            'medicine' => $medicine
-        ]);
-    }
-    
-    public function saveMedicine($id = null)
-    {
-        helper(['form', 'url']);
-        $model = model('App\\Models\\MedicineModel');
-        
-        // Validation rules
-        $rules = [
-            'name' => 'required|min_length[3]|max_length[255]',
-            'medicine_code' => 'required|is_unique[medicines.medicine_code,id,'.($id ?? '').']',
-            'purchase_price' => 'required|numeric',
-            'selling_price' => 'required|numeric'
-        ];
-        
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        
-        $data = [
-            'medicine_code' => $this->request->getPost('medicine_code'),
-            'name' => $this->request->getPost('name'),
-            'generic_name' => $this->request->getPost('generic_name'),
-            'brand_name' => $this->request->getPost('brand_name'),
-            'category' => $this->request->getPost('category'),
-            'dosage_form' => $this->request->getPost('dosage_form'),
-            'strength' => $this->request->getPost('strength'),
-            'unit' => $this->request->getPost('unit'),
-            'manufacturer' => $this->request->getPost('manufacturer'),
-            'supplier' => $this->request->getPost('supplier'),
-            'purchase_price' => $this->request->getPost('purchase_price'),
-            'selling_price' => $this->request->getPost('selling_price'),
-            'requires_prescription' => $this->request->getPost('requires_prescription') ? 1 : 0,
-            'description' => $this->request->getPost('description'),
-            'side_effects' => $this->request->getPost('side_effects'),
-            'contraindications' => $this->request->getPost('contraindications'),
-            'storage_instructions' => $this->request->getPost('storage_instructions'),
-            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
-        ];
-        
-        // Save to database
-        if ($id) {
-            $model->update($id, $data);
-            $message = 'Medicine updated successfully.';
-        } else {
-            $model->insert($data);
-            $message = 'Medicine added successfully.';
-        }
-        
-        return redirect()->to(site_url('pharmacy/medicines'))->with('success', $message);
-    }
-    
-    public function deleteMedicine($id)
-    {
-        $model = model('App\\Models\\MedicineModel');
-        $medicine = $model->find($id);
-        
-        if (!$medicine) {
-            return redirect()->back()->with('error', 'Medicine not found.');
-        }
-        
-        $model->delete($id);
-        return redirect()->to(site_url('pharmacy/medicines'))->with('success', 'Medicine deleted successfully.');
-    }
     
     public function medicines()
     {

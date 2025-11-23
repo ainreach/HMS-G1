@@ -205,6 +205,7 @@ $routes->post('/login', 'Auth::doLoginSingle');
 $routes->get('/login/(:segment)', 'Auth::login/$1');
 $routes->post('/login/(:segment)', 'Auth::doLogin/$1');
 $routes->get('/logout', 'Auth::logout');
+$routes->get('/auth/login', 'Auth::login');
 
 // Dashboard pages
 $routes->get('/records', 'Pages::records');

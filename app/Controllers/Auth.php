@@ -35,6 +35,7 @@ class Auth extends BaseController
     public function doLogin(string $role): RedirectResponse
     {
         $session = session();
+        $session->set('isLoggedIn', true);
         $session->set('role', $role);
         // Redirect to matching dashboard controller
         switch ($role) {
