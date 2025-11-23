@@ -14,29 +14,19 @@
       <?= csrf_field() ?>
       <div class="form-row">
         <label>Patient</label>
-        <?php if (!empty($patients)): ?>
-          <select name="patient_id" required>
-            <option value="">-- Select Patient --</option>
-            <?php foreach ($patients as $p): $pid=(int)($p['id']??0); $name=trim(($p['last_name']??'').', '.($p['first_name']??'')); ?>
-              <option value="<?= $pid ?>" <?= old('patient_id')==$pid?'selected':'' ?>><?= esc($name) ?> (ID: <?= $pid ?>)</option>
-            <?php endforeach; ?>
-          </select>
-        <?php else: ?>
-          <input type="number" name="patient_id" required value="<?= old('patient_id') ?>">
-        <?php endif; ?>
+        <div class="autocomplete">
+          <input type="text" id="patient_search" placeholder="Search by name or ID..." required>
+          <input type="hidden" name="patient_id" id="patient_id">
+          <div class="autocomplete-items"></div>
+        </div>
       </div>
       <div class="form-row">
         <label>Medicine</label>
-        <?php if (!empty($medicines)): ?>
-          <select name="medicine_id" required>
-            <option value="">-- Select Medicine --</option>
-            <?php foreach ($medicines as $m): $mid=(int)($m['id']??0); $label=trim(($m['name']??'').' '.($m['strength']??'')); ?>
-              <option value="<?= $mid ?>" <?= old('medicine_id')==$mid?'selected':'' ?>><?= esc($label) ?> (ID: <?= $mid ?>)</option>
-            <?php endforeach; ?>
-          </select>
-        <?php else: ?>
-          <input type="number" name="medicine_id" required value="<?= old('medicine_id') ?>">
-        <?php endif; ?>
+        <div class="autocomplete">
+          <input type="text" id="medicine_search" placeholder="Search by name or code..." required>
+          <input type="hidden" name="medicine_id" id="medicine_id">
+          <div class="autocomplete-items"></div>
+        </div>
       </div>
       <div class="form-row">
         <label>Quantity</label>

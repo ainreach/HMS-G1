@@ -162,6 +162,7 @@ $routes->get('/pharmacy/inventory', 'Pharmacy::inventory', ['filter' => 'role:ph
 $routes->get('/pharmacy/prescriptions', 'Pharmacy::prescriptions', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/dispensing-history', 'Pharmacy::dispensingHistory', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/medicines/search', 'Pharmacy::medicineSearch', ['filter' => 'role:pharmacist']);
+$routes->get('/pharmacy/patient-search', 'Pharmacy::patientSearch', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/low-stock-alerts', 'Pharmacy::lowStockAlerts', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/add-stock', 'Pharmacy::addStock', ['filter' => 'role:pharmacist']);
 $routes->post('/pharmacy/add-stock', 'Pharmacy::storeStock', ['filter' => 'role:pharmacist']);

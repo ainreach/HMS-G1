@@ -317,6 +317,24 @@ class Pharmacy extends BaseController
         return redirect()->to(site_url('pharmacy/medicines'))->with('success', 'Medicine deleted successfully.');
     }
     
+    public function patientSearch()
+    {
+        helper('url');
+        $searchTerm = $this->request->getGet('q');
+        $patientModel = model('App\Models\PatientModel');
+        
+        $patients = $patientModel
+            ->groupStart()
+                ->like('first_name', $searchTerm)
+                ->orLike('last_name', $searchTerm)
+                ->orLike('patient_id', $searchTerm)
+            ->groupEnd()
+            ->orderBy('last_name', 'ASC')
+            ->findAll(20);
+
+        return $this->response->setJSON($patients);
+    }
+
     public function medicineSearch()
     {
         helper('url');
