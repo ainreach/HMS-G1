@@ -263,14 +263,6 @@ class Pharmacy extends BaseController
             'medicine_code' => 'required|is_unique[medicines.medicine_code,id,'.($id ?? '').']',
             'purchase_price' => 'required|numeric',
             'selling_price' => 'required|numeric',
-            'image' => [
-                'rules' => 'max_size[image,2048]|is_image[image]|mime_in[image,image/jpg,image/jpeg,image/png,image/webp]',
-                'errors' => [
-                    'max_size' => 'Image size should be less than 2MB',
-                    'is_image' => 'Please upload a valid image file',
-                    'mime_in' => 'Please upload a valid image (JPG, JPEG, PNG, or WebP)'
-                ]
-            ]
         ];
         
         if (!$this->validate($rules)) {
@@ -298,34 +290,6 @@ class Pharmacy extends BaseController
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
         ];
         
-        // Handle image upload
-        $imageFile = $this->request->getFile('image');
-        if ($imageFile && $imageFile->isValid() && !$imageFile->hasMoved()) {
-            $newName = $imageFile->getRandomName();
-            $imageFile->move(ROOTPATH . 'public/uploads/medicines', $newName);
-            $data['image'] = $newName;
-            
-            // Delete old image if exists
-            if ($id) {
-                $oldMedicine = $model->find($id);
-                if ($oldMedicine && !empty($oldMedicine['image'])) {
-                    $oldImagePath = ROOTPATH . 'public/uploads/medicines/' . $oldMedicine['image'];
-                    if (file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
-                    }
-                }
-            }
-        } elseif ($this->request->getPost('remove_image') && $id) {
-            // Remove existing image if requested
-            $oldMedicine = $model->find($id);
-            if ($oldMedicine && !empty($oldMedicine['image'])) {
-                $oldImagePath = ROOTPATH . 'public/uploads/medicines/' . $oldMedicine['image'];
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-                $data['image'] = null;
-            }
-        }
         
         // Save to database
         if ($id) {
@@ -348,13 +312,6 @@ class Pharmacy extends BaseController
             return redirect()->back()->with('error', 'Medicine not found.');
         }
         
-        // Delete image if exists
-        if (!empty($medicine['image'])) {
-            $imagePath = ROOTPATH . 'public/uploads/medicines/' . $medicine['image'];
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
-            }
-        }
         
         $model->delete($id);
         return redirect()->to(site_url('pharmacy/medicines'))->with('success', 'Medicine deleted successfully.');
