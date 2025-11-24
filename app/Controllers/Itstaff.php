@@ -137,7 +137,7 @@ class Itstaff extends BaseController
         $data = [
             'appEnv' => ENVIRONMENT,
             'phpVersion' => PHP_VERSION,
-            'debugEnabled' => (bool) (config('App')->debug ?? true),
+            'debugEnabled' => (bool) (defined('CI_DEBUG') ? CI_DEBUG : false),
         ];
         return view('IT_Staff/security', $data);
     }
@@ -252,7 +252,8 @@ class Itstaff extends BaseController
         $alerts = [];
         
         // Check for debug mode
-        if (config('App')->debug) {
+        $debugEnabled = defined('CI_DEBUG') ? CI_DEBUG : false;
+        if (ENVIRONMENT === 'production' && $debugEnabled) {
             $alerts[] = [
                 'type' => 'warning',
                 'message' => 'Debug mode is enabled in production',
