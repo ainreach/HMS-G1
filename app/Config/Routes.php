@@ -45,6 +45,9 @@ $routes->post('/admin/patients/delete/(:num)', 'Admin::deletePatient/$1', ['filt
 
 // Appointment Management Routes
 $routes->get('/admin/appointments', 'Admin::appointments', ['filter' => 'role:admin']);
+$routes->get('/admin/staff-schedules', 'Admin::staffSchedules', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules', 'Admin::storeStaffSchedule', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules/delete/(:num)', 'Admin::deleteStaffSchedule/$1', ['filter' => 'role:admin']);
 
 // Medical Records Management Routes
 $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'role:admin']);

@@ -107,6 +107,9 @@
         <a href="<?= site_url('admin/appointments') ?>" class="<?= (strpos(current_url(), 'admin/appointments') !== false) ? 'active' : '' ?>">
           <i class="fas fa-calendar-check"></i> Appointments
         </a>
+        <a href="<?= site_url('admin/staff-schedules') ?>" class="<?= (strpos(current_url(), 'admin/staff-schedules') !== false) ? 'active' : '' ?>">
+          <i class="fas fa-user-clock"></i> Staff Schedules
+        </a>
         <a href="<?= site_url('admin/medical-records') ?>" class="<?= (strpos(current_url(), 'admin/medical-records') !== false) ? 'active' : '' ?>">
           <i class="fas fa-file-medical"></i> Medical Records
         </a>

@@ -420,6 +420,92 @@ class Admin extends BaseController
         return view('admin/appointments_list', $data);
     }
 
+    // Staff Scheduling
+    public function staffSchedules()
+    {
+        helper(['url', 'form']);
+
+        $userModel = model('App\\Models\\UserModel');
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+
+        $doctors = $userModel
+            ->where('role', 'doctor')
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll(200);
+
+        $nurses = $userModel
+            ->where('role', 'nurse')
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll(200);
+
+        $schedules = $scheduleModel
+            ->select('staff_schedules.*, users.first_name, users.last_name, users.role')
+            ->join('users', 'users.id = staff_schedules.user_id')
+            ->orderBy('users.role', 'ASC')
+            ->orderBy('users.last_name', 'ASC')
+            ->orderBy('users.first_name', 'ASC')
+            ->orderBy('staff_schedules.day_of_week', 'ASC')
+            ->orderBy('staff_schedules.start_time', 'ASC')
+            ->findAll(500);
+
+        return view('admin/staff_schedules', [
+            'doctors' => $doctors,
+            'nurses' => $nurses,
+            'schedules' => $schedules,
+        ]);
+    }
+
+    public function storeStaffSchedule()
+    {
+        helper(['url', 'form']);
+
+        $userId = (int) $this->request->getPost('user_id');
+        $dayOfWeek = (string) $this->request->getPost('day_of_week');
+        $startTime = (string) $this->request->getPost('start_time');
+        $endTime = (string) $this->request->getPost('end_time');
+
+        if (!$userId || $dayOfWeek === '' || $startTime === '' || $endTime === '') {
+            return redirect()->back()->with('error', 'Staff, day, start time and end time are required.')->withInput();
+        }
+
+        if ($endTime <= $startTime) {
+            return redirect()->back()->with('error', 'End time must be after start time.')->withInput();
+        }
+
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+
+        $data = [
+            'user_id'    => $userId,
+            'branch_id'  => 1,
+            'day_of_week'=> strtolower($dayOfWeek),
+            'start_time' => $startTime,
+            'end_time'   => $endTime,
+            'is_active'  => 1,
+        ];
+
+        $scheduleModel->insert($data);
+
+        return redirect()->to(site_url('admin/staff-schedules'))->with('success', 'Schedule added successfully.');
+    }
+
+    public function deleteStaffSchedule($id)
+    {
+        helper(['url', 'form']);
+        $id = (int) $id;
+
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+
+        if ($id && $scheduleModel->find($id)) {
+            $scheduleModel->delete($id);
+        }
+
+        return redirect()->to(site_url('admin/staff-schedules'))->with('success', 'Schedule deleted.');
+    }
+
     // Medical Records Management
     public function medicalRecords()
     {
