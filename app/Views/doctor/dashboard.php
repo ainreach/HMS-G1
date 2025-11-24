@@ -73,6 +73,51 @@
       </div>
     </section>
 
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">My Weekly Schedule</h2></div>
+      <div class="panel-body" style="overflow:auto">
+        <?php
+          $dayNames = [
+            'monday' => 'Monday',
+            'tuesday' => 'Tuesday',
+            'wednesday' => 'Wednesday',
+            'thursday' => 'Thursday',
+            'friday' => 'Friday',
+            'saturday' => 'Saturday',
+            'sunday' => 'Sunday',
+          ];
+        ?>
+        <?php if (!empty($schedule)) : ?>
+          <table class="table" style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Day</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Start</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">End</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($schedule as $row) : ?>
+                <tr>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?= esc($dayNames[strtolower($row['day_of_week'] ?? '')] ?? ucfirst($row['day_of_week'] ?? '')) ?>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?= esc(date('g:i A', strtotime($row['start_time'] ?? '00:00:00'))) ?>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?= esc(date('g:i A', strtotime($row['end_time'] ?? '00:00:00'))) ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php else : ?>
+          <p style="padding:8px;color:#6b7280;">No schedule defined. Please contact the administrator.</p>
+        <?php endif; ?>
+      </div>
+    </section>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
       <!-- Recent Medical Records -->
       <section class="panel">

@@ -10,6 +10,7 @@ class Nurse extends BaseController
         $apptModel = model('App\\Models\\AppointmentModel');
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         $labTestModel = model('App\\Models\\LabTestModel');
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
 
         $today = date('Y-m-d');
         $nurseId = session('user_id') ?: 1; // Fallback for testing
@@ -64,6 +65,13 @@ class Nurse extends BaseController
             ->orderBy('medical_records.visit_date', 'DESC')
             ->findAll(10);
 
+        // Weekly schedule for this nurse
+        $schedule = $scheduleModel
+            ->where('user_id', $nurseId)
+            ->orderBy('day_of_week', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->findAll(20);
+
         return view('nurse/dashboard', [
             'activePatients' => $activePatients,
             'pendingTasks' => $pendingTasks,
@@ -73,6 +81,7 @@ class Nurse extends BaseController
             'recentVitals' => $recentVitals,
             'pendingSamples' => $pendingSamples,
             'wardPatients' => $wardPatients,
+            'schedule' => $schedule,
         ]);
     }
 

@@ -25,6 +25,7 @@ class Doctor extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         $patientModel = model('App\\Models\\PatientModel');
         $userModel = model('App\\Models\\UserModel');
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
 
         $today = date('Y-m-d');
         $doctorId = session('user_id') ?: 1; // Fallback for testing
@@ -66,12 +67,20 @@ class Doctor extends BaseController
             ->orderBy('lab_tests.requested_date', 'DESC')
             ->findAll(5);
 
+        // Weekly schedule for this doctor
+        $schedule = $scheduleModel
+            ->where('user_id', $doctorId)
+            ->orderBy('day_of_week', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->findAll(20);
+
         return view('doctor/dashboard', [
             'todayAppointments' => $todayAppointments,
             'pendingLabResults' => $pendingLabResults,
             'appointments' => $appointments,
             'recentRecords' => $recentRecords,
             'pendingTests' => $pendingTests,
+            'schedule' => $schedule,
         ]);
     }
 
