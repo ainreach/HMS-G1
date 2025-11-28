@@ -1,5 +1,4 @@
 #--------------------------------------------------------------------
-<<<<<<< HEAD
 # Example Environment Configuration file
 #
 # This file can be used as a starting point for your own
@@ -14,12 +13,8 @@
 #--------------------------------------------------------------------
 # ENVIRONMENT
 #--------------------------------------------------------------------
-CI_ENVIRONMENT = development
 
-#--------------------------------------------------------------------
-# WRITABLE
-#--------------------------------------------------------------------
-WRITEPATH = 'writable'
+CI_ENVIRONMENT = development
 
 #--------------------------------------------------------------------
 # APP
@@ -72,19 +67,3 @@ WRITEPATH = 'writable'
 #--------------------------------------------------------------------
 
 # logger.threshold = 4
-=======
-# ENVIRONMENT
-#--------------------------------------------------------------------
-
-CI_ENVIRONMENT = development
-
-#--------------------------------------------------------------------
-# DATABASE
-#--------------------------------------------------------------------
-
-database.default.hostname = localhost
-database.default.database = hms
-database.default.username = root
-database.default.password = 
-database.default.DBDriver = MySQLi
->>>>>>> eb19a411e1eec834f9d238bf66a64ea595c02de5
