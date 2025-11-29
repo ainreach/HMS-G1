@@ -68,12 +68,17 @@ $routes->get('/admin/inventory', 'Admin::inventory', ['filter' => 'role:admin'])
 $routes->get('/admin/analytics', 'Admin::analytics', ['filter' => 'role:admin']);
 $routes->get('/admin/audit-logs', 'Admin::auditLogs', ['filter' => 'role:admin']);
 $routes->get('/accountant/billing', 'Accountant::billing', ['filter' => 'role:accountant']);
+$routes->get('/accountant/patients/billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/patients/discharge/(:num)', 'Accountant::dischargePatient/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/patients/bills', 'Accountant::allPatientBills', ['filter' => 'role:accountant']);
 $routes->get('/accountant/reports', 'Accountant::reports', ['filter' => 'role:accountant']);
+$routes->get('/accountant/invoices', 'Accountant::invoices', ['filter' => 'role:accountant']);
 $routes->get('/accountant/invoices/new', 'Accountant::newInvoice', ['filter' => 'role:accountant']);
 $routes->post('/accountant/invoices', 'Accountant::storeInvoice', ['filter' => 'role:accountant']);
+$routes->get('/accountant/payments', 'Accountant::payments', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/new', 'Accountant::newPayment', ['filter' => 'role:accountant']);
-$routes->get('/accountant/statements', 'Accountant::statements', ['filter' => 'role:accountant']);
 $routes->post('/accountant/payments', 'Accountant::storePayment', ['filter' => 'role:accountant']);
+$routes->get('/accountant/statements', 'Accountant::statements', ['filter' => 'role:accountant']);
 $routes->get('/accountant/statements/export', 'Accountant::exportStatement', ['filter' => 'role:accountant']);
 $routes->get('/accountant/invoices/export', 'Accountant::exportInvoicesCsv', ['filter' => 'role:accountant']);
 $routes->get('/accountant/finance/export/zip', 'Accountant::exportZip', ['filter' => 'role:accountant']);
@@ -102,6 +107,13 @@ $routes->post('/reception/appointments', 'Reception::storeAppointment', ['filter
 $routes->get('/reception/getAvailableRooms', 'Reception::getAvailableRooms', ['filter' => 'role:receptionist']);
 $routes->get('/reception/getRoomDetails', 'Reception::getRoomDetails', ['filter' => 'role:receptionist']);
 $routes->get('/reception/rooms', 'Reception::rooms', ['filter' => 'role:receptionist']);
+$routes->get('/reception/rooms/admit', 'Reception::roomAdmission', ['filter' => 'role:receptionist']);
+$routes->post('/reception/rooms/admit', 'Reception::admitToRoom', ['filter' => 'role:receptionist']);
+$routes->get('/reception/rooms/discharge/(:num)', 'Reception::dischargeFromRoom/$1', ['filter' => 'role:receptionist']);
+$routes->get('/reception/rooms/new', 'Reception::newRoom', ['filter' => 'role:receptionist']);
+$routes->get('/reception/rooms/edit/(:num)', 'Reception::editRoom/$1', ['filter' => 'role:receptionist']);
+$routes->post('/reception/rooms/save', 'Reception::storeRoom', ['filter' => 'role:receptionist']);
+$routes->get('/reception/rooms/delete/(:num)', 'Reception::deleteRoom/$1', ['filter' => 'role:receptionist']);
 $routes->post('/reception/rooms/(:num)/status', 'Reception::updateRoomStatus/$1', ['filter' => 'role:receptionist']);
 
 // Doctor functional routes

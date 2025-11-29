@@ -4,97 +4,71 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class RoomModel extends Model
+class LabTestModel extends Model
 {
-    protected $table            = 'rooms';
+    protected $table            = 'lab_tests';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
     protected $allowedFields    = [
-        'room_number','room_type','floor','capacity','current_occupancy','status','rate_per_day','features','branch_id'
+        'test_number','patient_id','doctor_id','test_type','test_name','test_category','requested_date','result_date','status','priority','notes','results','branch_id'
     ];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Get available rooms by type
-    public function getAvailableRooms($roomType = null, $branchId = 1)
+    // Get pending lab tests for a doctor
+    public function getPendingTests($doctorId, $limit = 10)
     {
-        $builder = $this->where('status', 'available')
-                      ->where('branch_id', $branchId)
-                      ->where('current_occupancy < capacity');
-        
-        if ($roomType) {
-            $builder = $builder->where('room_type', $roomType);
-        }
-        
-        return $builder->orderBy('room_number', 'ASC')->findAll();
+        return $this->where('doctor_id', $doctorId)
+                    ->where('status !=', 'completed')
+                    ->orderBy('requested_date', 'DESC')
+                    ->findAll($limit);
     }
 
-    // Get room by ID with details
-    public function getRoomWithDetails($roomId)
+    // Get completed lab tests for a doctor
+    public function getCompletedTests($doctorId, $limit = 50)
     {
-        return $this->find($roomId);
+        return $this->where('doctor_id', $doctorId)
+                    ->where('status', 'completed')
+                    ->orderBy('result_date', 'DESC')
+                    ->findAll($limit);
     }
 
-    // Update room occupancy
-    public function updateOccupancy($roomId, $change)
+    // Update test status
+    public function updateTestStatus($testId, $status, $results = null)
     {
-        $room = $this->find($roomId);
-        if ($room) {
-            $newOccupancy = $room['current_occupancy'] + $change;
-            if ($newOccupancy >= 0 && $newOccupancy <= $room['capacity']) {
-                $status = ($newOccupancy >= $room['capacity']) ? 'occupied' : 'available';
-                return $this->update($roomId, [
-                    'current_occupancy' => $newOccupancy,
-                    'status' => $status
-                ]);
+        $data = ['status' => $status];
+        
+        if ($status === 'completed') {
+            $data['result_date'] = date('Y-m-d H:i:s');
+            if ($results !== null) {
+                $data['results'] = $results;
             }
         }
-        return false;
+        
+        return $this->update($testId, $data);
     }
 
-    // Get rooms by patient age (pediatrics for under 18)
-    public function getRoomsByAge($age, $branchId = 1)
+    // Get lab test statistics for a doctor
+    public function getTestStats($doctorId)
     {
-        if ($age < 18) {
-            return $this->getAvailableRooms('pediatrics', $branchId);
-        }
-        return $this->getAvailableRooms(null, $branchId);
-    }
-
-    // Get room statistics
-    public function getRoomStats($branchId = 1)
-    {
-        $total = $this->where('branch_id', $branchId)->countAllResults();
-        $available = $this->where('branch_id', $branchId)
-                          ->where('status', 'available')
-                          ->countAllResults();
-        $occupied = $this->where('branch_id', $branchId)
-                         ->where('status', 'occupied')
+        $total = $this->where('doctor_id', $doctorId)->countAllResults();
+        $pending = $this->where('doctor_id', $doctorId)
+                       ->where('status !=', 'completed')
+                       ->countAllResults();
+        $completed = $this->where('doctor_id', $doctorId)
+                         ->where('status', 'completed')
                          ->countAllResults();
-        $maintenance = $this->where('branch_id', $branchId)
-                             ->where('status', 'maintenance')
-                             ->countAllResults();
         
         return [
             'total' => $total,
-            'available' => $available,
-            'occupied' => $occupied,
-            'maintenance' => $maintenance,
-            'occupancy_rate' => $total > 0 ? round(($occupied / $total) * 100, 1) : 0
+            'pending' => $pending,
+            'completed' => $completed,
+            'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 1) : 0
         ];
-    }
-
-    // Get all rooms with pagination
-    public function getAllRooms($branchId = 1, $limit = 50, $offset = 0)
-    {
-        return $this->where('branch_id', $branchId)
-                    ->orderBy('floor', 'ASC')
-                    ->orderBy('room_number', 'ASC')
-                    ->findAll($limit, $offset);
     }
 }

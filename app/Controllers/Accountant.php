@@ -55,6 +55,48 @@ class Accountant extends BaseController
         ]);
     }
 
+    public function invoices()
+    {
+        helper('url');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        
+        $invoices = $invoiceModel
+            ->orderBy('issued_at', 'DESC')
+            ->findAll(50);
+            
+        // Fetch active patients for the dropdown
+        $patients = $patientModel->getActivePatients();
+        
+        // Format patients for the dropdown
+        $formattedPatients = array_map(function($patient) {
+            return [
+                'id' => $patient['id'],
+                'name' => $patient['first_name'] . ' ' . $patient['last_name'],
+                'mobile' => $patient['phone'] ?? 'N/A'
+            ];
+        }, $patients);
+            
+        return view('Accountant/invoices', [
+            'invoices' => $invoices,
+            'patients' => $formattedPatients
+        ]);
+    }
+
+    public function payments()
+    {
+        helper('url');
+        $paymentsModel = model('App\\Models\\PaymentModel');
+        
+        $payments = $paymentsModel
+            ->orderBy('paid_at', 'DESC')
+            ->findAll(50);
+            
+        return view('Accountant/payments', [
+            'payments' => $payments
+        ]);
+    }
+
     public function billing()
     {
         helper('url');
@@ -79,6 +121,181 @@ class Accountant extends BaseController
             'openInvoicesCount' => count($openInvoices),
             'paymentsToday' => $paymentsToday,
             'arBalance' => $arBalance,
+        ]);
+    }
+
+    public function dischargePatient($patientId)
+    {
+        helper(['url', 'form']);
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $patientId = (int) $patientId;
+        
+        // Get patient details
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('accountant/billing'))->with('error', 'Patient not found.');
+        }
+        
+        if (!$patient['assigned_room_id']) {
+            return redirect()->to(site_url('accountant/billing'))->with('error', 'Patient is not assigned to any room.');
+        }
+        
+        // Get room details
+        $room = $roomModel->find($patient['assigned_room_id']);
+        if (!$room) {
+            return redirect()->to(site_url('accountant/billing'))->with('error', 'Room not found.');
+        }
+        
+        // Update room occupancy
+        $newOccupancy = $room['current_occupancy'] - 1;
+        $roomModel->update($room['id'], [
+            'current_occupancy' => $newOccupancy,
+            'status' => $newOccupancy <= 0 ? 'available' : 'occupied'
+        ]);
+        
+        // Update patient - remove room assignment
+        $patientModel->update($patientId, [
+            'assigned_room_id' => null,
+            'admission_date' => null,
+            'admission_type' => null
+        ]);
+        
+        return redirect()->to(site_url('accountant/billing'))->with('success', 'Patient discharged successfully. Room is now available.');
+    }
+
+    public function patientBilling($patientId = null)
+    {
+        if (!$patientId) {
+            return redirect()->to('/accountant/billing')->with('error', 'Patient ID is required.');
+        }
+        
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $paymentModel = model('App\\Models\\PaymentModel');
+        
+        $patient = $patientModel->find($patientId);
+        
+        if (!$patient) {
+            return redirect()->to('/accountant/billing')->with('error', 'Patient not found.');
+        }
+        
+        // Get room details if patient is assigned to a room
+        $room = null;
+        $roomCharges = 0;
+        $daysStayed = 0;
+        
+        if ($patient['assigned_room_id']) {
+            $room = $roomModel->find($patient['assigned_room_id']);
+            
+            if ($room && $patient['admission_date']) {
+                // Calculate days stayed
+                $admissionDate = new \DateTime($patient['admission_date']);
+                $currentDate = new \DateTime();
+                $daysStayed = $admissionDate->diff($currentDate)->days + 1; // +1 to include admission day
+                $roomCharges = $daysStayed * $room['rate_per_day'];
+            }
+        }
+        
+        // Get existing invoices and payments for this patient
+        $invoices = $invoiceModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->orderBy('issued_at', 'DESC')->findAll();
+        $payments = $paymentModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->orderBy('paid_at', 'DESC')->findAll();
+        
+        // Calculate totals
+        $totalInvoices = 0;
+        foreach ($invoices as $invoice) {
+            $totalInvoices += (float) $invoice['amount'];
+        }
+        
+        $totalPayments = 0;
+        foreach ($payments as $payment) {
+            $totalPayments += (float) $payment['amount'];
+        }
+        
+        // Calculate total charges (room charges + invoices)
+        $totalCharges = $roomCharges + $totalInvoices;
+        $balanceDue = $totalCharges - $totalPayments;
+        
+        return view('Accountant/patient_billing', [
+            'patient' => $patient,
+            'room' => $room,
+            'roomCharges' => $roomCharges,
+            'daysStayed' => $daysStayed,
+            'invoices' => $invoices,
+            'payments' => $payments,
+            'totalInvoices' => $totalInvoices,
+            'totalPayments' => $totalPayments,
+            'totalCharges' => $totalCharges,
+            'balanceDue' => $balanceDue
+        ]);
+    }
+
+    public function allPatientBills()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $paymentModel = model('App\\Models\\PaymentModel');
+        
+        // Get all patients with room assignments
+        $patientsWithRooms = $patientModel
+            ->where('assigned_room_id IS NOT NULL', null, false)
+            ->where('assigned_room_id !=', null)
+            ->findAll();
+        
+        $allBills = [];
+        
+        foreach ($patientsWithRooms as $patient) {
+            // Get room details
+            $room = null;
+            $roomCharges = 0;
+            $daysStayed = 0;
+            
+            if ($patient['assigned_room_id']) {
+                $room = $roomModel->find($patient['assigned_room_id']);
+                
+                if ($room && $patient['admission_date']) {
+                    $admissionDate = new \DateTime($patient['admission_date']);
+                    $currentDate = new \DateTime();
+                    $daysStayed = $admissionDate->diff($currentDate)->days + 1;
+                    $roomCharges = $daysStayed * $room['rate_per_day'];
+                }
+            }
+            
+            // Get invoices and payments
+            $invoices = $invoiceModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->findAll();
+            $payments = $paymentModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->findAll();
+            
+            $totalInvoices = 0;
+            foreach ($invoices as $invoice) {
+                $totalInvoices += (float) $invoice['amount'];
+            }
+            
+            $totalPayments = 0;
+            foreach ($payments as $payment) {
+                $totalPayments += (float) $payment['amount'];
+            }
+            
+            $totalCharges = $roomCharges + $totalInvoices;
+            $balanceDue = $totalCharges - $totalPayments;
+            
+            $allBills[] = [
+                'patient' => $patient,
+                'room' => $room,
+                'roomCharges' => $roomCharges,
+                'daysStayed' => $daysStayed,
+                'totalInvoices' => $totalInvoices,
+                'totalPayments' => $totalPayments,
+                'totalCharges' => $totalCharges,
+                'balanceDue' => $balanceDue
+            ];
+        }
+        
+        return view('Accountant/all_patient_bills', [
+            'allBills' => $allBills
         ]);
     }
 
@@ -163,7 +380,7 @@ class Accountant extends BaseController
         ];
     }, $patients);
 
-    return view('Accountant/invoice_new', ['patients' => $formattedPatients]);
+    return view('Accountant/invoices', ['patients' => $formattedPatients]);
 }
 
     public function newPayment()
@@ -176,24 +393,31 @@ class Accountant extends BaseController
     {
         helper(['url', 'form']);
         $model = new \App\Models\InvoiceModel();
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $patientId = $this->request->getPost('patient_id');
+        $patient = $patientModel->find($patientId);
+        
+        if (!$patient) {
+            return redirect()->back()->with('error', 'Patient not found.')->withInput();
+        }
 
         $data = [
             'invoice_no'   => trim((string)$this->request->getPost('invoice_no')),
-            'patient_name' => trim((string)$this->request->getPost('patient_name')),
+            'patient_name' => $patient['first_name'] . ' ' . $patient['last_name'],
             'amount'       => (float)$this->request->getPost('amount'),
             'status'       => $this->request->getPost('status') ?: 'unpaid',
-            'issued_at'    => $this->request->getPost('issued_at') ?: date('Y-m-d'),
+            'issued_at'    => $this->request->getPost('invoice_date') ?: date('Y-m-d'),
         ];
 
-        if ($data['patient_name'] === '' || $data['amount'] <= 0) {
-            return redirect()->back()->with('error', 'Patient, amount are required.')->withInput();
+        if ($data['amount'] <= 0) {
+            return redirect()->back()->with('error', 'Valid amount is required.')->withInput();
         }
 
         $model->insert($data);
         AuditLogger::log('invoice_create', 'invoice_no=' . ($data['invoice_no'] ?: 'n/a') . ' amount=' . $data['amount']);
-        return redirect()->to(site_url('accountant/billing'))->with('success', 'Invoice created successfully.');
+        return redirect()->to(site_url('accountant/invoices'))->with('success', 'Invoice created successfully.');
     }
-
     public function insurance()
     {
         helper('url');

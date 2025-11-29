@@ -31,14 +31,40 @@ class Auth extends BaseController
         return view($view);
     }
 
-    // Process per-role login (placeholder logic)
+    // Process per-role login with actual authentication
     public function doLogin(string $role): RedirectResponse
     {
+        $request = $this->request;
+        $username = trim((string) $request->getPost('username'));
+        $password = (string) $request->getPost('password');
+
+        if ($username === '' || $password === '') {
+            return redirect()->to("/login/{$role}")->with('error', 'Please enter username and password.');
+        }
+
+        $users = new UserModel();
+        $user = $users->where('username', $username)->first();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            return redirect()->to("/login/{$role}")->with('error', 'Invalid credentials.');
+        }
+
+        // Check if user has the correct role
+        if ($user['role'] !== $role) {
+            return redirect()->to("/login/{$role}")->with('error', 'Invalid role for this login.');
+        }
+
+        // Save session
         $session = session();
         $session->set('isLoggedIn', true);
-        $session->set('role', $role);
+        $session->set('role', $user['role']);
+        $session->set('username', $user['username']);
+        if (isset($user['id'])) {
+            $session->set('user_id', (int) $user['id']);
+        }
+
         // Redirect to matching dashboard controller
-        switch ($role) {
+        switch ($user['role']) {
             case 'admin': return redirect()->to('/dashboard/admin');
             case 'doctor': return redirect()->to('/dashboard/doctor');
             case 'nurse': return redirect()->to('/dashboard/nurse');

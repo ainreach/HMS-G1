@@ -79,6 +79,27 @@ class Reception extends BaseController
     public function storePatient()
     {
         helper(['url', 'form']);
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
         $data = [
             'patient_id' => 'P-' . date('YmdHis'),
             'first_name' => trim((string) $this->request->getPost('first_name')),
@@ -88,7 +109,7 @@ class Reception extends BaseController
             'phone'     => trim((string) $this->request->getPost('phone')) ?: null,
             'email'     => trim((string) $this->request->getPost('email')) ?: null,
             'address'   => trim((string) $this->request->getPost('address')) ?: null,
-            'branch_id' => 1,
+            'branch_id' => $branchId,
             'is_active' => 1,
         ];
 
@@ -111,12 +132,52 @@ class Reception extends BaseController
     {
         helper('url');
         $roomModel = model('App\\Models\\RoomModel');
+        $branchModel = model('App\\Models\\BranchModel');
         
-        $rooms = $roomModel->getAllRooms(1, 50, 0);
-        $stats = $roomModel->getRoomStats(1);
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
+        // Get ALL rooms from all branches
+        $allRooms = $roomModel
+            ->select('rooms.*, branches.name as branch_name')
+            ->join('branches', 'branches.id = rooms.branch_id')
+            ->orderBy('branches.name', 'ASC')
+            ->orderBy('rooms.floor', 'ASC')
+            ->orderBy('rooms.room_number', 'ASC')
+            ->findAll(50, 0);
+            
+        // Get stats for all rooms
+        $totalRooms = count($allRooms);
+        $availableRooms = array_filter($allRooms, fn($room) => $room['status'] === 'available');
+        $occupiedRooms = array_filter($allRooms, fn($room) => $room['status'] === 'occupied');
+        $maintenanceRooms = array_filter($allRooms, fn($room) => $room['status'] === 'maintenance');
+        
+        $stats = [
+            'total' => $totalRooms,
+            'available' => count($availableRooms),
+            'occupied' => count($occupiedRooms),
+            'maintenance' => count($maintenanceRooms),
+            'occupancy_rate' => $totalRooms > 0 ? round((count($occupiedRooms) / $totalRooms) * 100, 1) : 0
+        ];
         
         return view('Reception/rooms', [
-            'rooms' => $rooms,
+            'rooms' => $allRooms,
             'stats' => $stats
         ]);
     }
@@ -146,11 +207,31 @@ class Reception extends BaseController
     {
         helper(['url', 'form']);
         $roomModel = model('App\\Models\\RoomModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
         
         $id = $this->request->getPost('id');
         
         $data = [
-            'branch_id' => 1,
+            'branch_id' => $branchId,
             'room_number' => $this->request->getPost('room_number'),
             'room_type' => $this->request->getPost('room_type'),
             'floor' => (int) $this->request->getPost('floor'),
@@ -278,6 +359,161 @@ class Reception extends BaseController
         return view('Reception/appointment_view', ['appointment' => $appointment]);
     }
 
+    public function roomAdmission()
+    {
+        helper('url');
+        $roomModel = model('App\\Models\\RoomModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
+        // Get patients for this branch
+        $patients = $patientModel
+            ->where('branch_id', $branchId)
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->findAll(100);
+        
+        // Get all rooms and available rooms for this branch
+        $allRooms = $roomModel->getAllRooms($branchId, 100, 0);
+        $availableRooms = array_filter($allRooms, function($room) {
+            return $room['status'] === 'available' && $room['current_occupancy'] < $room['capacity'];
+        });
+        
+        return view('Reception/room_admission', [
+            'patients' => $patients,
+            'availableRooms' => $availableRooms,
+            'allRooms' => $allRooms
+        ]);
+    }
+
+    public function admitToRoom()
+    {
+        helper(['url', 'form']);
+        $roomModel = model('App\\Models\\RoomModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
+        $patientId = (int) $this->request->getPost('patient_id');
+        $roomId = (int) $this->request->getPost('room_id');
+        $admissionDate = $this->request->getPost('admission_date') ?: date('Y-m-d');
+        
+        if (!$patientId || !$roomId) {
+            return redirect()->back()->with('error', 'Patient and room are required.')->withInput();
+        }
+        
+        // Validate patient exists
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->back()->with('error', 'Patient not found.')->withInput();
+        }
+        
+        // Validate room exists and is available
+        $room = $roomModel->find($roomId);
+        if (!$room) {
+            return redirect()->back()->with('error', 'Room not found.')->withInput();
+        }
+        
+        if ($room['status'] !== 'available' || $room['current_occupancy'] >= $room['capacity']) {
+            return redirect()->back()->with('error', 'Room is not available.')->withInput();
+        }
+        
+        // Update room occupancy
+        $newOccupancy = $room['current_occupancy'] + 1;
+        $roomModel->update($roomId, [
+            'current_occupancy' => $newOccupancy,
+            'status' => $newOccupancy >= $room['capacity'] ? 'occupied' : 'available'
+        ]);
+        
+        // Update patient with room assignment and admission date
+        $patientModel->update($patientId, [
+            'assigned_room_id' => $roomId,
+            'admission_date' => $admissionDate,
+            'admission_type' => 'admission',
+            'branch_id' => $branchId
+        ]);
+        
+        return redirect()->to(site_url('reception/rooms'))->with('success', 'Patient admitted to room successfully.');
+    }
+
+    public function dischargeFromRoom($patientId)
+    {
+        helper(['url', 'form']);
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $patientId = (int) $patientId;
+        
+        // Get patient details
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('reception/rooms'))->with('error', 'Patient not found.');
+        }
+        
+        if (!$patient['assigned_room_id']) {
+            return redirect()->to(site_url('reception/rooms'))->with('error', 'Patient is not assigned to any room.');
+        }
+        
+        // Get room details
+        $room = $roomModel->find($patient['assigned_room_id']);
+        if (!$room) {
+            return redirect()->to(site_url('reception/rooms'))->with('error', 'Room not found.');
+        }
+        
+        // Update room occupancy
+        $newOccupancy = $room['current_occupancy'] - 1;
+        $roomModel->update($room['id'], [
+            'current_occupancy' => $newOccupancy,
+            'status' => $newOccupancy <= 0 ? 'available' : 'occupied'
+        ]);
+        
+        // Update patient - remove room assignment
+        $patientModel->update($patientId, [
+            'assigned_room_id' => null,
+            'admission_date' => null,
+            'admission_type' => null
+        ]);
+        
+        return redirect()->to(site_url('reception/rooms'))->with('success', 'Patient discharged successfully. Room is now available.');
+    }
+
     public function checkIn($id)
     {
         helper('url');
@@ -330,8 +566,29 @@ class Reception extends BaseController
     {
         helper('url');
         $patientModel = model('App\\Models\\PatientModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
         
         $patients = $patientModel
+            ->where('branch_id', $branchId)
             ->where('is_active', 1)
             ->orderBy('last_name', 'ASC')
             ->findAll(100);
@@ -411,11 +668,5 @@ class Reception extends BaseController
 
         $apptModel->update($id, $data);
         return redirect()->to(site_url('reception/appointments'))->with('success', 'Appointment updated successfully.');
-    }
-
-    public function roomAdmission()
-    {
-        helper('url');
-        return view('Reception/room_admission');
     }
 }

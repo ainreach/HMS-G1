@@ -34,16 +34,37 @@
                 <?php endif; ?>
               </select>
             </label>
-            <label>Day of Week
-              <select name="day_of_week" required style="width:100%;">
-                <option value="monday">Monday</option>
-                <option value="tuesday">Tuesday</option>
-                <option value="wednesday">Wednesday</option>
-                <option value="thursday">Thursday</option>
-                <option value="friday">Friday</option>
-                <option value="saturday">Saturday</option>
-                <option value="sunday">Sunday</option>
-              </select>
+            <label>Day(s) of Week
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="monday" style="margin:0;">
+                  Monday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="tuesday" style="margin:0;">
+                  Tuesday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="wednesday" style="margin:0;">
+                  Wednesday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="thursday" style="margin:0;">
+                  Thursday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="friday" style="margin:0;">
+                  Friday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="saturday" style="margin:0;">
+                  Saturday
+                </label>
+                <label style="display:flex;align-items:center;gap:4px;font-weight:normal;">
+                  <input type="checkbox" name="days_of_week[]" value="sunday" style="margin:0;">
+                  Sunday
+                </label>
+              </div>
             </label>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">

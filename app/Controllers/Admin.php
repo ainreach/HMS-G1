@@ -284,7 +284,28 @@ class Admin extends BaseController
 
     public function storePatient()
     {
-        helper(['url','form']);
+        helper(['url', 'form']);
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
         $req = $this->request;
         $data = [
             'patient_id' => 'P-' . date('YmdHis'),
@@ -305,7 +326,7 @@ class Admin extends BaseController
             'insurance_number' => trim((string)$req->getPost('insurance_number')),
             'allergies' => trim((string)$req->getPost('allergies')),
             'medical_history' => trim((string)$req->getPost('medical_history')),
-            'branch_id' => 1, // Default branch
+            'branch_id' => $branchId,
             'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
@@ -462,14 +483,34 @@ class Admin extends BaseController
     public function storeStaffSchedule()
     {
         helper(['url', 'form']);
+        $branchModel = model('App\\Models\\BranchModel');
+
+        // Get the first available branch
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            // If no branch exists, create one first
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
 
         $userId = (int) $this->request->getPost('user_id');
-        $dayOfWeek = (string) $this->request->getPost('day_of_week');
+        $daysOfWeek = $this->request->getPost('days_of_week') ?? [];
         $startTime = (string) $this->request->getPost('start_time');
         $endTime = (string) $this->request->getPost('end_time');
 
-        if (!$userId || $dayOfWeek === '' || $startTime === '' || $endTime === '') {
-            return redirect()->back()->with('error', 'Staff, day, start time and end time are required.')->withInput();
+        if (!$userId || empty($daysOfWeek) || $startTime === '' || $endTime === '') {
+            return redirect()->back()->with('error', 'Staff, at least one day, start time and end time are required.')->withInput();
         }
 
         if ($endTime <= $startTime) {
@@ -477,19 +518,23 @@ class Admin extends BaseController
         }
 
         $scheduleModel = model('App\\Models\\StaffScheduleModel');
+        $addedCount = 0;
 
-        $data = [
-            'user_id'    => $userId,
-            'branch_id'  => 1,
-            'day_of_week'=> strtolower($dayOfWeek),
-            'start_time' => $startTime,
-            'end_time'   => $endTime,
-            'is_active'  => 1,
-        ];
+        foreach ($daysOfWeek as $dayOfWeek) {
+            $data = [
+                'user_id'    => $userId,
+                'branch_id'  => $branchId,
+                'day_of_week'=> strtolower($dayOfWeek),
+                'start_time' => $startTime,
+                'end_time'   => $endTime,
+                'is_active'  => 1,
+            ];
 
-        $scheduleModel->insert($data);
+            $scheduleModel->insert($data);
+            $addedCount++;
+        }
 
-        return redirect()->to(site_url('admin/staff-schedules'))->with('success', 'Schedule added successfully.');
+        return redirect()->to(site_url('admin/staff-schedules'))->with('success', "Schedule added successfully for {$addedCount} day(s).");
     }
 
     public function deleteStaffSchedule($id)

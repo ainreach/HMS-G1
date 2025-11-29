@@ -14,8 +14,8 @@
     <label>Username
       <input type="text" name="username" required>
     </label>
-    <label>Branch
-      <input type="text" name="branch" placeholder="Main">
+    <label>Password
+      <input type="password" name="password" required>
     </label>
     <button type="submit">Login</button>
   </form>

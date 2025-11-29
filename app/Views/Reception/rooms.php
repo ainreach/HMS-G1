@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Receptionist</h1><small>Room Management</small></div>
   </div>
@@ -34,11 +33,57 @@
     </section>
 
     <section class="panel" style="margin-top:16px">
-      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Room List</h2></div>
-      <div class="panel-body" style="overflow:auto">
-        <table class="table" style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
+      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Patient Room Lookup</h2></div>
+      <div class="panel-body">
+        <form method="get" action="<?= site_url('reception/find-patient-room') ?>" style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+          <input type="text" name="search" placeholder="Enter patient name or ID..." style="flex:1;padding:8px;border:1px solid #e5e7eb;border-radius:6px" value="<?= esc($_GET['search'] ?? '') ?>">
+          <button type="submit" style="padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer">
+            <i class="fa-solid fa-search"></i> Find Patient
+          </button>
+        </form>
+        
+        <?php if (isset($patientRoom)): ?>
+          <div style="background:#e0f2fe;border:1px solid #0ea5e9;border-radius:8px;padding:12px;margin-bottom:16px">
+            <h4 style="margin:0 0 8px;color:#0c4a6e">Patient Found!</h4>
+            <p style="margin:4px 0"><strong>Name:</strong> <?= esc($patientRoom['patient_name'] ?? '') ?></p>
+            <p style="margin:4px 0"><strong>Room:</strong> <?= esc($patientRoom['room_number'] ?? '') ?> (<?= esc($patientRoom['room_type'] ?? '') ?>)</p>
+            <p style="margin:4px 0"><strong>Floor:</strong> <?= esc($patientRoom['floor'] ?? '') ?></p>
+            <p style="margin:4px 0"><strong>Admitted:</strong> <?= esc($patientRoom['admission_date'] ?? '') ?></p>
+          </div>
+        <?php elseif (isset($notFound)): ?>
+          <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin-bottom:16px">
+            <p style="margin:0;color:#dc2626">Patient not found or not currently admitted to any room.</p>
+          </div>
+        <?php endif; ?>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0;font-size:1.1rem">Room List</h2>
+        <div>
+          <a href="<?= site_url('reception/rooms/admit') ?>" class="btn" style="padding:8px 12px;background:#10b981;color:white;border:none;border-radius:6px;text-decoration:none;margin-right:8px">
+            <i class="fa-solid fa-bed"></i> Admit Patient
+          </a>
+          <a href="<?= site_url('reception/rooms/new') ?>" class="btn" style="padding:8px 12px;background:#3b82f6;color:white;border:none;border-radius:6px;text-decoration:none">
+            <i class="fa-solid fa-plus"></i> Add Room
+          </a>
+        </div>
+      </div>
+      <div class="panel-body">
+        <?php if (session()->getFlashdata('success')): ?>
+          <div style="background:#dcfce7;border:1px solid #16a34a;border-radius:8px;padding:12px;margin-bottom:16px">
+            <p style="margin:0;color:#16a34a"><?= esc(session()->getFlashdata('success')) ?></p>
+          </div>
+        <?php endif; ?>
+        <?php if (session()->getFlashdata('error')): ?>
+          <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin-bottom:16px">
+            <p style="margin:0;color:#dc2626"><?= esc(session()->getFlashdata('error')) ?></p>
+          </div>
+        <?php endif; ?>
+        <div style="overflow:auto">
+          <table class="table" style="width:100%;border-collapse:collapse">
+            <thead>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Room Number</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Type</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Floor</th>
@@ -68,9 +113,14 @@
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">₱<?= number_format($room['rate_per_day'] ?? 0, 2) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <button class="btn" onclick="viewRoomDetails(<?= $room['id'] ?? 0 ?>)" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:4px;text-decoration:none;background-color:#f9fafb">
-                    <i class="fa-solid fa-eye"></i> View
-                  </button>
+                  <div style="display:flex;gap:6px">
+                    <a href="<?= site_url('reception/rooms/edit/' . $room['id']) ?>" style="padding:4px 8px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem">
+                      <i class="fa-solid fa-edit"></i> Edit
+                    </a>
+                    <a href="<?= site_url('reception/rooms/delete/' . $room['id']) ?>" style="padding:4px 8px;background:#ef4444;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem" onclick="return confirm('Are you sure you want to delete this room?')">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </a>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; else: ?>

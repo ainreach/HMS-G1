@@ -59,10 +59,7 @@
 <body>
 <header class="dash-topbar" role="banner">
   <div class="topbar-inner">
-    <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home">
-      <i class="fa-solid fa-house"></i>
-    </a>
-    <div class="brand">
+        <div class="brand">
       <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
       <div class="brand-text">
         <h1 style="font-size:1.25rem;margin:0">Administrator Dashboard</h1>

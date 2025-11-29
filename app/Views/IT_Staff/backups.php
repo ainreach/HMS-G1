@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
-  <a href="<?= site_url('/') ?>" class="menu-btn" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-  <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
+    <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">IT Staff</h1><small>Backups</small></div>
   </div>
   <div class="top-right" aria-label="User session">

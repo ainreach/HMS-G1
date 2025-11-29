@@ -30,6 +30,7 @@
     <section class="panel">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="<?= site_url('accountant/patients/bills') ?>" style="background:#dc2626;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-bed"></i> Patient Room Bills</a>
         <a href="<?= site_url('accountant/invoices/new') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-lines"></i> Create Invoice</a>
         <a href="<?= site_url('accountant/payments/new') ?>" style="background:#10b981;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-sack-dollar"></i> Record Payment</a>
         <a href="<?= site_url('accountant/statements') ?>" style="background:#6b7280;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-pdf"></i> Download Statement</a>

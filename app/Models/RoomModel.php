@@ -24,8 +24,12 @@ class RoomModel extends Model
     public function getAvailableRooms($roomType = null, $branchId = 1)
     {
         $builder = $this->where('status', 'available')
-                      ->where('branch_id', $branchId)
                       ->where('current_occupancy < capacity');
+        
+        // Only filter by branch_id if it's provided and not null
+        if ($branchId !== null) {
+            $builder = $builder->where('branch_id', $branchId);
+        }
         
         if ($roomType) {
             $builder = $builder->where('room_type', $roomType);
