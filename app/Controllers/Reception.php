@@ -121,6 +121,89 @@ class Reception extends BaseController
         ]);
     }
 
+    public function newRoom()
+    {
+        helper('url');
+        return view('Reception/room_form');
+    }
+
+    public function editRoom($id = null)
+    {
+        helper('url');
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $room = $roomModel->find($id);
+        if (!$room) {
+            return redirect()->to('/reception/rooms')->with('error', 'Room not found.');
+        }
+        
+        return view('Reception/room_form', [
+            'room' => $room
+        ]);
+    }
+
+    public function storeRoom()
+    {
+        helper(['url', 'form']);
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $id = $this->request->getPost('id');
+        
+        $data = [
+            'branch_id' => 1,
+            'room_number' => $this->request->getPost('room_number'),
+            'room_type' => $this->request->getPost('room_type'),
+            'floor' => (int) $this->request->getPost('floor'),
+            'capacity' => (int) $this->request->getPost('capacity'),
+            'rate_per_day' => (float) $this->request->getPost('rate_per_day'),
+            'status' => $this->request->getPost('status') ?? 'available',
+        ];
+        
+        // Validation
+        if (!$data['room_number'] || !$data['room_type'] || $data['floor'] < 1 || $data['capacity'] < 1) {
+            return redirect()->back()->with('error', 'Please fill all required fields correctly.')->withInput();
+        }
+        
+        try {
+            if ($id) {
+                // Update existing room
+                $data['id'] = $id;
+                $roomModel->save($data);
+                $message = 'Room updated successfully.';
+            } else {
+                // Create new room
+                $roomModel->save($data);
+                $message = 'Room added successfully.';
+            }
+            
+            return redirect()->to('/reception/rooms')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error saving room: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function deleteRoom($id = null)
+    {
+        $roomModel = model('App\\Models\\RoomModel');
+        $room = $roomModel->find($id);
+        
+        if (!$room) {
+            return redirect()->to('/reception/rooms')->with('error', 'Room not found.');
+        }
+        
+        // Check if room is occupied
+        if ($room['current_occupancy'] > 0) {
+            return redirect()->to('/reception/rooms')->with('error', 'Cannot delete room. Room is currently occupied.');
+        }
+        
+        try {
+            $roomModel->delete($id);
+            return redirect()->to('/reception/rooms')->with('success', 'Room deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->to('/reception/rooms')->with('error', 'Error deleting room: ' . $e->getMessage());
+        }
+    }
+
     public function newAppointment()
     {
         helper('url');
@@ -328,5 +411,11 @@ class Reception extends BaseController
 
         $apptModel->update($id, $data);
         return redirect()->to(site_url('reception/appointments'))->with('success', 'Appointment updated successfully.');
+    }
+
+    public function roomAdmission()
+    {
+        helper('url');
+        return view('Reception/room_admission');
     }
 }
