@@ -55,7 +55,6 @@
         </nav>
 
         <div class="right-actions">
-          <a href="<?= site_url('notifications') ?>" title="Notifications"><i class="fa-regular fa-bell"></i></a>
           <a href="<?= site_url('about') ?>">ABOUT US</a>
           <a href="<?= site_url('login') ?>">LOGIN</a>
         </div>
