@@ -13,32 +13,58 @@ class Reception extends BaseController
         $today = date('Y-m-d');
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
         
-        // KPIs
+        // KPIs - try without DATE first
         $checkinsToday = $apptModel
-            ->where('DATE(appointment_date)', $today)
+            ->where('appointment_date', $today)
             ->where('status', 'checked-in')
             ->countAllResults();
+            
+        if ($checkinsToday == 0) {
+            $checkinsToday = $apptModel
+                ->where('DATE(appointment_date)', $today)
+                ->where('status', 'checked-in')
+                ->countAllResults();
+        }
+        
         $upcomingAppts = $apptModel
-            ->where('DATE(appointment_date)', $today)
+            ->where('appointment_date', $today)
             ->where('status', 'scheduled')
             ->countAllResults();
+            
+        if ($upcomingAppts == 0) {
+            $upcomingAppts = $apptModel
+                ->where('DATE(appointment_date)', $today)
+                ->where('status', 'scheduled')
+                ->countAllResults();
+        }
         $totalPatients = $patientModel->where('is_active', 1)->countAllResults();
         $newPatientsToday = $patientModel
             ->where('DATE(created_at)', $today)
             ->countAllResults();
 
-        // Today's appointments with full details
+        // Today's appointments with full details - try without DATE first
         $todayAppts = $apptModel
-            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.username as doctor_name')
             ->join('patients', 'patients.id = appointments.patient_id')
             ->join('users', 'users.id = appointments.doctor_id')
-            ->where('DATE(appointments.appointment_date)', $today)
+            ->where('appointments.appointment_date', $today)
             ->orderBy('appointments.appointment_time', 'ASC')
             ->findAll(20);
+            
+        // If empty, try with DATE function
+        if (empty($todayAppts)) {
+            $todayAppts = $apptModel
+                ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.username as doctor_name')
+                ->join('patients', 'patients.id = appointments.patient_id')
+                ->join('users', 'users.id = appointments.doctor_id')
+                ->where("DATE(appointments.appointment_date)", $today)
+                ->orderBy('appointments.appointment_time', 'ASC')
+                ->findAll(20);
+        }
 
         // Tomorrow's appointments
         $tomorrowAppts = $apptModel
-            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = appointments.patient_id')
             ->join('users', 'users.id = appointments.doctor_id')
             ->where('DATE(appointments.appointment_date)', $tomorrow)
@@ -54,8 +80,7 @@ class Reception extends BaseController
         // Available doctors for booking
         $doctors = $userModel
             ->where('role', 'doctor')
-            ->where('is_active', 1)
-            ->orderBy('first_name', 'ASC')
+            ->orderBy('username', 'ASC')
             ->findAll(20);
 
         return view('Reception/dashboard', [
@@ -330,7 +355,7 @@ class Reception extends BaseController
         $apptModel = model('App\\Models\\AppointmentModel');
         
         $appointments = $apptModel
-            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.username as doctor_name')
             ->join('patients', 'patients.id = appointments.patient_id')
             ->join('users', 'users.id = appointments.doctor_id')
             ->orderBy('appointments.appointment_date', 'DESC')
@@ -346,7 +371,7 @@ class Reception extends BaseController
         $apptModel = model('App\\Models\\AppointmentModel');
         
         $appointment = $apptModel
-            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, patients.email, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, patients.email, users.username as doctor_name')
             ->join('patients', 'patients.id = appointments.patient_id')
             ->join('users', 'users.id = appointments.doctor_id')
             ->where('appointments.id', $id)

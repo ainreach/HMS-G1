@@ -174,7 +174,7 @@ class Pharmacy extends BaseController
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         
         $prescriptions = $medicalRecordModel
-            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = medical_records.patient_id')
             ->join('users', 'users.id = medical_records.doctor_id')
             ->where('medical_records.medications_prescribed IS NOT NULL')
@@ -417,7 +417,7 @@ class Pharmacy extends BaseController
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         
         $prescriptions = $medicalRecordModel
-            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = medical_records.patient_id')
             ->join('users', 'users.id = medical_records.doctor_id')
             ->where('medical_records.medications_prescribed IS NOT NULL')

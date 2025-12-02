@@ -55,6 +55,47 @@
     .pagination a:hover { background-color: #e5e7eb; }
     .pagination .current { padding: 0.5rem 0.75rem; background-color: #3b82f6; color: white; border-radius: 0.375rem; }
   </style>
+  <script>
+    // Global function for modal - available immediately
+    function showMedicineModal() {
+        console.log('Global showMedicineModal called!');
+        const modal = document.getElementById('addMedicineModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            console.log('Modal should be visible now');
+        } else {
+            console.error('Modal not found');
+        }
+    }
+    
+    // Close modal function
+    function closeMedicineModal() {
+        const modal = document.getElementById('addMedicineModal');
+        const form = document.getElementById('addMedicineForm');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            if (form) form.reset();
+        }
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('addMedicineModal');
+        if (modal && e.target === modal) {
+            closeMedicineModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('addMedicineModal');
+        if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+            closeMedicineModal();
+        }
+    });
+  </script>
 </head>
 <body>
 <header class="dash-topbar" role="banner">
@@ -163,3 +204,12 @@
     <?php if(session()->getFlashdata('error')): ?>
       <div class="alert alert-error"><?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
+    
+    <?= $this->renderSection('content') ?>
+  </main>
+</div>
+
+<?= $this->renderSection('scripts') ?>
+
+</body>
+</html>

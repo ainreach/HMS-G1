@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
   <style>
     .log-entry { font-family: 'Courier New', monospace; font-size: 0.875rem; }
     .log-timestamp { color: #6b7280; font-size: 0.75rem; }
@@ -58,8 +60,8 @@
       </div>
     </section>
   </main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>

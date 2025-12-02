@@ -412,7 +412,7 @@ class Nurse extends BaseController
         
         // Get recent treatment updates
         $updates = $medicalRecordModel
-            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+            ->select('medical_records.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = medical_records.patient_id')
             ->join('users', 'users.id = medical_records.doctor_id', 'left')
             ->where('medical_records.treatment_plan IS NOT NULL')

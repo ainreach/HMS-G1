@@ -55,14 +55,18 @@ $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'ro
 // Financial Management Routes
 $routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin']);
 $routes->get('/admin/payments', 'Admin::payments', ['filter' => 'role:admin']);
+$routes->get('/admin/payments/(:num)', 'Admin::viewPayment/$1', ['filter' => 'role:admin']);
 $routes->get('/admin/insurance-claims', 'Admin::insuranceClaims', ['filter' => 'role:admin']);
 
 // Lab Test Management Routes
 $routes->get('/admin/lab-tests', 'Admin::labTests', ['filter' => 'role:admin']);
 
 // Inventory Management Routes
-$routes->get('/admin/medicines', 'Admin::medicines', ['filter' => 'role:admin']);
 $routes->get('/admin/inventory', 'Admin::inventory', ['filter' => 'role:admin']);
+$routes->get('/admin/add-stock', 'Admin::addStock', ['filter' => 'role:admin']);
+$routes->post('/admin/add-stock', 'Admin::storeStock', ['filter' => 'role:admin']);
+$routes->get('/admin/medicines', 'Admin::medicines', ['filter' => 'role:admin']);
+$routes->post('/admin/medicines/add', 'Admin::addMedicine', ['filter' => 'role:admin']);
 
 // Analytics and Reports Routes
 $routes->get('/admin/analytics', 'Admin::analytics', ['filter' => 'role:admin']);
@@ -76,8 +80,10 @@ $routes->get('/accountant/invoices', 'Accountant::invoices', ['filter' => 'role:
 $routes->get('/accountant/invoices/new', 'Accountant::newInvoice', ['filter' => 'role:accountant']);
 $routes->post('/accountant/invoices', 'Accountant::storeInvoice', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments', 'Accountant::payments', ['filter' => 'role:accountant']);
+$routes->get('/accountant/payments/(:num)', 'Accountant::viewPayment/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/new', 'Accountant::newPayment', ['filter' => 'role:accountant']);
 $routes->post('/accountant/payments', 'Accountant::storePayment', ['filter' => 'role:accountant']);
+$routes->post('/accountant/storePayment', 'Accountant::storePayment', ['filter' => 'role:accountant']);
 $routes->get('/accountant/statements', 'Accountant::statements', ['filter' => 'role:accountant']);
 $routes->get('/accountant/statements/export', 'Accountant::exportStatement', ['filter' => 'role:accountant']);
 $routes->get('/accountant/invoices/export', 'Accountant::exportInvoicesCsv', ['filter' => 'role:accountant']);

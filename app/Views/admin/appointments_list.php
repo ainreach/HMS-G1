@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
     <section class="panel">
       <div class="panel-head">
         <h2 style="margin:0;font-size:1.1rem">All Appointments (<?= number_format($total) ?>)</h2>
@@ -21,8 +23,24 @@
               <?php foreach ($appointments as $appointment): ?>
                 <tr>
                   <td><?= esc($appointment['appointment_number']) ?></td>
-                  <td><?= esc($appointment['patient_first_name'] . ' ' . $appointment['patient_last_name']) ?></td>
-                  <td>Dr. <?= esc($appointment['doctor_first_name'] . ' ' . $appointment['doctor_last_name']) ?></td>
+                  <td>
+                    <?php 
+                    if (isset($appointment['patient_first_name']) && isset($appointment['patient_last_name'])) {
+                        echo esc($appointment['patient_first_name'] . ' ' . $appointment['patient_last_name']);
+                    } else {
+                        echo 'Patient ID: ' . esc($appointment['patient_id'] ?? 'Unknown');
+                    }
+                    ?>
+                  </td>
+                  <td>
+                    <?php 
+                    if (isset($appointment['doctor_name'])) {
+                        echo 'Dr. ' . esc($appointment['doctor_name']);
+                    } else {
+                        echo 'Doctor ID: ' . esc($appointment['doctor_id'] ?? 'Unknown');
+                    }
+                    ?>
+                  </td>
                   <td>
                     <?= date('M j, Y', strtotime($appointment['appointment_date'])) ?><br>
                     <small style="color: #6b7280;"><?= date('g:i A', strtotime($appointment['appointment_time'])) ?></small>
@@ -67,8 +85,8 @@
       </div>
     </section>
   </main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>

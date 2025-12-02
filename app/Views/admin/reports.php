@@ -1,5 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
 
+<?= $this->section('content') ?>
 <section class="panel">
   <div class="panel-head">
     <h2 style="margin:0;font-size:1.1rem">User Reports</h2>
@@ -20,9 +21,8 @@
   </div>
 </section>
 
-</main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>

@@ -21,7 +21,7 @@ class MedicineModel extends Model
     protected $validationRules = [
         'name' => 'required|min_length[3]|max_length[255]',
         'medicine_code' => 'required|is_unique[medicines.medicine_code,id,{id}]',
-        'purchase_price' => 'required|numeric',
+        'purchase_price' => 'permit_empty|numeric',
         'selling_price' => 'required|numeric'
     ];
 

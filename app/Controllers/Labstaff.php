@@ -21,7 +21,7 @@ class Labstaff extends BaseController
 
         // Recent pending tests with patient details
         $pendingList = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.status', 'requested')
@@ -31,7 +31,7 @@ class Labstaff extends BaseController
 
         // Recently completed tests
         $recentCompleted = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.status', 'completed')
@@ -108,7 +108,7 @@ class Labstaff extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         
         $requests = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.status', 'requested')
@@ -159,7 +159,7 @@ class Labstaff extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         
         $tests = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.status', 'completed')
@@ -175,7 +175,7 @@ class Labstaff extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         
         $test = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.id', $id)
@@ -194,7 +194,7 @@ class Labstaff extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         
         $test = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.first_name as doctor_first, users.last_name as doctor_last')
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.username as doctor_name')
             ->join('patients', 'patients.id = lab_tests.patient_id')
             ->join('users', 'users.id = lab_tests.doctor_id')
             ->where('lab_tests.id', $id)

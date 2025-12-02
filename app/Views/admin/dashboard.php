@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
     
     <!-- KPI Cards -->
     <section class="kpi-grid">
@@ -216,6 +218,64 @@
       </section>
     </div>
 
+    <!-- Today's Appointments Section -->
+    <section class="panel" style="margin-top:1.5rem;">
+      <div class="panel-head">
+        <h2 style="margin:0;font-size:1.1rem">Today's Appointments</h2>
+      </div>
+      <div class="panel-body" style="overflow:auto">
+        <table class="table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:8px 12px;border-bottom:1px solid #e5e7eb">Patient</th>
+              <th style="text-align:left;padding:8px 12px;border-bottom:1px solid #e5e7eb">Doctor</th>
+              <th style="text-align:left;padding:8px 12px;border-bottom:1px solid #e5e7eb">Time</th>
+              <th style="text-align:left;padding:8px 12px;border-bottom:1px solid #e5e7eb">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!empty($todayAppointmentsList)): ?>
+              <?php foreach ($todayAppointmentsList as $appointment): ?>
+                <tr>
+                  <td style="padding:12px;border-bottom:1px solid #f3f4f6">
+                    <?php 
+                    if (isset($appointment['first_name']) && isset($appointment['last_name'])) {
+                        echo esc($appointment['first_name'] . ' ' . $appointment['last_name']);
+                    } else {
+                        echo 'Patient ID: ' . esc($appointment['patient_id'] ?? 'Unknown');
+                    }
+                    ?>
+                    <br><small style="color:#6b7280"><?= esc($appointment['patient_code'] ?? $appointment['patient_id'] ?? '') ?></small>
+                  </td>
+                  <td style="padding:12px;border-bottom:1px solid #f3f4f6">
+                    <?php 
+                    if (isset($appointment['doctor_name'])) {
+                        echo 'Dr. ' . esc($appointment['doctor_name']);
+                    } else {
+                        echo 'Doctor ID: ' . esc($appointment['doctor_id'] ?? 'Unknown');
+                    }
+                    ?>
+                  </td>
+                  <td style="padding:12px;border-bottom:1px solid #f3f4f6"><?= esc(substr($appointment['appointment_time'], 0, 5)) ?></td>
+                  <td style="padding:12px;border-bottom:1px solid #f3f4f6">
+                    <span style="padding:2px 8px;border-radius:4px;font-size:0.75rem;background-color:<?= $appointment['status'] === 'checked-in' ? '#d1fae5' : ($appointment['status'] === 'scheduled' ? '#dbeafe' : '#fef3c7') ?>;color:<?= $appointment['status'] === 'checked-in' ? '#065f46' : ($appointment['status'] === 'scheduled' ? '#1e40af' : '#92400e') ?>">
+                      <?= esc(ucfirst($appointment['status'] ?: 'Scheduled')) ?>
+                    </span>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="4" style="padding:12px;text-align:center;color:#6b7280">
+                  No appointments scheduled for today.
+                </td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Additional Statistics Row -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
       <!-- System Overview -->
@@ -293,8 +353,9 @@
       </section>
     </div>
   </main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
 <script>
 // Auto-refresh dashboard every 5 minutes
@@ -302,5 +363,4 @@ setTimeout(() => {
   window.location.reload();
 }, 300000);
 </script>
-</body>
-</html>
+<?= $this->endSection() ?>

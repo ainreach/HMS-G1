@@ -17,6 +17,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Jane',
                 'last_name' => 'Admin',
                 'role' => 'admin',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -28,6 +30,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Mike',
                 'last_name' => 'IT',
                 'role' => 'it_staff',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -39,6 +43,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Sara',
                 'last_name' => 'Doctor',
                 'role' => 'doctor',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -50,6 +56,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Lee',
                 'last_name' => 'Nurse',
                 'role' => 'nurse',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -61,6 +69,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Anna',
                 'last_name' => 'Reception',
                 'role' => 'receptionist',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -72,6 +82,8 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Ben',
                 'last_name' => 'Lab',
                 'role' => 'lab_staff',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -83,6 +95,9 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Kate',
                 'last_name' => 'Pharm',
                 'role' => 'pharmacist',
+                'branch_id' => 1,
+                'license_number' => 'LIC-67890',
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -94,11 +109,18 @@ class UsersSeeder extends Seeder
                 'first_name' => 'Noel',
                 'last_name' => 'Acct',
                 'role' => 'accountant',
+                'branch_id' => 1,
+                'is_active' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
         ];
 
-        $this->db->table('users')->insertBatch($users);
+        // Insert one by one to avoid column count issues
+        foreach ($users as $user) {
+            $this->db->table('users')->insert($user);
+        }
+        
+        log_message('info', 'UsersSeeder: Successfully inserted ' . count($users) . ' users');
     }
 }

@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h2 style="margin:0">Users</h2>
       <div style="display:flex;gap:8px">
@@ -50,8 +52,8 @@
     </div>
 
 </main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>

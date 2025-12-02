@@ -4,53 +4,53 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class AddAdmissionFieldsToPatientsTable extends Migration
+class CreateInvoicesTable extends Migration
 {
     public function up()
     {
-        // Check if columns already exist
-        $existingColumns = $this->db->getFieldNames('patients');
-        
-        if (!in_array('admission_type', $existingColumns)) {
-            $fields = [
-                'admission_type' => [
-                    'type'       => 'ENUM',
-                    'constraint' => ['checkup', 'admission'],
-                    'default'    => 'checkup',
-                    'after'      => 'branch_id',
-                ],
-                'assigned_room_id' => [
-                    'type'       => 'INT',
-                    'constraint' => 11,
-                    'unsigned'   => true,
-                    'null'       => true,
-                    'after'      => 'admission_type',
-                ],
-                'admission_date' => [
-                    'type' => 'DATETIME',
-                    'null' => true,
-                    'after' => 'assigned_room_id',
-                ],
-                'discharge_date' => [
-                    'type' => 'DATETIME',
-                    'null' => true,
-                    'after' => 'admission_date',
-                ],
-            ];
-            
-            $this->forge->addColumn('patients', $fields);
-        }
+        $this->forge->addField([
+            'id' => [
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
+                'auto_increment' => true,
+            ],
+            'invoice_no' => [
+                'type' => 'VARCHAR',
+                'constraint' => 50,
+                'unique' => true,
+            ],
+            'patient_name' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+            ],
+            'amount' => [
+                'type' => 'DECIMAL',
+                'constraint' => '10,2',
+            ],
+            'status' => [
+                'type' => 'ENUM',
+                'constraint' => ['pending', 'paid', 'cancelled'],
+                'default' => 'pending',
+            ],
+            'issued_at' => [
+                'type' => 'DATETIME',
+            ],
+            'created_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'updated_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+        ]);
+        $this->forge->addKey('id', true);
+        $this->forge->createTable('invoices');
     }
 
     public function down()
     {
-        // Drop foreign key first
-        $this->db->query("ALTER TABLE `patients` DROP FOREIGN KEY IF EXISTS `fk_patients_room`");
-        
-        // Drop columns
-        $this->forge->dropColumn('patients', 'admission_type');
-        $this->forge->dropColumn('patients', 'assigned_room_id');
-        $this->forge->dropColumn('patients', 'admission_date');
-        $this->forge->dropColumn('patients', 'discharge_date');
+        $this->forge->dropTable('invoices');
     }
 }

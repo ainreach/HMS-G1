@@ -60,7 +60,7 @@
             <?php if (!empty($appointments)) : foreach ($appointments as $appointment) : ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['first_name'] . ' ' . $appointment['last_name']) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($appointment['doctor_last']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($appointment['doctor_name']) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['appointment_time']) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <span style="padding:2px 6px;border-radius:4px;font-size:0.75rem;background-color:<?= $appointment['status'] === 'checked-in' ? '#d1fae5' : ($appointment['status'] === 'scheduled' ? '#dbeafe' : '#fef3c7') ?>;color:<?= $appointment['status'] === 'checked-in' ? '#065f46' : ($appointment['status'] === 'scheduled' ? '#1e40af' : '#92400e') ?>">
@@ -128,7 +128,7 @@
               <?php if (!empty($tomorrowAppts)) : foreach ($tomorrowAppts as $appointment) : ?>
                 <tr>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['first_name'] . ' ' . $appointment['last_name']) ?></td>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($appointment['doctor_last']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($appointment['doctor_name']) ?></td>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($appointment['appointment_time']) ?></td>
                 </tr>
               <?php endforeach; else: ?>

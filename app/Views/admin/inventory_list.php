@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
 
 <section class="panel">
   <div class="panel-head">
@@ -10,7 +12,7 @@
         <h3 style="margin:0;font-size:1rem;color:#6b7280">Total Items: <?= number_format($total) ?></h3>
       </div>
       <div>
-        <a href="<?= site_url('pharmacy/add-stock') ?>" class="btn">
+        <a href="<?= site_url('admin/add-stock') ?>" class="btn">
           <i class="fas fa-plus"></i> Add Stock
         </a>
       </div>
@@ -105,8 +107,8 @@
 </section>
 
 </main>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>

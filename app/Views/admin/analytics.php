@@ -1,4 +1,6 @@
-<?= $this->include('admin/sidebar') ?>
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .chart-container { position: relative; height: 300px; margin: 1rem 0; }
@@ -211,7 +213,5 @@ const labTestStatusChart = new Chart(labTestStatusCtx, {
   }
 });
 </script>
-
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
-</body>
-</html>
+<?= $this->endSection() ?>
