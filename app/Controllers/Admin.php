@@ -23,7 +23,7 @@ class Admin extends BaseController
         // User Statistics
         $totalUsers = $userModel->countAllResults();
         $newUsersThisMonth = $userModel->where('created_at >=', date('Y-m-01'))->countAllResults();
-        $recentUsers = $userModel->select('id, employee_id, username, role, created_at')
+        $recentUsers = $userModel->select('id, username, role, created_at')
                                  ->orderBy('created_at', 'DESC')
                                  ->findAll(5);
 
@@ -36,10 +36,47 @@ class Admin extends BaseController
 
         // Appointment Statistics
         $totalAppointments = $appointmentModel->countAllResults();
-        $todayAppointments = $appointmentModel->where('appointment_date', date('Y-m-d'))->countAllResults();
+        $today = date('Y-m-d');
+        
+        // Try multiple approaches to get today's appointments
+        $todayAppointments = $appointmentModel->where('appointment_date', $today)->countAllResults();
+        
+        // If no results, try with DATE function
+        if ($todayAppointments == 0) {
+            $todayAppointments = $appointmentModel->where("DATE(appointment_date)", $today)->countAllResults();
+        }
+        
         $upcomingAppointments = $appointmentModel->where('appointment_date >=', date('Y-m-d'))
                                                 ->where('status', 'scheduled')
                                                 ->countAllResults();
+        
+        // Get today's appointments details for display - try without DATE first
+        $todayAppointmentsList = $appointmentModel
+            ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
+            ->join('patients', 'patients.id = appointments.patient_id', 'left')
+            ->join('users', 'users.id = appointments.doctor_id', 'left')
+            ->where('appointments.appointment_date', $today)
+            ->orderBy('appointments.appointment_time', 'ASC')
+            ->findAll(10);
+            
+        // If empty, try with DATE function
+        if (empty($todayAppointmentsList)) {
+            $todayAppointmentsList = $appointmentModel
+                ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
+                ->join('patients', 'patients.id = appointments.patient_id', 'left')
+                ->join('users', 'users.id = appointments.doctor_id', 'left')
+                ->where("DATE(appointments.appointment_date)", $today)
+                ->orderBy('appointments.appointment_time', 'ASC')
+                ->findAll(10);
+        }
+        
+        // If still empty, get basic appointments without joins
+        if (empty($todayAppointmentsList)) {
+            $todayAppointmentsList = $appointmentModel
+                ->where('appointment_date', $today)
+                ->orderBy('appointment_time', 'ASC')
+                ->findAll(10);
+        }
 
         // Financial Statistics
         $totalInvoices = $invoiceModel->countAllResults();
@@ -81,6 +118,7 @@ class Admin extends BaseController
             'totalAppointments' => $totalAppointments,
             'todayAppointments' => $todayAppointments,
             'upcomingAppointments' => $upcomingAppointments,
+            'todayAppointmentsList' => $todayAppointmentsList,
             
             // Financial Statistics
             'totalInvoices' => $totalInvoices,
@@ -200,7 +238,7 @@ class Admin extends BaseController
         $userModel = model('App\\Models\\UserModel');
         $total = $userModel->countAllResults();
         $users = $userModel
-                    ->select('id,employee_id,username,role,created_at')
+                    ->select('id,username,role,created_at')
                     ->orderBy('created_at','DESC')
                     ->findAll($perPage, $offset);
         $data = [
@@ -423,12 +461,22 @@ class Admin extends BaseController
         $userModel = model('App\\Models\\UserModel');
         
         $total = $appointmentModel->countAllResults();
+        
+        // Debug: Get all appointments first without joins
+        $allAppointments = $appointmentModel->findAll(10);
+        
+        // Then try with joins
         $appointments = $appointmentModel
-                        ->select('appointments.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
-                        ->join('patients', 'patients.id = appointments.patient_id')
-                        ->join('users', 'users.id = appointments.doctor_id')
+                        ->select('appointments.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.username as doctor_name')
+                        ->join('patients', 'patients.id = appointments.patient_id', 'left')
+                        ->join('users', 'users.id = appointments.doctor_id', 'left')
                         ->orderBy('appointments.appointment_date', 'DESC')
                         ->findAll($perPage, $offset);
+        
+        // If joins return empty, use basic appointment data
+        if (empty($appointments) && !empty($allAppointments)) {
+            $appointments = $allAppointments;
+        }
         
         $data = [
             'appointments' => $appointments,
@@ -451,24 +499,19 @@ class Admin extends BaseController
 
         $doctors = $userModel
             ->where('role', 'doctor')
-            ->where('is_active', 1)
-            ->orderBy('last_name', 'ASC')
-            ->orderBy('first_name', 'ASC')
+            ->orderBy('username', 'ASC')
             ->findAll(200);
 
         $nurses = $userModel
             ->where('role', 'nurse')
-            ->where('is_active', 1)
-            ->orderBy('last_name', 'ASC')
-            ->orderBy('first_name', 'ASC')
+            ->orderBy('username', 'ASC')
             ->findAll(200);
 
         $schedules = $scheduleModel
-            ->select('staff_schedules.*, users.first_name, users.last_name, users.role')
+            ->select('staff_schedules.*, users.username, users.role')
             ->join('users', 'users.id = staff_schedules.user_id')
             ->orderBy('users.role', 'ASC')
-            ->orderBy('users.last_name', 'ASC')
-            ->orderBy('users.first_name', 'ASC')
+            ->orderBy('users.username', 'ASC')
             ->orderBy('staff_schedules.day_of_week', 'ASC')
             ->orderBy('staff_schedules.start_time', 'ASC')
             ->findAll(500);
@@ -564,7 +607,7 @@ class Admin extends BaseController
         
         $total = $medicalRecordModel->countAllResults();
         $records = $medicalRecordModel
-                    ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+                    ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.username as doctor_name')
                     ->join('patients', 'patients.id = medical_records.patient_id')
                     ->join('users', 'users.id = medical_records.doctor_id')
                     ->orderBy('medical_records.visit_date', 'DESC')
@@ -613,21 +656,149 @@ class Admin extends BaseController
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
         $paymentModel = model('App\\Models\\PaymentModel');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
         
         $total = $paymentModel->countAllResults();
         $payments = $paymentModel
                     ->orderBy('paid_at', 'DESC')
                     ->findAll($perPage, $offset);
         
+        // Calculate financial summary
+        $today = date('Y-m-d');
+        $outstandingBalance = 0;
+        $overdueAmount = 0;
+        $totalCollected = 0;
+        
+        // Get outstanding and overdue amounts
+        $openInvoices = $invoiceModel->where('status !=', 'paid')->findAll();
+        foreach ($openInvoices as $invoice) {
+            $amount = (float) $invoice['amount'];
+            $outstandingBalance += $amount;
+            
+            // Calculate overdue amount (invoices past due date)
+            $dueDate = $invoice['due_date'] ?? $invoice['issued_at'];
+            if (strtotime($dueDate) < strtotime($today)) {
+                $overdueAmount += $amount;
+            }
+        }
+        
+        // Calculate total collected (sum of all payments)
+        $totalCollected = (float) ($paymentModel
+            ->selectSum('amount', 'total')
+            ->first()['total'] ?? 0);
+        
+        // Calculate today's metrics
+        $paymentsToday = (float) ($paymentModel
+            ->selectSum('amount', 'total')
+            ->where('DATE(paid_at)', $today)
+            ->first()['total'] ?? 0);
+
+        $invoicesToday = $invoiceModel
+            ->where('DATE(issued_at)', $today)
+            ->countAllResults();
+        
+        // Get recent invoices for the invoice records section (for standalone invoices)
+        $invoices = $invoiceModel->orderBy('issued_at', 'DESC')->findAll(20);
+
+        // Map total payments per invoice number for balance calculations
+        $paymentsByInvoice = [];
+        foreach ($paymentModel->findAll() as $p) {
+            if (!empty($p['invoice_no'])) {
+                $key = (string) $p['invoice_no'];
+                $paymentsByInvoice[$key] = ($paymentsByInvoice[$key] ?? 0) + (float) ($p['amount'] ?? 0);
+            }
+        }
+
+        // Build billing-style records for patients with active room assignments
+        $patientsWithRooms = $patientModel
+            ->where('assigned_room_id IS NOT NULL', null, false)
+            ->where('assigned_room_id !=', null)
+            ->findAll();
+
+        $billingRecords = [];
+
+        foreach ($patientsWithRooms as $patient) {
+            $room = null;
+            $roomCharges = 0;
+            $daysStayed = 0;
+
+            if ($patient['assigned_room_id']) {
+                $room = $roomModel->find($patient['assigned_room_id']);
+
+                if ($room && $patient['admission_date']) {
+                    $admissionDate = new \DateTime($patient['admission_date']);
+                    $currentDate = new \DateTime();
+                    $daysStayed = $admissionDate->diff($currentDate)->days + 1;
+                    $roomCharges = $daysStayed * (float) ($room['rate_per_day'] ?? 0);
+                }
+            }
+
+            // Get invoices and payments for this patient by name
+            $fullName = trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''));
+            $patientInvoices = $invoiceModel->where('patient_name', $fullName)->findAll();
+            $patientPayments = $paymentModel->where('patient_name', $fullName)->findAll();
+
+            $totalInvoices = 0;
+            foreach ($patientInvoices as $inv) {
+                $totalInvoices += (float) ($inv['amount'] ?? 0);
+            }
+
+            $totalPayments = 0;
+            foreach ($patientPayments as $pay) {
+                $totalPayments += (float) ($pay['amount'] ?? 0);
+            }
+
+            $totalCharges = $roomCharges + $totalInvoices;
+            $balanceDue = $totalCharges - $totalPayments;
+
+            $billingRecords[] = [
+                'patient' => $patient,
+                'room' => $room,
+                'roomCharges' => $roomCharges,
+                'daysStayed' => $daysStayed,
+                'totalInvoices' => $totalInvoices,
+                'totalPayments' => $totalPayments,
+                'totalCharges' => $totalCharges,
+                'balanceDue' => $balanceDue,
+            ];
+        }
+        
         $data = [
             'payments' => $payments,
+            'invoices' => $invoices,
+            'paymentsByInvoice' => $paymentsByInvoice,
+            'billingRecords' => $billingRecords,
             'page' => $page,
             'perPage' => $perPage,
             'total' => $total,
             'hasPrev' => $page > 1,
             'hasNext' => ($offset + count($payments)) < $total,
+            'outstandingBalance' => $outstandingBalance,
+            'overdueAmount' => $overdueAmount,
+            'totalCollected' => $totalCollected,
+            'paymentsToday' => $paymentsToday,
+            'invoicesToday' => $invoicesToday,
+            'openInvoicesCount' => count($openInvoices),
         ];
         return view('admin/payments_list', $data);
+    }
+
+    public function viewPayment($paymentId)
+    {
+        helper(['url']);
+        $paymentModel = model('App\\Models\\PaymentModel');
+        
+        $payment = $paymentModel->find($paymentId);
+        
+        if (!$payment) {
+            return redirect()->to(site_url('admin/payments'))->with('error', 'Payment not found.');
+        }
+        
+        return view('admin/payment_view', [
+            'payment' => $payment
+        ]);
     }
 
     public function insuranceClaims()
@@ -667,7 +838,7 @@ class Admin extends BaseController
         
         $total = $labTestModel->countAllResults();
         $labTests = $labTestModel
-                    ->select('lab_tests.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+                    ->select('lab_tests.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.username as doctor_name')
                     ->join('patients', 'patients.id = lab_tests.patient_id')
                     ->join('users', 'users.id = lab_tests.doctor_id')
                     ->orderBy('lab_tests.requested_date', 'DESC')
@@ -709,6 +880,119 @@ class Admin extends BaseController
         return view('admin/medicines_list', $data);
     }
 
+    public function addMedicine()
+    {
+        helper(['form']);
+
+        // If this is not a POST request, just go back to the medicines list
+        if ($this->request->getMethod() !== 'post') {
+            return redirect()->to(site_url('admin/medicines'));
+        }
+
+        $medicineModel = model('App\\Models\\MedicineModel');
+
+        // Validate required fields
+        $rules = [
+            'medicine_code' => 'required|alpha_numeric|min_length[2]|max_length[20]',
+            'name' => 'required|min_length[3]|max_length[255]',
+            'unit' => 'required|max_length[20]',
+            'selling_price' => 'required|numeric|greater_than[0]'
+        ];
+
+        if (! $this->validate($rules)) {
+            $errors = $this->validator->getErrors();
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors'  => $errors,
+                ]);
+            }
+
+            return redirect()->to(site_url('admin/medicines'))
+                             ->with('error', 'Validation failed. Please check the form.')
+                             ->with('errors', $errors)
+                             ->withInput();
+        }
+
+        // Check if medicine code already exists
+        $existingMedicine = $medicineModel
+            ->where('medicine_code', $this->request->getPost('medicine_code'))
+            ->first();
+
+        if ($existingMedicine) {
+            $message = 'Medicine code already exists';
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => false, 'message' => $message]);
+            }
+
+            return redirect()->to(site_url('admin/medicines'))
+                             ->with('error', $message)
+                             ->withInput();
+        }
+
+        $data = [
+            'medicine_code' => strtoupper(trim($this->request->getPost('medicine_code'))),
+            'name'          => trim($this->request->getPost('name')),
+            'generic_name'  => trim($this->request->getPost('generic_name')) ?: null,
+            'category'      => $this->request->getPost('category') ?: null,
+            'dosage_form'   => $this->request->getPost('dosage_form') ? strtolower((string) $this->request->getPost('dosage_form')) : null,
+            'strength'      => trim($this->request->getPost('strength')) ?: null,
+            'unit'          => trim($this->request->getPost('unit')),
+            'purchase_price' => $this->request->getPost('cost_per_unit') ? (float) $this->request->getPost('cost_per_unit') : null,
+            'selling_price' => (float) $this->request->getPost('selling_price'),
+            'manufacturer'  => trim($this->request->getPost('manufacturer')) ?: null,
+            'description'   => trim($this->request->getPost('description')) ?: null,
+            'is_active'     => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+
+        try {
+            if ($medicineModel->insert($data)) {
+                $successMessage = 'Medicine added successfully!';
+
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => $successMessage,
+                    ]);
+                }
+
+                return redirect()->to(site_url('admin/medicines'))
+                                 ->with('success', $successMessage);
+            }
+
+            $errorMessage = 'Failed to add medicine to database';
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ]);
+            }
+
+            return redirect()->to(site_url('admin/medicines'))
+                             ->with('error', $errorMessage)
+                             ->withInput();
+        } catch (\Exception $e) {
+            log_message('error', 'Error adding medicine: ' . $e->getMessage());
+
+            $errorMessage = 'Database error: ' . $e->getMessage();
+
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ]);
+            }
+
+            return redirect()->to(site_url('admin/medicines'))
+                             ->with('error', $errorMessage)
+                             ->withInput();
+        }
+    }
+
     public function inventory()
     {
         helper(['url']);
@@ -734,6 +1018,91 @@ class Admin extends BaseController
             'hasNext' => ($offset + count($inventory)) < $total,
         ];
         return view('admin/inventory_list', $data);
+    }
+
+    // Add Stock Management
+    public function addStock()
+    {
+        helper(['url', 'form']);
+        
+        try {
+            $medicineModel = model('App\\Models\\MedicineModel');
+            
+            // Get all medicines for dropdown
+            $medicines = $medicineModel->orderBy('name', 'ASC')->findAll();
+            
+            // If no medicines found, show empty array
+            if (empty($medicines)) {
+                $medicines = [];
+            }
+            
+            return view('admin/add_stock', ['medicines' => $medicines]);
+            
+        } catch (\Exception $e) {
+            // Log error and show message
+            log_message('error', 'Error in addStock: ' . $e->getMessage());
+            return view('admin/add_stock', ['medicines' => [], 'error' => 'Unable to load medicines. Please check database connection.']);
+        }
+    }
+    
+    public function storeStock()
+    {
+        helper(['url', 'form']);
+        
+        $medicineId = $this->request->getPost('medicine_id');
+        $batchNumber = $this->request->getPost('batch_number');
+        $expiryDate = $this->request->getPost('expiry_date');
+        $quantityInStock = (int) $this->request->getPost('quantity_in_stock');
+        $minimumStockLevel = (int) $this->request->getPost('minimum_stock_level');
+        $maximumStockLevel = (int) $this->request->getPost('maximum_stock_level');
+        $reorderLevel = (int) $this->request->getPost('reorder_level');
+        $location = $this->request->getPost('location');
+        $notes = $this->request->getPost('notes');
+        
+        // Validate required fields
+        if (!$medicineId || !$batchNumber || !$expiryDate || $quantityInStock <= 0) {
+            return redirect()->back()->with('error', 'Please fill in all required fields.')->withInput();
+        }
+        
+        // Check if medicine exists
+        $medicineModel = model('App\\Models\\MedicineModel');
+        $medicine = $medicineModel->find($medicineId);
+        
+        if (!$medicine) {
+            return redirect()->back()->with('error', 'Medicine not found.')->withInput();
+        }
+        
+        // Check if batch already exists for this medicine
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        $existingBatch = $inventoryModel
+            ->where('medicine_id', $medicineId)
+            ->where('batch_number', $batchNumber)
+            ->first();
+            
+        if ($existingBatch) {
+            return redirect()->back()->with('error', 'Batch number already exists for this medicine.')->withInput();
+        }
+        
+        // Create new inventory record
+        $data = [
+            'medicine_id' => $medicineId,
+            'batch_number' => $batchNumber,
+            'expiry_date' => $expiryDate,
+            'quantity_in_stock' => $quantityInStock,
+            'minimum_stock_level' => $minimumStockLevel,
+            'maximum_stock_level' => $maximumStockLevel,
+            'reorder_level' => $reorderLevel,
+            'location' => $location,
+            'notes' => $notes,
+            'status' => 'active',
+        ];
+        
+        $inventoryModel->insert($data);
+        
+        // Log the action
+        AuditLogger::log('stock_add', 'medicine_id=' . $medicineId . ' batch=' . $batchNumber . ' quantity=' . $quantityInStock);
+        
+        return redirect()->to(site_url('admin/inventory'))->with('success', 'Stock added successfully.');
     }
 
     // System Analytics
