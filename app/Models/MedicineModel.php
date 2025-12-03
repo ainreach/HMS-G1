@@ -11,18 +11,14 @@ class MedicineModel extends Model
     protected $returnType       = 'array';
 
     protected $allowedFields = [
-        'medicine_code', 'name', 'generic_name', 'brand_name', 'category', 
-        'dosage_form', 'strength', 'unit', 'manufacturer', 'supplier', 
-        'purchase_price', 'selling_price', 'requires_prescription', 
-        'description', 'side_effects', 'contraindications', 
-        'storage_instructions', 'is_active'
+        'name', 'stock', 'price', 'retail_price', 'unit', 'is_active', 'expiration_date'
     ];
 
     protected $validationRules = [
-        'name' => 'required|min_length[3]|max_length[255]',
-        'medicine_code' => 'required|is_unique[medicines.medicine_code,id,{id}]',
-        'purchase_price' => 'permit_empty|numeric',
-        'selling_price' => 'required|numeric'
+        'name'         => 'required|min_length[3]|max_length[255]',
+        'price'        => 'required|numeric',
+        'retail_price' => 'required|numeric',
+        'stock'        => 'required|integer'
     ];
 
     protected $useTimestamps = true;

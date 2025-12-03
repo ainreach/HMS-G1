@@ -5,9 +5,6 @@ class Pharmacy extends BaseController
 {
     public function dashboard()
     {
-        if (!session()->get('isLoggedIn') || session()->get('role') !== 'pharmacist') {
-            return redirect()->to(site_url('auth/login'))->with('error', 'You must be logged in as a pharmacist to access this page.');
-        }
         helper('url');
         $inventory = model('App\\Models\\InventoryModel');
         $meds      = model('App\\Models\\MedicineModel');
@@ -259,10 +256,10 @@ class Pharmacy extends BaseController
         
         // Validation rules
         $rules = [
-            'name' => 'required|min_length[3]|max_length[255]',
-            'medicine_code' => 'required|is_unique[medicines.medicine_code,id,'.($id ?? '').']',
+            'name'         => 'required|min_length[3]|max_length[255]',
             'purchase_price' => 'required|numeric',
-            'selling_price' => 'required|numeric',
+            'selling_price'  => 'required|numeric',
+            'stock_quantity' => 'required|integer',
         ];
         
         if (!$this->validate($rules)) {
@@ -270,24 +267,13 @@ class Pharmacy extends BaseController
         }
         
         $data = [
-            'medicine_code' => $this->request->getPost('medicine_code'),
-            'name' => $this->request->getPost('name'),
-            'generic_name' => $this->request->getPost('generic_name'),
-            'brand_name' => $this->request->getPost('brand_name'),
-            'category' => $this->request->getPost('category'),
-            'dosage_form' => $this->request->getPost('dosage_form'),
-            'strength' => $this->request->getPost('strength'),
-            'unit' => $this->request->getPost('unit'),
-            'manufacturer' => $this->request->getPost('manufacturer'),
-            'supplier' => $this->request->getPost('supplier'),
-            'purchase_price' => $this->request->getPost('purchase_price'),
-            'selling_price' => $this->request->getPost('selling_price'),
-            'requires_prescription' => $this->request->getPost('requires_prescription') ? 1 : 0,
-            'description' => $this->request->getPost('description'),
-            'side_effects' => $this->request->getPost('side_effects'),
-            'contraindications' => $this->request->getPost('contraindications'),
-            'storage_instructions' => $this->request->getPost('storage_instructions'),
-            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+            'name'           => $this->request->getPost('name'),
+            'unit'           => $this->request->getPost('unit'),
+            'price'          => $this->request->getPost('purchase_price'),
+            'retail_price'   => $this->request->getPost('selling_price'),
+            'stock'          => $this->request->getPost('stock_quantity'),
+            'expiration_date'=> $this->request->getPost('expiry_date'),
+            'is_active'      => $this->request->getPost('is_active') ? 1 : 0,
         ];
         
         

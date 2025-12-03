@@ -38,29 +38,30 @@
         <table class="table" style="width:100%;border-collapse:collapse">
           <thead>
             <tr>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Code</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Name</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Generic</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Category</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Unit</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Stock</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Price</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Actions</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Cost / Unit</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Retail Price</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Expiration</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Status</th>
             </tr>
           </thead>
           <tbody>
             <?php if (!empty($medicines)): foreach ($medicines as $medicine): ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['medicine_code'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['name'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['generic_name'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['category'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['stock_quantity'] ?? 0) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">₱<?= number_format($medicine['selling_price'] ?? 0, 2) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['unit'] ?? '') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['stock'] ?? 0) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">₱<?= number_format($medicine['price'] ?? 0, 2) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">₱<?= number_format($medicine['retail_price'] ?? 0, 2) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($medicine['expiration_date'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <div style="display:flex;gap:6px">
-                    <a href="<?= site_url('pharmacy/medicines/edit/' . $medicine['id']) ?>" style="padding:4px 8px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem">Edit</a>
-                    <a href="<?= site_url('pharmacy/medicines/delete/' . $medicine['id']) ?>" style="padding:4px 8px;background:#ef4444;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem" onclick="return confirm('Are you sure?')">Delete</a>
-                  </div>
+                  <?php if (($medicine['is_active'] ?? 0)): ?>
+                    <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#166534;font-size:0.75rem;">Active</span>
+                  <?php else: ?>
+                    <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#e5e7eb;color:#374151;font-size:0.75rem;">Inactive</span>
+                  <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; else: ?>

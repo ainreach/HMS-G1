@@ -67,6 +67,9 @@ $routes->get('/admin/add-stock', 'Admin::addStock', ['filter' => 'role:admin']);
 $routes->post('/admin/add-stock', 'Admin::storeStock', ['filter' => 'role:admin']);
 $routes->get('/admin/medicines', 'Admin::medicines', ['filter' => 'role:admin']);
 $routes->post('/admin/medicines/add', 'Admin::addMedicine', ['filter' => 'role:admin']);
+$routes->get('/admin/medicines/edit/(:num)', 'Admin::editMedicine/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/medicines/save/(:num)', 'Admin::updateMedicine/$1', ['filter' => 'role:admin']);
+$routes->get('/admin/medicines/delete/(:num)', 'Admin::deleteMedicine/$1', ['filter' => 'role:admin']);
 
 // Analytics and Reports Routes
 $routes->get('/admin/analytics', 'Admin::analytics', ['filter' => 'role:admin']);
