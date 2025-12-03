@@ -96,15 +96,6 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     }
 
-    .physician-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-bottom: 20px;
-        border: 4px solid #eef5ff;
-    }
-
     .physician-name {
         font-size: 20px;
         font-weight: 600;
@@ -172,19 +163,16 @@
 
       <div class="physician-grid">
           <div class="physician-card">
-              <img src="<?= base_url('assets/img/doc-1.png') ?>" alt="Dr. Evelyn Reed" class="physician-avatar">
               <h3 class="physician-name">Dr. Evelyn Reed</h3>
               <p class="physician-specialty">Cardiologist</p>
           </div>
 
           <div class="physician-card">
-              <img src="<?= base_url('assets/img/doc-2.png') ?>" alt="Dr. Marcus Chen" class="physician-avatar">
               <h3 class="physician-name">Dr. Marcus Chen</h3>
               <p class="physician-specialty">Pediatrician</p>
           </div>
 
           <div class="physician-card">
-              <img src="<?= base_url('assets/img/doc-3.png') ?>" alt="Dr. Isabella Vance" class="physician-avatar">
               <h3 class="physician-name">Dr. Isabella Vance</h3>
               <p class="physician-specialty">Neurologist</p>
           </div>
