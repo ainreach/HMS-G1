@@ -48,15 +48,18 @@ $routes->get('/admin/appointments', 'Admin::appointments', ['filter' => 'role:ad
 $routes->get('/admin/staff-schedules', 'Admin::staffSchedules', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules', 'Admin::storeStaffSchedule', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules/delete/(:num)', 'Admin::deleteStaffSchedule/$1', ['filter' => 'role:admin']);
+$routes->get('/admin/staff-schedules/year-events', 'Admin::staffScheduleYearEvents', ['filter' => 'role:admin']);
 
 // Medical Records Management Routes
 $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'role:admin']);
 
 // Financial Management Routes
-$routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin']);
-$routes->get('/admin/payments', 'Admin::payments', ['filter' => 'role:admin']);
-$routes->get('/admin/payments/(:num)', 'Admin::viewPayment/$1', ['filter' => 'role:admin']);
-$routes->get('/admin/insurance-claims', 'Admin::insuranceClaims', ['filter' => 'role:admin']);
+$routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin,accountant']);
+$routes->get('/admin/payments', 'Admin::payments', ['filter' => 'role:admin,accountant']);
+$routes->get('/admin/payments/(:num)', 'Admin::viewPayment/$1', ['filter' => 'role:admin,accountant']);
+$routes->get('/admin/insurance-claims', 'Admin::insuranceClaims', ['filter' => 'role:admin,accountant']);
+// Detailed billing view (reuses Accountant::viewBilling)
+$routes->get('/admin/billing/view/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:admin,accountant']);
 
 // Lab Test Management Routes
 $routes->get('/admin/lab-tests', 'Admin::labTests', ['filter' => 'role:admin']);
@@ -75,13 +78,15 @@ $routes->get('/admin/medicines/delete/(:num)', 'Admin::deleteMedicine/$1', ['fil
 $routes->get('/admin/analytics', 'Admin::analytics', ['filter' => 'role:admin']);
 $routes->get('/admin/audit-logs', 'Admin::auditLogs', ['filter' => 'role:admin']);
 $routes->get('/accountant/billing', 'Accountant::billing', ['filter' => 'role:accountant']);
-$routes->get('/accountant/patients/billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/patients/billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
+// Alias for patient billing (singular path)
+$routes->get('/accountant/patient-billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/patients/discharge/(:num)', 'Accountant::dischargePatient/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/patients/bills', 'Accountant::allPatientBills', ['filter' => 'role:accountant']);
 $routes->get('/accountant/reports', 'Accountant::reports', ['filter' => 'role:accountant']);
-$routes->get('/accountant/invoices', 'Accountant::invoices', ['filter' => 'role:accountant']);
-$routes->get('/accountant/invoices/new', 'Accountant::newInvoice', ['filter' => 'role:accountant']);
-$routes->post('/accountant/invoices', 'Accountant::storeInvoice', ['filter' => 'role:accountant']);
+$routes->get('/accountant/invoices', 'Accountant::invoices', ['filter' => 'role:admin,accountant']);
+$routes->get('/accountant/invoices/new', 'Accountant::newInvoice', ['filter' => 'role:admin,accountant']);
+$routes->post('/accountant/invoices', 'Accountant::storeInvoice', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/payments', 'Accountant::payments', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/(:num)', 'Accountant::viewPayment/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/new', 'Accountant::newPayment', ['filter' => 'role:accountant']);
@@ -95,6 +100,9 @@ $routes->get('/accountant/finance/export/zip', 'Accountant::exportZip', ['filter
 $routes->get('/accountant/insurance', 'Accountant::insurance', ['filter' => 'role:accountant']);
 $routes->get('/accountant/claims/new', 'Accountant::newClaim', ['filter' => 'role:accountant']);
 $routes->post('/accountant/claims', 'Accountant::storeClaim', ['filter' => 'role:accountant']);
+
+// View single claim (admin only)
+$routes->get('/accountant/claims/(:num)', 'Accountant::viewClaim/$1', ['filter' => 'role:admin']);
 
 // Receptionist functional routes
 $routes->get('/reception/patients/new', 'Reception::newPatient', ['filter' => 'role:receptionist,admin']);
@@ -146,6 +154,9 @@ $routes->get('/doctor/patients/search', 'Doctor::searchPatients', ['filter' => '
 $routes->get('/doctor/patients/new', 'Doctor::newPatient', ['filter' => 'role:doctor,admin']);
 $routes->post('/doctor/patients', 'Doctor::storePatient', ['filter' => 'role:doctor,admin']);
 $routes->get('/doctor/patients/view/(:num)', 'Doctor::viewPatient/$1', ['filter' => 'role:doctor']);
+// Doctor schedule management
+$routes->get('/doctor/schedule', 'Doctor::schedule', ['filter' => 'role:doctor']);
+$routes->post('/doctor/schedule', 'Doctor::storeSchedule', ['filter' => 'role:doctor']);
 
 // Nurse functional routes
 // Dashboard

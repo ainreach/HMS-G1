@@ -54,7 +54,9 @@
           <?php if (!empty($claims)) : ?>
             <?php foreach ($claims as $c) : ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($c['claim_no'] ?? '') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?= esc($c['claim_no'] ?? '') ?>
+                </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($c['invoice_no'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($c['patient_name'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($c['provider'] ?? '') ?></td>

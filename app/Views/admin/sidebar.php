@@ -131,9 +131,6 @@
         <a href="<?= site_url('admin/users') ?>" class="<?= (strpos(current_url(), 'admin/users') !== false) ? 'active' : '' ?>">
           <i class="fas fa-users-cog"></i> Users
         </a>
-        <a href="<?= site_url('admin/roles/assign') ?>" class="<?= (strpos(current_url(), 'admin/roles/assign') !== false) ? 'active' : '' ?>">
-          <i class="fas fa-user-tag"></i> Role Management
-        </a>
       </div>
       
       <!-- Patient Management -->

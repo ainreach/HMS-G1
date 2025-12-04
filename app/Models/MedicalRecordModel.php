@@ -9,6 +9,8 @@ class MedicalRecordModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'record_number','patient_id','appointment_id','doctor_id','visit_date','chief_complaint','history_present_illness','physical_examination','vital_signs','diagnosis','treatment_plan','medications_prescribed','follow_up_instructions','next_visit_date','branch_id'

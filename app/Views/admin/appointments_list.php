@@ -32,26 +32,42 @@
                     }
                     ?>
                   </td>
+                  <?php
+                    $patientLabel = isset($appointment['patient_first_name'], $appointment['patient_last_name'])
+                      ? trim($appointment['patient_first_name'] . ' ' . $appointment['patient_last_name'])
+                      : 'Patient ID: ' . (string)($appointment['patient_id'] ?? 'Unknown');
+
+                    $doctorLabel = isset($appointment['doctor_name'])
+                      ? 'Dr. ' . $appointment['doctor_name']
+                      : 'Doctor ID: ' . (string)($appointment['doctor_id'] ?? 'Unknown');
+
+                    $dateLabel = date('M j, Y', strtotime($appointment['appointment_date']));
+                    $timeLabel = date('g:i A', strtotime($appointment['appointment_time']));
+                    $typeLabel = ucfirst(str_replace('_', ' ', (string)($appointment['type'] ?? 'consultation')));
+                  ?>
+                  <td><?= esc($patientLabel) ?></td>
+                  <td><?= esc($doctorLabel) ?></td>
                   <td>
-                    <?php 
-                    if (isset($appointment['doctor_name'])) {
-                        echo 'Dr. ' . esc($appointment['doctor_name']);
-                    } else {
-                        echo 'Doctor ID: ' . esc($appointment['doctor_id'] ?? 'Unknown');
-                    }
-                    ?>
+                    <?= esc($dateLabel) ?><br>
+                    <small style="color:#6b7280;"><?= esc($timeLabel) ?></small>
                   </td>
-                  <td>
-                    <?= date('M j, Y', strtotime($appointment['appointment_date'])) ?><br>
-                    <small style="color: #6b7280;"><?= date('g:i A', strtotime($appointment['appointment_time'])) ?></small>
-                  </td>
-                  <td><?= ucfirst(str_replace('_', ' ', $appointment['type'])) ?></td>
-                  <td>
-                    <span class="badge badge-<?= $appointment['status'] ?>">
-                      <?= ucfirst(str_replace('_', ' ', $appointment['status'])) ?>
+                  <td><?= esc($typeLabel) ?></td>
+                  <?php
+                    $rawStatus = strtolower(trim($appointment['status'] ?? 'scheduled'));
+                    if ($rawStatus === '') { $rawStatus = 'scheduled'; }
+                    $statusLabel = $rawStatus === 'checked-in' ? 'Checked-in'
+                                 : ($rawStatus === 'cancelled' ? 'Cancelled'
+                                 : 'Scheduled');
+                    $statusClass = $rawStatus === 'checked-in' ? 'success'
+                                 : ($rawStatus === 'cancelled' ? 'danger'
+                                 : 'info');
+                  ?>
+                  <td style="padding:8px 10px;white-space:nowrap;">
+                    <span class="badge badge-<?= $statusClass ?>" style="font-size:0.75rem;">
+                      <?= esc($statusLabel) ?>
                     </span>
                   </td>
-                  <td><?= $appointment['duration'] ?> min</td>
+                  <td style="white-space:nowrap;"><?= (int)($appointment['duration'] ?? 0) ?> min</td>
                 </tr>
               <?php endforeach; ?>
             </tbody>

@@ -1,53 +1,146 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>New Lab Test Request</title>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Laboratory Request</title>
   <base href="<?= rtrim(base_url(), '/') ?>/">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
-</head><body>
-<header class="dash-topbar"><div class="topbar-inner">
-  <a href="<?= site_url('dashboard/doctor') ?>" class="menu-btn">Back</a>
-  <h1 style="margin:0;font-size:1.1rem">Request Lab Test</h1>
-</div></header>
-<main class="content" style="max-width:820px;margin:20px auto">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<header class="dash-topbar">
+  <div class="topbar-inner">
+    <a href="<?= site_url('dashboard/doctor') ?>" class="menu-btn"><i class="fa-solid fa-arrow-left"></i></a>
+    <h1 style="margin:0;font-size:1.1rem">New Laboratory Request</h1>
+  </div>
+</header>
+
+<main class="content" style="max-width:980px;margin:20px auto">
   <?php if (session()->getFlashdata('error')): ?>
     <div class="alert alert-error"><?= esc(session()->getFlashdata('error')) ?></div>
   <?php endif; ?>
-  <form method="post" action="<?= site_url('doctor/lab-requests') ?>">
-    <?= csrf_field() ?>
-    <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <label>Patient ID
-        <input type="number" name="patient_id" value="<?= old('patient_id') ?>" required>
-      </label>
-      <label>Test Category
-        <select name="test_category" required>
-          <option value="">Select</option>
-          <option value="blood">Blood</option>
-          <option value="urine">Urine</option>
-          <option value="imaging">Imaging</option>
-          <option value="pathology">Pathology</option>
-          <option value="microbiology">Microbiology</option>
-          <option value="other">Other</option>
-        </select>
-      </label>
-      <label>Test Name
-        <input type="text" name="test_name" value="<?= old('test_name') ?>" required>
-      </label>
-      <label>Priority
-        <select name="priority">
-          <option value="routine">Routine</option>
-          <option value="urgent">Urgent</option>
-          <option value="stat">STAT</option>
-        </select>
-      </label>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2 style="margin:0;font-size:1rem">Request Information</h2>
     </div>
-    <label>Notes
-      <textarea name="notes" rows="3"><?= old('notes') ?></textarea>
-    </label>
-    <div style="margin-top:12px;display:flex;gap:10px">
-      <button type="submit" class="btn btn-primary">Submit</button>
-      <a class="btn" href="<?= site_url('dashboard/doctor') ?>">Cancel</a>
+    <div class="panel-body">
+      <form method="post" action="<?= site_url('doctor/lab-requests') ?>" class="form">
+        <?= csrf_field() ?>
+
+        <div class="grid" style="display:grid;grid-template-columns:2fr 1.5fr;gap:1.25rem;align-items:flex-start">
+          <div>
+            <label>Patient Record *</label>
+            <select name="patient_id" required>
+              <option value="">Choose patient...</option>
+              <?php if (!empty($patients)): ?>
+                <?php foreach ($patients as $p): ?>
+                  <?php $pid = (int)($p['id'] ?? 0); ?>
+                  <option value="<?= $pid ?>" <?= old('patient_id')==$pid ? 'selected' : '' ?>>
+                    <?= esc(($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '') . ' [' . ($p['patient_id'] ?? 'N/A') . ']') ?>
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
+
+            <label style="margin-top:.75rem">Requesting Doctor</label>
+            <select name="doctor_id">
+              <option value="">Use logged-in doctor</option>
+              <?php if (!empty($doctors ?? [])): ?>
+                <?php foreach ($doctors as $d): ?>
+                  <?php $did = (int)($d['id'] ?? 0); ?>
+                  <option value="<?= $did ?>" <?= old('doctor_id')==$did ? 'selected' : '' ?>>
+                    <?= esc(($d['last_name'] ?? '') . ', ' . ($d['first_name'] ?? '') . ' (' . ($d['specialization'] ?? 'Doctor') . ')') ?>
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr;gap:.5rem">
+            <label>Requested On *</label>
+            <?php $today = old('request_date', date('Y-m-d')); ?>
+            <input type="date" name="request_date" value="<?= $today ?>" required>
+
+            <div>
+              <span style="display:block;margin-bottom:.25rem;font-size:.85rem">Urgency</span>
+              <?php $priorityOld = old('priority','routine'); ?>
+              <label style="margin-right:.75rem;font-size:.85rem">
+                <input type="radio" name="priority" value="routine" <?= $priorityOld==='routine' ? 'checked' : '' ?>> Routine
+              </label>
+              <label style="margin-right:.75rem;font-size:.85rem">
+                <input type="radio" name="priority" value="urgent" <?= $priorityOld==='urgent' ? 'checked' : '' ?>> Urgent
+              </label>
+              <label style="font-size:.85rem">
+                <input type="radio" name="priority" value="stat" <?= $priorityOld==='stat' ? 'checked' : '' ?>> STAT
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <h3 style="margin:0 0 .5rem;font-size:.95rem">Requested Tests *</h3>
+          <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
+            <?php
+              $oldTests = (array) old('tests', []);
+              $panels = [
+                'Blood Panel' => [
+                  ['name' => 'Fasting Glucose', 'price' => 220.00],
+                  ['name' => 'Serum Creatinine', 'price' => 200.00],
+                  ['name' => 'Liver Profile (AST/ALT)', 'price' => 500.00],
+                  ['name' => 'Lipid Profile (Cholesterol/Triglycerides)', 'price' => 380.00],
+                ],
+                'Hematology Panel' => [
+                  ['name' => 'Complete Blood Count', 'price' => 250.00],
+                  ['name' => 'Packed Cell Volume', 'price' => 150.00],
+                  ['name' => 'Hemoglobin Level', 'price' => 150.00],
+                ],
+                'Microbiology / Others' => [
+                  ['name' => 'Blood Culture Study', 'price' => 500.00],
+                  ['name' => 'Urine Culture & Sensitivity', 'price' => 400.00],
+                  ['name' => 'Other microbiology work-up', 'price' => 0.00],
+                ],
+              ];
+            ?>
+
+            <?php foreach ($panels as $groupName => $tests): ?>
+              <div style="border:1px solid #e5e7eb;border-radius:8px;padding:.75rem">
+                <strong style="font-size:.9rem;display:block;margin-bottom:.25rem"><?= esc($groupName) ?></strong>
+                <?php foreach ($tests as $t): ?>
+                  <?php $testName = $t['name']; $price = (float) $t['price']; ?>
+                  <label style="display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.25rem;font-size:.85rem">
+                    <input type="checkbox" name="tests[]" value="<?= esc($testName) ?>" <?= in_array($testName, $oldTests, true) ? 'checked' : '' ?>>
+                    <span>
+                      <?= esc($testName) ?><br>
+                      <?php if ($price > 0): ?>
+                        <small style="color:#6b7280">₱<?= number_format($price, 2) ?></small>
+                      <?php else: ?>
+                        <small style="color:#9ca3af">Price varies</small>
+                      <?php endif; ?>
+                    </span>
+                  </label>
+                <?php endforeach; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+          <small style="display:block;margin-top:.5rem;color:#6b7280">Tick one or more investigations to include in this request.</small>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <label>Clinical Notes / Instructions
+            <textarea name="notes" rows="3"><?= old('notes') ?></textarea>
+          </label>
+        </div>
+
+        <div style="margin-top:1.25rem;display:flex;justify-content:flex-end;gap:.75rem">
+          <a href="<?= site_url('dashboard/doctor') ?>" class="btn btn-secondary">Back to dashboard</a>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-flask"></i>&nbsp;Submit Request</button>
+        </div>
+      </form>
     </div>
-  </form>
+  </section>
 </main>
-</body></html>
+
+</body>
+</html>

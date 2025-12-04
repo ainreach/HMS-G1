@@ -9,6 +9,8 @@ class InventoryModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'medicine_id','branch_id','batch_number','expiry_date','quantity_in_stock','minimum_stock_level','maximum_stock_level','reorder_level','location','last_updated_by'

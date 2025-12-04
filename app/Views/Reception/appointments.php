@@ -27,7 +27,7 @@
     <section class="panel">
       <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
         <h2 style="margin:0;font-size:1.1rem">Appointments</h2>
-        <a class="btn" href="<?= site_url('reception/appointments/new') ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-calendar-plus"></i> New Appointment</a>
+        <button id="newAppointmentBtn" type="button" class="btn" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;cursor:pointer;background:white"><i class="fa-solid fa-calendar-plus"></i> New Appointment</button>
       </div>
       <div class="panel-body" style="overflow:auto">
         <table class="table" style="width:100%;border-collapse:collapse">
@@ -43,12 +43,35 @@
           </thead>
           <tbody>
             <?php if (!empty($appointments)) : foreach ($appointments as $a) : ?>
+              <?php
+                $patientName = trim(($a['first_name'] ?? '') . ' ' . ($a['last_name'] ?? ''));
+                $doctorLabel = trim('Dr. ' . ($a['doctor_name'] ?? ($a['doctor_last'] ?? '')));
+
+                $dateLabel = !empty($a['appointment_date']) ? date('M j, Y', strtotime($a['appointment_date'])) : '';
+                $timeLabel = !empty($a['appointment_time']) ? date('g:i A', strtotime($a['appointment_time'])) : '';
+
+                $rawStatus = strtolower(trim($a['status'] ?? 'scheduled'));
+                if ($rawStatus === '') { $rawStatus = 'scheduled'; }
+                $statusLabel = $rawStatus === 'checked-in' ? 'Checked-in'
+                             : ($rawStatus === 'cancelled' ? 'Cancelled'
+                             : 'Scheduled');
+                $statusBg = $rawStatus === 'checked-in' ? '#d1fae5'
+                          : ($rawStatus === 'cancelled' ? '#fee2e2'
+                          : '#dbeafe');
+                $statusColor = $rawStatus === 'checked-in' ? '#065f46'
+                              : ($rawStatus === 'cancelled' ? '#b91c1c'
+                              : '#1e40af');
+              ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(($a['first_name'] ?? '') . ' ' . ($a['last_name'] ?? '')) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($a['doctor_last'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($a['appointment_date'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($a['appointment_time'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><span style="padding:2px 6px;border-radius:4px;font-size:0.75rem;background-color:<?= ($a['status'] ?? '') === 'checked-in' ? '#d1fae5' : (($a['status'] ?? '') === 'scheduled' ? '#dbeafe' : '#fef3c7') ?>;color:<?= ($a['status'] ?? '') === 'checked-in' ? '#065f46' : (($a['status'] ?? '') === 'scheduled' ? '#1e40af' : '#92400e') ?>"><?= esc(ucfirst($a['status'] ?? 'Scheduled')) ?></span></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($patientName) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($doctorLabel) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                  <?= esc($dateLabel) ?>
+                </td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                  <?= esc($timeLabel) ?>
+                </td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;"><span style="padding:2px 6px;border-radius:4px;font-size:0.75rem;background-color:<?= $statusBg ?>;color:<?= $statusColor ?>"><?= esc($statusLabel) ?></span></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0)) ?>" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">View</a>
                   <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/edit') ?>" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">Edit</a>
@@ -72,7 +95,193 @@
       </div>
     </section>
   </main></div>
+
+<!-- Floating modal for New Appointment (stays on /reception/appointments) -->
+<div id="newAppointmentModal" class="modal-overlay" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.55);z-index:50;">
+  <div class="modal-card" style="background:white;border-radius:var(--radius);width:90%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:#f9fafb;color:#111827;">
+      <h3 style="margin:0;font-size:1.05rem;font-weight:600;">Book Appointment</h3>
+      <button id="closeNewAppointmentModal" type="button" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;padding:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-error" style="margin-bottom:12px;"><?= esc(session()->getFlashdata('error')) ?></div>
+      <?php endif; ?>
+      <form id="newAppointmentForm" method="post" action="<?= site_url('reception/appointments') ?>" class="form">
+        <?= csrf_field() ?>
+        <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <label>Patient
+            <input type="text" id="patientSearch" placeholder="Search patient..." autocomplete="off" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;">
+            <input type="hidden" name="patient_id" id="patientIdField" value="<?= esc(old('patient_id') ?? '') ?>">
+            <div id="patientSuggestions" style="position:relative;z-index:60;">
+              <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
+            </div>
+          </label>
+          <label>Doctor
+            <input type="text" id="doctorSearch" placeholder="Search doctor..." autocomplete="off" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;">
+            <input type="hidden" name="doctor_id" id="doctorIdField" value="<?= esc(old('doctor_id') ?? '') ?>">
+            <div id="doctorSuggestions" style="position:relative;z-index:60;">
+              <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
+            </div>
+          </label>
+          <label>Date
+            <input type="date" name="appointment_date" value="<?= old('appointment_date') ?>" required>
+          </label>
+          <label>Time
+            <input type="time" name="appointment_time" value="<?= old('appointment_time') ?>" required>
+          </label>
+          <label>Duration (minutes)
+            <input type="number" name="duration" value="<?= old('duration') ?: 30 ?>" min="5" max="240">
+          </label>
+          <label>Type
+            <select name="type">
+              <option value="consultation" <?= old('type') === 'consultation' ? 'selected' : '' ?>>Consultation</option>
+              <option value="follow_up" <?= old('type') === 'follow_up' ? 'selected' : '' ?>>Follow-up</option>
+              <option value="emergency" <?= old('type') === 'emergency' ? 'selected' : '' ?>>Emergency</option>
+              <option value="surgery" <?= old('type') === 'surgery' ? 'selected' : '' ?>>Surgery</option>
+              <option value="checkup" <?= old('type') === 'checkup' ? 'selected' : '' ?>>Checkup</option>
+            </select>
+          </label>
+        </div>
+        <label>Reason
+          <textarea name="reason" rows="3"><?= old('reason') ?></textarea>
+        </label>
+        <label>Notes
+          <textarea name="notes" rows="3"><?= old('notes') ?></textarea>
+        </label>
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end;">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" id="cancelNewAppointment" class="btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
+<script>
+  const newAppointmentBtn = document.getElementById('newAppointmentBtn');
+  const newAppointmentModal = document.getElementById('newAppointmentModal');
+  const closeNewAppointmentModal = document.getElementById('closeNewAppointmentModal');
+  const cancelNewAppointment = document.getElementById('cancelNewAppointment');
+
+  function openNewAppointmentModal() {
+    if (newAppointmentModal) {
+      newAppointmentModal.style.display = 'flex';
+    }
+  }
+
+  function closeNewAppointment() {
+    if (newAppointmentModal) {
+      newAppointmentModal.style.display = 'none';
+    }
+  }
+
+  if (newAppointmentBtn) {
+    newAppointmentBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      openNewAppointmentModal();
+    });
+  }
+
+  if (closeNewAppointmentModal) {
+    closeNewAppointmentModal.addEventListener('click', closeNewAppointment);
+  }
+
+  if (cancelNewAppointment) {
+    cancelNewAppointment.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeNewAppointment();
+    });
+  }
+
+  if (newAppointmentModal) {
+    newAppointmentModal.addEventListener('click', function (e) {
+      if (e.target === this) {
+        closeNewAppointment();
+      }
+    });
+  }
+
+  // --- Autocomplete search for Patient & Doctor ---
+  const patientsData = <?= json_encode(array_values(array_map(function($p){
+      return [
+        'id' => (int)($p['id'] ?? 0),
+        'label' => trim(($p['patient_id'] ?? '') . ' • ' . ($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '')),
+      ];
+    }, $patients ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+
+  const doctorsData = <?= json_encode(array_values(array_map(function($d){
+      return [
+        'id' => (int)($d['id'] ?? 0),
+        'label' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '') . ' (' . ($d['username'] ?? 'doctor') . ')'),
+      ];
+    }, $doctors ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+
+  function setupAutocomplete(inputId, hiddenId, containerId, items) {
+    const input   = document.getElementById(inputId);
+    const hidden  = document.getElementById(hiddenId);
+    const wrapper = document.getElementById(containerId);
+    if (!input || !hidden || !wrapper) return;
+    const listEl  = wrapper.querySelector('.suggestions-inner');
+    if (!listEl) return;
+
+    function hideList() { listEl.style.display = 'none'; }
+
+    function showSuggestions(term) {
+      const t = term.trim().toLowerCase();
+      listEl.innerHTML = '';
+      if (!t) { hideList(); return; }
+      const matches = items.filter(it => it.label.toLowerCase().includes(t));
+      if (!matches.length) { hideList(); return; }
+
+      matches.slice(0, 20).forEach(it => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = it.label;
+        btn.style.display = 'block';
+        btn.style.width = '100%';
+        btn.style.textAlign = 'left';
+        btn.style.padding = '6px 10px';
+        btn.style.border = 'none';
+        btn.style.background = 'white';
+        btn.style.cursor = 'pointer';
+        btn.addEventListener('mouseenter', () => btn.style.background = '#eff6ff');
+        btn.addEventListener('mouseleave', () => btn.style.background = 'white');
+        btn.addEventListener('click', () => {
+          input.value  = it.label;
+          hidden.value = it.id;
+          hideList();
+        });
+        listEl.appendChild(btn);
+      });
+
+      listEl.style.display = 'block';
+    }
+
+    input.addEventListener('input', function () {
+      if (this.value.trim() === '') {
+        hidden.value = '';
+        hideList();
+      } else {
+        showSuggestions(this.value);
+      }
+    });
+
+    input.addEventListener('focus', function () {
+      if (this.value.trim() !== '') {
+        showSuggestions(this.value);
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!wrapper.contains(e.target) && e.target !== input) {
+        hideList();
+      }
+    });
+  }
+
+  setupAutocomplete('patientSearch', 'patientIdField', 'patientSuggestions', patientsData);
+  setupAutocomplete('doctorSearch', 'doctorIdField', 'doctorSuggestions', doctorsData);
+</script>
 </body></html>
-
-

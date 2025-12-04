@@ -1,6 +1,10 @@
 <?php
 namespace App\Controllers;
 use App\Libraries\AuditLogger;
+use App\Models\BillingModel;
+use App\Models\BillingItemModel;
+use App\Models\PaymentModel;
+use App\Models\PatientModel;
 
 class Accountant extends BaseController
 {
@@ -540,6 +544,19 @@ class Accountant extends BaseController
         return redirect()->to(site_url('accountant/insurance'));
     }
 
+    public function viewClaim($id)
+    {
+        helper('url');
+        $claimsModel = model('App\\Models\\InsuranceClaimModel');
+        $claim = $claimsModel->find($id);
+
+        if (!$claim) {
+            return redirect()->to(site_url('accountant/insurance'))->with('error', 'Claim not found.');
+        }
+
+        return view('Accountant/claim_view', ['claim' => $claim]);
+    }
+
     public function statements()
     {
         helper('url');
@@ -731,5 +748,59 @@ class Accountant extends BaseController
             ->setHeader('Content-Type', 'text/csv')
             ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->setBody($csv);
+    }
+
+    public function viewBilling($id)
+    {
+        helper('url');
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->to(site_url('accountant/billing'))->with('error', 'Invalid invoice.');
+        }
+
+        $billingModel = new BillingModel();
+        $itemModel    = new BillingItemModel();
+        $paymentModel = new PaymentModel();
+        $patientModel = new PatientModel();
+
+        $billing = $billingModel->find($id);
+        if (!$billing) {
+            return redirect()->to(site_url('accountant/billing'))->with('error', 'Invoice not found.');
+        }
+
+        $patient = null;
+        if (!empty($billing['patient_id'])) {
+            $patient = $patientModel->find((int) $billing['patient_id']);
+        }
+
+        $items = $itemModel
+            ->where('billing_id', $billing['id'])
+            ->orderBy('id', 'ASC')
+            ->findAll();
+
+        $payments = $paymentModel
+            ->where('billing_id', $billing['id'])
+            ->orderBy('paid_at', 'ASC')
+            ->findAll();
+
+        $totalPaid = 0.0;
+        foreach ($payments as $p) {
+            $totalPaid += (float) ($p['amount'] ?? 0);
+        }
+
+        $insuranceCoverage = 0.0;
+        if (!empty($billing['insurance_claim_number'])) {
+            $insuranceCoverage = max(0.0, (float) (($billing['total_amount'] ?? 0) - ($billing['balance'] ?? 0) - $totalPaid));
+        }
+
+        return view('Accountant/billing_view', [
+            'billing'            => $billing,
+            'patient'            => $patient ?? [],
+            'items'              => $items,
+            'payments'           => $payments,
+            'totalPaid'          => $totalPaid,
+            'insuranceCoverage'  => $insuranceCoverage,
+        ]);
     }
 }

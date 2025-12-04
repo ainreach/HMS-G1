@@ -352,7 +352,9 @@ class Reception extends BaseController
     public function appointments()
     {
         helper('url');
-        $apptModel = model('App\\Models\\AppointmentModel');
+        $apptModel    = model('App\\Models\\AppointmentModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel    = model('App\\Models\\UserModel');
         
         $appointments = $apptModel
             ->select('appointments.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, patients.phone, users.username as doctor_name')
@@ -362,7 +364,14 @@ class Reception extends BaseController
             ->orderBy('appointments.appointment_time', 'ASC')
             ->findAll(50);
 
-        return view('Reception/appointments', ['appointments' => $appointments]);
+        $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(100);
+        $doctors  = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(50);
+
+        return view('Reception/appointments', [
+            'appointments' => $appointments,
+            'patients'     => $patients,
+            'doctors'      => $doctors,
+        ]);
     }
 
     public function viewAppointment($id)

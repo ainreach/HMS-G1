@@ -61,11 +61,17 @@
           <tbody>
           <?php if (!empty($invoices)) : ?>
             <?php foreach ($invoices as $i) : ?>
+              <?php
+                $rawStatus = strtolower(trim($i['status'] ?? ''));
+                $status = $rawStatus !== '' ? $rawStatus : 'unpaid';
+                $statusLabel = ucfirst($status);
+                $statusClass = $status === 'paid' ? 'badge-success' : ($status === 'partial' ? 'badge-warning' : 'badge-warning');
+              ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($i['invoice_no'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($i['patient_name'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">$<?= number_format((float)($i['amount'] ?? 0), 2) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><span class="badge <?= (strtolower((string)($i['status'] ?? '')) === 'paid' ? 'badge-success' : 'badge-warning') ?>"><?= esc(ucfirst($i['status'] ?? 'unpaid')) ?></span></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><span class="badge <?= $statusClass ?>"><?= esc($statusLabel) ?></span></td>
               </tr>
             <?php endforeach; ?>
           <?php else: ?>

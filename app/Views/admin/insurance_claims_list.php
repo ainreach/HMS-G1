@@ -54,9 +54,24 @@
                 </td>
                 <td><?= date('M j, Y', strtotime($claim['submitted_at'])) ?></td>
                 <td>
-                  <a href="<?= site_url('accountant/claims/' . $claim['id']) ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
+                  <button
+                    type="button"
+                    class="btn btn-secondary view-claim-btn"
+                    data-claim='<?= json_encode([
+                      'claim_no' => $claim['claim_no'] ?? '',
+                      'invoice_no' => $claim['invoice_no'] ?? '',
+                      'patient_name' => $claim['patient_name'] ?? '',
+                      'provider' => $claim['provider'] ?? '',
+                      'policy_no' => $claim['policy_no'] ?? '',
+                      'amount_claimed' => (float)($claim['amount_claimed'] ?? 0),
+                      'amount_approved' => (float)($claim['amount_approved'] ?? 0),
+                      'status' => $claim['status'] ?? 'submitted',
+                      'submitted_at' => $claim['submitted_at'] ?? '',
+                    ]) ?>'
+                    style="padding:0.25rem 0.5rem;font-size:0.75rem;"
+                  >
                     <i class="fas fa-eye"></i> View
-                  </a>
+                  </button>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -179,6 +194,62 @@ document.getElementById('newClaimModal').addEventListener('click', function(e) {
   if (e.target === this) {
     this.classList.remove('show');
   }
+});
+
+// View Claim modal (stays on /admin/insurance-claims)
+const viewClaimModal = document.createElement('div');
+viewClaimModal.id = 'viewClaimModal';
+viewClaimModal.className = 'modal-overlay';
+viewClaimModal.innerHTML = `
+  <div class="modal-card" style="background:white;border-radius:var(--radius);width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border);background:linear-gradient(to right,#0ea5e9,#0369a1);color:white;">
+      <div>
+        <div id="vc-claim-no" style="font-size:0.8rem;opacity:.9;"></div>
+        <h3 style="margin:0;font-size:1.1rem;">Insurance Claim Details</h3>
+      </div>
+      <button class="modal-close" id="closeViewClaimModal" style="background:none;border:none;font-size:24px;cursor:pointer;color:#e5e7eb;padding:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:0.9rem;">
+      <div><div class="field-label">Invoice #</div><div id="vc-invoice" class="field-value"></div></div>
+      <div><div class="field-label">Patient</div><div id="vc-patient" class="field-value"></div></div>
+      <div><div class="field-label">Provider</div><div id="vc-provider" class="field-value"></div></div>
+      <div><div class="field-label">Policy #</div><div id="vc-policy" class="field-value"></div></div>
+      <div><div class="field-label">Amount Claimed</div><div id="vc-amount-claimed" class="field-value"></div></div>
+      <div><div class="field-label">Amount Approved</div><div id="vc-amount-approved" class="field-value"></div></div>
+      <div><div class="field-label">Status</div><div id="vc-status" class="field-value"></div></div>
+      <div><div class="field-label">Submitted At</div><div id="vc-submitted" class="field-value"></div></div>
+    </div>
+    <div class="modal-footer" style="padding:12px 18px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;background:#f9fafb;">
+      <button type="button" id="closeViewClaimBtn" class="btn" style="background:#e5e7eb;color:#111827;border:none;">Close</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(viewClaimModal);
+
+function closeViewClaim() {
+  viewClaimModal.classList.remove('show');
+}
+
+document.getElementById('closeViewClaimModal').addEventListener('click', closeViewClaim);
+document.getElementById('closeViewClaimBtn').addEventListener('click', closeViewClaim);
+viewClaimModal.addEventListener('click', function(e) {
+  if (e.target === this) closeViewClaim();
+});
+
+document.querySelectorAll('.view-claim-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const data = JSON.parse(this.getAttribute('data-claim'));
+    document.getElementById('vc-claim-no').textContent = 'Claim #' + (data.claim_no || '');
+    document.getElementById('vc-invoice').textContent = data.invoice_no || '—';
+    document.getElementById('vc-patient').textContent = data.patient_name || '—';
+    document.getElementById('vc-provider').textContent = data.provider || '—';
+    document.getElementById('vc-policy').textContent = data.policy_no || '—';
+    document.getElementById('vc-amount-claimed').textContent = '$' + (Number(data.amount_claimed || 0).toFixed(2));
+    document.getElementById('vc-amount-approved').textContent = '$' + (Number(data.amount_approved || 0).toFixed(2));
+    document.getElementById('vc-status').textContent = (data.status || 'submitted').charAt(0).toUpperCase() + (data.status || 'submitted').slice(1);
+    document.getElementById('vc-submitted').textContent = data.submitted_at || '—';
+    viewClaimModal.classList.add('show');
+  });
 });
 </script>
 <?= $this->endSection() ?>

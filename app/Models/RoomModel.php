@@ -10,7 +10,8 @@ class RoomModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'room_number','room_type','floor','capacity','current_occupancy','status','rate_per_day','features','branch_id'

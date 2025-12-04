@@ -124,31 +124,67 @@ class Doctor extends BaseController
     public function newLabRequest()
     {
         helper('url');
-        return view('doctor/lab_request_new');
+        $patientModel = model('App\\Models\\PatientModel');
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->findAll(100);
+
+        $userModel = model('App\\Models\\UserModel');
+        $doctors = $userModel
+            ->where('role', 'doctor')
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->findAll(100);
+
+        return view('doctor/lab_request_new', [
+            'patients' => $patients,
+            'doctors'  => $doctors,
+        ]);
     }
 
     public function storeLabRequest()
     {
         helper(['url','form']);
-        $patientId = (int) $this->request->getPost('patient_id');
-        $doctorId  = session('user_id') ?: (int) $this->request->getPost('doctor_id');
-        $testName  = trim((string) $this->request->getPost('test_name'));
-        $category  = (string) $this->request->getPost('test_category');
-        if (!$patientId || $testName === '' || $category === '') {
-            return redirect()->back()->with('error', 'Patient, test name and category are required.')->withInput();
+        $req = $this->request;
+
+        $patientId = (int) $req->getPost('patient_id');
+        $formDoctorId = (int) $req->getPost('doctor_id');
+        $doctorId  = $formDoctorId ?: (int) (session('user_id') ?: 0);
+
+        $selectedTests = (array) $req->getPost('tests');
+        $testNameInput = trim((string) $req->getPost('test_name'));
+        $testName = $testNameInput;
+        if (!empty($selectedTests)) {
+            $testName = implode(', ', $selectedTests);
         }
+
+        $category = (string) $req->getPost('test_category');
+        if ($category === '') {
+            $category = !empty($selectedTests) ? 'panel' : 'general';
+        }
+
+        $requestDate = $req->getPost('request_date');
+        $requestedDateTime = $requestDate
+            ? ($requestDate . ' ' . date('H:i:s'))
+            : date('Y-m-d H:i:s');
+
+        if (!$patientId || $testName === '') {
+            return redirect()->back()->with('error', 'Patient and at least one test type are required.')->withInput();
+        }
+
         $data = [
             'test_number' => 'LT-' . date('YmdHis'),
             'patient_id' => $patientId,
             'doctor_id' => (int) $doctorId,
-            'test_type' => $this->request->getPost('test_type') ?: 'ordered',
+            'test_type' => $req->getPost('test_type') ?: 'ordered',
             'test_name' => $testName,
             'test_category' => $category,
-            'requested_date' => date('Y-m-d H:i:s'),
+            'requested_date' => $requestedDateTime,
             'status' => 'requested',
             'branch_id' => 1,
-            'priority' => $this->request->getPost('priority') ?: 'routine',
-            'notes' => $this->request->getPost('notes') ?: null,
+            'priority' => $req->getPost('priority') ?: 'routine',
+            'notes' => $req->getPost('notes') ?: null,
         ];
         $model = new \App\Models\LabTestModel();
         $model->insert($data);
@@ -165,21 +201,35 @@ class Doctor extends BaseController
     public function storePatient()
     {
         helper(['url','form']);
+        $req = $this->request;
         $data = [
             'patient_id' => 'P-' . date('YmdHis'),
-            'first_name' => trim((string) $this->request->getPost('first_name')),
-            'last_name'  => trim((string) $this->request->getPost('last_name')),
-            'date_of_birth' => $this->request->getPost('date_of_birth') ?: null,
-            'gender'    => $this->request->getPost('gender') ?: null,
-            'phone'     => trim((string) $this->request->getPost('phone')) ?: null,
-            'email'     => trim((string) $this->request->getPost('email')) ?: null,
-            'address'   => trim((string) $this->request->getPost('address')) ?: null,
+            'first_name' => trim((string) $req->getPost('first_name')),
+            'last_name'  => trim((string) $req->getPost('last_name')),
+            'middle_name' => trim((string) $req->getPost('middle_name')) ?: null,
+            'date_of_birth' => $req->getPost('date_of_birth') ?: null,
+            'gender'    => $req->getPost('gender') ?: null,
+            'blood_type' => $req->getPost('blood_type') ?: null,
+            'phone'     => trim((string) $req->getPost('phone')) ?: null,
+            'email'     => trim((string) $req->getPost('email')) ?: null,
+            'address'   => trim((string) $req->getPost('address')) ?: null,
+            'city'      => trim((string) $req->getPost('city')) ?: null,
+            'emergency_contact_name' => trim((string) $req->getPost('emergency_contact_name')) ?: null,
+            'emergency_contact_phone' => trim((string) $req->getPost('emergency_contact_phone')) ?: null,
+            'emergency_contact_relation' => trim((string) $req->getPost('emergency_contact_relation')) ?: null,
+            'insurance_provider' => trim((string) $req->getPost('insurance_provider')) ?: null,
+            'insurance_number' => trim((string) $req->getPost('insurance_number')) ?: null,
+            'allergies' => trim((string) $req->getPost('allergies')) ?: null,
+            'medical_history' => trim((string) $req->getPost('medical_history')) ?: null,
             'branch_id' => 1,
+            'admission_type' => $req->getPost('admission_type') ?: 'checkup',
+            'assigned_room_id' => $req->getPost('assigned_room_id') ?: null,
+            'admission_date' => $req->getPost('admission_type') === 'admission' ? date('Y-m-d H:i:s') : null,
             'is_active' => 1,
         ];
 
-        if ($data['first_name'] === '' || $data['last_name'] === '') {
-            return redirect()->back()->with('error', 'First and last name are required.')->withInput();
+        if ($data['first_name'] === '' || $data['last_name'] === '' || empty($data['date_of_birth'])) {
+            return redirect()->back()->with('error', 'First name, last name and date of birth are required.')->withInput();
         }
 
         $patients = new \App\Models\PatientModel();
@@ -236,6 +286,64 @@ class Doctor extends BaseController
             ->findAll(50);
 
         return view('doctor/prescriptions', ['prescriptions' => $prescriptions]);
+    }
+
+    // Allow doctors to manage their own weekly schedule
+    public function schedule()
+    {
+        helper('url');
+        $doctorId = session('user_id') ?: 0;
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+
+        $schedule = $scheduleModel
+            ->where('user_id', $doctorId)
+            ->where('is_active', 1)
+            ->orderBy('day_of_week', 'ASC')
+            ->findAll();
+
+        return view('doctor/schedule', [
+            'schedule' => $schedule,
+        ]);
+    }
+
+    public function storeSchedule()
+    {
+        helper(['url','form']);
+        $doctorId = session('user_id') ?: 0;
+        if (!$doctorId) {
+            return redirect()->to(site_url('dashboard/doctor'))->with('error', 'Unable to determine doctor.');
+        }
+
+        $daysOfWeek = (array) $this->request->getPost('days_of_week');
+        $startTime = (string) $this->request->getPost('start_time');
+        $endTime = (string) $this->request->getPost('end_time');
+
+        if (empty($daysOfWeek) || $startTime === '' || $endTime === '') {
+            return redirect()->back()->with('error', 'Please select at least one day and specify start and end time.')->withInput();
+        }
+
+        if ($endTime <= $startTime) {
+            return redirect()->back()->with('error', 'End time must be after start time.')->withInput();
+        }
+
+        $branchId = 1;
+
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+        // Clear existing active schedule for this doctor
+        $scheduleModel->where('user_id', $doctorId)->delete();
+
+        foreach ($daysOfWeek as $day) {
+            $scheduleModel->insert([
+                'user_id' => $doctorId,
+                'branch_id' => $branchId,
+                'day_of_week' => strtolower($day),
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'is_active' => 1,
+            ]);
+        }
+
+        return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Schedule updated successfully.');
     }
 
     public function labResults()

@@ -3,9 +3,9 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class AppointmentModel extends Model
+class BillingModel extends Model
 {
-    protected $table            = 'appointments';
+    protected $table            = 'billing';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -13,7 +13,11 @@ class AppointmentModel extends Model
     protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
-        'appointment_number','patient_id','doctor_id','branch_id','appointment_date','appointment_time','duration','type','status','reason','notes','created_by'
+        'invoice_number', 'patient_id', 'appointment_id', 'branch_id',
+        'bill_date', 'due_date',
+        'subtotal', 'tax_amount', 'discount_amount', 'total_amount',
+        'paid_amount', 'balance', 'payment_status', 'payment_method',
+        'insurance_claim_number', 'notes', 'created_by',
     ];
 
     protected $useTimestamps = true;

@@ -10,7 +10,8 @@ class LabTestModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'test_number','patient_id','doctor_id','test_type','test_name','test_category','requested_date','result_date','status','priority','notes','results','branch_id'

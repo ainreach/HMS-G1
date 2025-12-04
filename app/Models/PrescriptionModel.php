@@ -10,7 +10,8 @@ class PrescriptionModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'patient_id', 'doctor_id', 'medication', 'dosage', 'frequency', 'start_date', 'end_date'

@@ -59,32 +59,86 @@
           <?php if (!empty($billingRecords ?? [])) : ?>
             <?php foreach ($billingRecords as $bill) : ?>
               <?php
-                $patient = $bill['patient'];
-                $room = $bill['room'];
-                $totalAmount = (float)($bill['totalCharges'] ?? 0);
-                $amountPaid = (float)($bill['totalPayments'] ?? 0);
-                $balance = (float)($bill['balanceDue'] ?? 0);
-                $fullName = trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''));
-                $billCode = $patient['patient_id'] ?? ('PAT-' . ($patient['id'] ?? '')); 
-                $billDate = $patient['admission_date'] ?? '';
+                $patient      = $bill['patient'] ?? [];
+                $totalAmount  = (float)($bill['totalCharges'] ?? 0);
+                $amountPaid   = (float)($bill['totalPayments'] ?? 0);
+                $balance      = (float)($bill['balanceDue'] ?? 0);
+                $fullName     = trim((string)($patient['last_name'] ?? '') . ', ' . (string)($patient['first_name'] ?? ''));
+                $subText      = trim((string)($bill['prescription_summary'] ?? ''));
+                $invoiceNo    = (string)($bill['invoice_number'] ?? ($bill['code'] ?? ''));
+                $billId       = (int)($bill['id'] ?? 0);
+                $billDateRaw  = $bill['bill_date'] ?? ($bill['created_at'] ?? null);
+                $dueDateRaw   = $bill['due_date'] ?? null;
+                $billDate     = $billDateRaw ? date('M d, Y', strtotime($billDateRaw)) : '';
+                $dueDate      = $dueDateRaw ? date('M d, Y', strtotime($dueDateRaw)) : '';
+                $status       = $balance > 0 ? 'Unpaid' : 'Paid';
               ?>
               <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($billCode) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($fullName) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($billDate ? date('M d, Y', strtotime($billDate)) : '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">P<?= number_format($totalAmount, 2) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">P<?= number_format($amountPaid, 2) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">P<?= number_format($balance, 2) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <?php $status = $balance > 0 ? 'Unpaid' : 'Paid'; ?>
-                  <span class="badge <?= $balance > 0 ? 'badge-warning' : 'badge-success' ?>"><?= esc($status) ?></span>
-                </td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <div style="display:flex;gap:6px;flex-wrap:wrap">
-                    <a href="<?= site_url('accountant/patients/billing/' . ($patient['id'] ?? '')) ?>" class="btn-small" style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
-                      <i class="fa-solid fa-eye"></i> View
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                  <?php if ($billId && $invoiceNo !== ''): ?>
+                    <a href="<?= site_url('admin/billing/view/' . $billId) ?>" style="color:#0f766e;font-weight:600;text-decoration:underline;">
+                      <?= esc($invoiceNo) ?>
                     </a>
+                  <?php else: ?>
+                    <span style="font-weight:600;"><?= esc($invoiceNo ?: '—') ?></span>
+                  <?php endif; ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;">
+                  <div style="font-weight:600;"><?= esc($fullName ?: 'N/A') ?></div>
+                  <?php if ($subText !== ''): ?>
+                    <div style="font-size:0.75rem;color:#6b7280;"><?= esc($subText) ?></div>
+                  <?php endif; ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                  <?= esc($billDate) ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
+                  <?= esc($dueDate) ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;font-weight:600;white-space:nowrap;">
+                  ₱<?= number_format($totalAmount, 2) ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;color:#16a34a;font-weight:600;white-space:nowrap;">
+                  ₱<?= number_format($amountPaid, 2) ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;color:#dc2626;font-weight:700;white-space:nowrap;">
+                  ₱<?= number_format($balance, 2) ?>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;">
+                  <span class="badge" style="background:<?= $balance > 0 ? '#facc15' : '#22c55e' ?>;color:#111827;border-radius:999px;padding:4px 10px;font-size:0.75rem;">
+                    <?= esc($status) ?>
+                  </span>
+                </td>
+                <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;">
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <!-- Pay / collect payment icon (placeholder link to accountant payments) -->
+                    <a
+                      href="<?= site_url('accountant/payments') ?>"
+                      title="Record Payment"
+                      style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #22c55e;color:#22c55e;background:white;"
+                    >
+                      <i class="fa-solid fa-money-bill-wave"></i>
+                    </a>
+
+                    <?php if ($billId): ?>
+                      <!-- View invoice -->
+                      <a
+                        href="<?= site_url('admin/billing/view/' . $billId) ?>"
+                        title="View Invoice"
+                        style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #0ea5e9;color:#0ea5e9;background:white;"
+                      >
+                        <i class="fa-regular fa-eye"></i>
+                      </a>
+
+                      <!-- Print invoice (opens detailed view and relies on its Print button) -->
+                      <a
+                        href="<?= site_url('admin/billing/view/' . $billId) ?>"
+                        title="Print Invoice"
+                        style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #9ca3af;color:#4b5563;background:white;"
+                      >
+                        <i class="fa-solid fa-print"></i>
+                      </a>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>
@@ -203,9 +257,32 @@
                 <td style="font-weight:600;color:#10b981">P<?= number_format($payment['amount'], 2) ?></td>
                 <td><?= date('M j, Y', strtotime($payment['paid_at'])) ?></td>
                 <td>
-                  <a href="<?= site_url('admin/payments/' . $payment['id']) ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
-                    <i class="fas fa-eye"></i> View
-                  </a>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                    <button
+                      type="button"
+                      class="btn btn-secondary view-payment-btn"
+                      data-payment='<?= json_encode([
+                        'id'           => $payment['id'] ?? null,
+                        'patient_name' => $payment['patient_name'] ?? 'N/A',
+                        'invoice_no'   => $payment['invoice_no'] ?? '',
+                        'amount'       => (float)($payment['amount'] ?? 0),
+                        'paid_at'      => $payment['paid_at'] ?? '',
+                      ]) ?>'
+                      style="padding:0.25rem 0.5rem;font-size:0.75rem;"
+                    >
+                      <i class="fas fa-eye"></i> View
+                    </button>
+
+                    <?php if (!empty($payment['billing_id'])): ?>
+                      <a
+                        href="<?= site_url('admin/billing/view/' . $payment['billing_id']) ?>"
+                        class="btn btn-outline-primary"
+                        style="padding:0.25rem 0.5rem;font-size:0.75rem;"
+                      >
+                        <i class="fa-regular fa-file-lines"></i> View Invoice
+                      </a>
+                    <?php endif; ?>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -451,6 +528,106 @@ document.getElementById('modalInvoiceSelect').addEventListener('change', functio
       document.getElementById('modalPaymentAmount').max = amount;
     }
   }
+});
+
+// Floating card for Invoice Records (billing summary)
+const invoiceDetailModal = document.createElement('div');
+invoiceDetailModal.id = 'invoiceDetailModal';
+invoiceDetailModal.className = 'modal-overlay';
+invoiceDetailModal.innerHTML = `
+  <div class="modal-card" style="background:white;border-radius:var(--radius);width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border);background:linear-gradient(to right,#0ea5e9,#0369a1);color:white;">
+      <div>
+        <div id="ivd-code" style="font-size:0.8rem;opacity:.9;"></div>
+        <h3 style="margin:0;font-size:1.1rem;">Invoice Record Details</h3>
+      </div>
+      <button class="modal-close" id="closeInvoiceDetailModal" style="background:none;border:none;font-size:24px;cursor:pointer;color:#e5e7eb;padding:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:0.9rem;">
+      <div><div class="field-label">Patient</div><div id="ivd-patient" class="field-value"></div></div>
+      <div><div class="field-label">Bill Date</div><div id="ivd-bill-date" class="field-value"></div></div>
+      <div><div class="field-label">Total Amount</div><div id="ivd-total" class="field-value"></div></div>
+      <div><div class="field-label">Amount Paid</div><div id="ivd-paid" class="field-value"></div></div>
+      <div><div class="field-label">Balance</div><div id="ivd-balance" class="field-value"></div></div>
+      <div><div class="field-label">Status</div><div id="ivd-status" class="field-value"></div></div>
+    </div>
+    <div class="modal-footer" style="padding:12px 18px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;background:#f9fafb;">
+      <button type="button" id="closeInvoiceDetailBtn" class="btn" style="background:#e5e7eb;color:#111827;border:none;">Close</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(invoiceDetailModal);
+
+function closeInvoiceDetail() {
+  invoiceDetailModal.classList.remove('show');
+}
+
+document.getElementById('closeInvoiceDetailModal').addEventListener('click', closeInvoiceDetail);
+document.getElementById('closeInvoiceDetailBtn').addEventListener('click', closeInvoiceDetail);
+invoiceDetailModal.addEventListener('click', function(e) {
+  if (e.target === this) closeInvoiceDetail();
+});
+
+document.querySelectorAll('.invoice-view-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const data = JSON.parse(this.getAttribute('data-invoice'));
+    document.getElementById('ivd-code').textContent = 'Invoice Code: ' + (data.code || '');
+    document.getElementById('ivd-patient').textContent = data.patient_name || '—';
+    document.getElementById('ivd-bill-date').textContent = data.bill_date || '—';
+    document.getElementById('ivd-total').textContent = 'P' + (Number(data.total || 0).toFixed(2));
+    document.getElementById('ivd-paid').textContent = 'P' + (Number(data.paid || 0).toFixed(2));
+    document.getElementById('ivd-balance').textContent = 'P' + (Number(data.balance || 0).toFixed(2));
+    document.getElementById('ivd-status').textContent = data.status || '—';
+    invoiceDetailModal.classList.add('show');
+  });
+});
+
+// Floating card for Payment details (All Payments)
+const viewPaymentModal = document.createElement('div');
+viewPaymentModal.id = 'viewPaymentModal';
+viewPaymentModal.className = 'modal-overlay';
+viewPaymentModal.innerHTML = `
+  <div class="modal-card" style="background:white;border-radius:var(--radius);width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border);background:linear-gradient(to right,#0ea5e9,#0369a1);color:white;">
+      <div>
+        <div id="pv-receipt" style="font-size:0.8rem;opacity:.9;"></div>
+        <h3 style="margin:0;font-size:1.1rem;">Payment Details</h3>
+      </div>
+      <button class="modal-close" id="closeViewPaymentModal" style="background:none;border:none;font-size:24px;cursor:pointer;color:#e5e7eb;padding:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:0.9rem;">
+      <div><div class="field-label">Payment Date</div><div id="pv-date" class="field-value"></div></div>
+      <div><div class="field-label">Amount Paid</div><div id="pv-amount" class="field-value"></div></div>
+      <div><div class="field-label">Invoice #</div><div id="pv-invoice" class="field-value"></div></div>
+      <div><div class="field-label">Patient</div><div id="pv-patient" class="field-value"></div></div>
+    </div>
+    <div class="modal-footer" style="padding:12px 18px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:8px;background:#f9fafb;">
+      <button type="button" id="closeViewPaymentBtn" class="btn" style="background:#e5e7eb;color:#111827;border:none;">Close</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(viewPaymentModal);
+
+function closeViewPayment() {
+  viewPaymentModal.classList.remove('show');
+}
+
+document.getElementById('closeViewPaymentModal').addEventListener('click', closeViewPayment);
+document.getElementById('closeViewPaymentBtn').addEventListener('click', closeViewPayment);
+viewPaymentModal.addEventListener('click', function(e) {
+  if (e.target === this) closeViewPayment();
+});
+
+document.querySelectorAll('.view-payment-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const data = JSON.parse(this.getAttribute('data-payment'));
+    document.getElementById('pv-receipt').textContent = 'Receipt #' + (data.id || '');
+    document.getElementById('pv-date').textContent = data.paid_at || '—';
+    document.getElementById('pv-amount').textContent = 'P' + (Number(data.amount || 0).toFixed(2));
+    document.getElementById('pv-invoice').textContent = data.invoice_no || '—';
+    document.getElementById('pv-patient').textContent = data.patient_name || '—';
+    viewPaymentModal.classList.add('show');
+  });
 });
 </script>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>

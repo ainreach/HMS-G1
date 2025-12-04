@@ -37,8 +37,11 @@
             <?php foreach ($labTests as $test): ?>
               <tr>
                 <td><?= esc($test['test_number'] ?? 'N/A') ?></td>
-                <td><?= esc($test['patient_first_name'] . ' ' . $test['patient_last_name']) ?></td>
-                <td>Dr. <?= esc($test['doctor_first_name'] . ' ' . $test['doctor_last_name']) ?></td>
+                <td><?= esc(($test['patient_first_name'] ?? '') . ' ' . ($test['patient_last_name'] ?? '')) ?></td>
+                <td>
+                  <?php $docFirst = $test['doctor_first_name'] ?? ''; $docLast = $test['doctor_last_name'] ?? ''; ?>
+                  <?= $docFirst || $docLast ? 'Dr. ' . esc(trim($docFirst . ' ' . $docLast)) : '—' ?>
+                </td>
                 <td><?= esc($test['test_type'] ?? 'N/A') ?></td>
                 <td><?= esc($test['test_name'] ?? 'N/A') ?></td>
                 <td>

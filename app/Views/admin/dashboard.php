@@ -89,9 +89,6 @@
         <a class="btn" href="<?= site_url('admin/users/new') ?>">
           <i class="fas fa-user-plus"></i> Add New User
         </a>
-        <a class="btn" href="<?= site_url('admin/roles/assign') ?>">
-          <i class="fas fa-user-tag"></i> Assign Roles
-        </a>
         
         <!-- Patient Management -->
         <a class="btn" href="<?= site_url('admin/patients/new') ?>">

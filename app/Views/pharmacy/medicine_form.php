@@ -200,78 +200,34 @@
       </h2>
 
       <!-- FORM START -->
-      <form action="<?= isset($medicine) ? site_url('pharmacy/medicines/save/' . $medicine['id']) : site_url('pharmacy/medicines/save') ?>" method="post">
+      <form action="<?= isset($formAction) ? $formAction : (isset($medicine) ? site_url('pharmacy/medicines/save/' . $medicine['id']) : site_url('pharmacy/medicines/save')) ?>" method="post">
+
+        <!-- Hidden auto-generated code to keep DB constraints happy -->
+        <input type="hidden" name="medicine_code" value="<?= old('medicine_code', $medicine['medicine_code'] ?? '') ?>">
 
         <div class="row">
           <div class="col-md-6">
 
             <div class="form-group">
-              <label>Medicine Code *</label>
-              <input type="text" class="form-control"
-                name="medicine_code"
-                value="<?= old('medicine_code', $medicine['medicine_code'] ?? '') ?>" required>
-            </div>
-
-            <div class="form-group">
               <label>Medicine Name *</label>
               <input type="text" class="form-control"
                 name="name"
-                value="<?= old('name', $medicine['name'] ?? '') ?>" required>
+                value="<?= old('name', $medicine['name'] ?? '') ?>" required
+                placeholder="e.g., Paracetamol 500mg">
             </div>
 
             <div class="form-group">
-              <label>Generic Name</label>
-              <input type="text" class="form-control"
-                name="generic_name"
-                value="<?= old('generic_name', $medicine['generic_name'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-              <label>Brand Name</label>
-              <input type="text" class="form-control"
-                name="brand_name"
-                value="<?= old('brand_name', $medicine['brand_name'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-              <label>Category</label>
-              <select class="form-control" name="category">
-                <option value="">Select</option>
-                <?php foreach (['Antibiotic','Analgesic','Antiviral','Antifungal','Antihistamine','Other'] as $cat): ?>
-                  <option value="<?= $cat ?>" <?= (old('category', $medicine['category'] ?? '') == $cat) ? 'selected' : '' ?>><?= $cat ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
-          </div>
-          <div class="col-md-6">
-
-            <div class="form-group">
-              <label>Dosage Form</label>
-              <select class="form-control" name="dosage_form">
-                <option value="">Select</option>
-                <?php foreach (['Tablet','Capsule','Syrup','Injection','Ointment','Drops','Inhaler','Other'] as $d): ?>
-                  <option value="<?= $d ?>" <?= (old('dosage_form', $medicine['dosage_form'] ?? '') == $d) ? 'selected' : '' ?>><?= $d ?></option>
+              <label>Unit *</label>
+              <select class="form-control" name="unit" required>
+                <option value="">-- Select unit --</option>
+                <?php foreach (['tablet','capsule','bottle','box','vial','sachet'] as $unit): ?>
+                  <option value="<?= $unit ?>" <?= (old('unit', $medicine['unit'] ?? '') == $unit) ? 'selected' : '' ?>><?= ucfirst($unit) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>
 
             <div class="form-group">
-              <label>Strength</label>
-              <input type="text" class="form-control"
-                name="strength"
-                value="<?= old('strength', $medicine['strength'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-              <label>Unit</label>
-              <input type="text" class="form-control"
-                name="unit"
-                value="<?= old('unit', $medicine['unit'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-              <label>Purchase Price *</label>
+              <label>Cost per unit (₱) *</label>
               <input type="number" class="form-control"
                 step="0.01" min="0"
                 id="purchase_price"
@@ -279,8 +235,11 @@
                 value="<?= old('purchase_price', $medicine['purchase_price'] ?? '0.00') ?>" required>
             </div>
 
+          </div>
+          <div class="col-md-6">
+
             <div class="form-group">
-              <label>Selling Price *</label>
+              <label>Retail / Selling Price per Unit (₱) *</label>
               <input type="number" class="form-control"
                 step="0.01" min="0"
                 id="selling_price"
@@ -288,60 +247,31 @@
                 value="<?= old('selling_price', $medicine['selling_price'] ?? '0.00') ?>" required>
             </div>
 
+            <div class="form-group">
+              <label>Initial Stock *</label>
+              <input type="number" class="form-control"
+                min="0"
+                name="stock_quantity"
+                value="<?= old('stock_quantity', $medicine['stock_quantity'] ?? '0') ?>" required>
+            </div>
+
+            <div class="form-group">
+              <label>Expiration Date</label>
+              <input type="date" class="form-control"
+                name="expiry_date"
+                value="<?= old('expiry_date', $medicine['expiry_date'] ?? '') ?>">
+              <small class="form-text text-muted">Optional: Leave blank if no expiration date</small>
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select class="form-control" name="is_active">
+                <option value="1" <?= old('is_active', $medicine['is_active'] ?? 1) == 1 ? 'selected' : '' ?>>Active</option>
+                <option value="0" <?= old('is_active', $medicine['is_active'] ?? 1) == 0 ? 'selected' : '' ?>>Inactive</option>
+              </select>
+            </div>
+
           </div>
-        </div>
-
-        <div class="row">
-          <div class="col-md-6">
-            <label>Manufacturer</label>
-            <input type="text" class="form-control"
-              name="manufacturer"
-              value="<?= old('manufacturer', $medicine['manufacturer'] ?? '') ?>">
-          </div>
-          <div class="col-md-6">
-            <label>Supplier</label>
-            <input type="text" class="form-control"
-              name="supplier"
-              value="<?= old('supplier', $medicine['supplier'] ?? '') ?>">
-          </div>
-        </div>
-
-        <br>
-
-        <div class="form-check">
-          <input type="checkbox" class="form-check-input"
-            id="requires_prescription"
-            name="requires_prescription" value="1"
-            <?= (old('requires_prescription', $medicine['requires_prescription'] ?? 0) == 1) ? 'checked' : '' ?>>
-          <label class="form-check-label">Requires Prescription</label>
-        </div>
-
-        <div class="form-group mt-3">
-          <label>Description</label>
-          <textarea class="form-control" name="description" rows="2"><?= old('description', $medicine['description'] ?? '') ?></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Side Effects</label>
-          <textarea class="form-control" name="side_effects" rows="2"><?= old('side_effects', $medicine['side_effects'] ?? '') ?></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Contraindications</label>
-          <textarea class="form-control" name="contraindications" rows="2"><?= old('contraindications', $medicine['contraindications'] ?? '') ?></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Storage Instructions</label>
-          <textarea class="form-control" name="storage_instructions" rows="2"><?= old('storage_instructions', $medicine['storage_instructions'] ?? '') ?></textarea>
-        </div>
-
-        <div class="form-check">
-          <input type="checkbox" class="form-check-input"
-            id="is_active"
-            name="is_active" value="1"
-            <?= (old('is_active', $medicine['is_active'] ?? 1) == 1) ? 'checked' : '' ?>>
-          <label class="form-check-label">Active</label>
         </div>
 
         <br>
@@ -367,12 +297,24 @@
     const purchasePrice = document.getElementById('purchase_price');
     const sellingPrice = document.getElementById('selling_price');
 
-    purchasePrice.addEventListener('change', function() {
-      if (!sellingPrice.value && purchasePrice.value) {
-        const markup = parseFloat(purchasePrice.value) * 1.2;
-        sellingPrice.value = markup.toFixed(2);
-      }
-    });
+    if (purchasePrice && sellingPrice) {
+      purchasePrice.addEventListener('change', function() {
+        if (!sellingPrice.value && purchasePrice.value) {
+          const markup = parseFloat(purchasePrice.value) * 1.2;
+          sellingPrice.value = markup.toFixed(2);
+        }
+      });
+    }
+
+    const form = document.querySelector('form');
+    const codeInput = document.querySelector('input[name="medicine_code"]');
+    if (form && codeInput) {
+      form.addEventListener('submit', function () {
+        if (!codeInput.value.trim()) {
+          codeInput.value = 'MED' + Date.now();
+        }
+      });
+    }
   });
 </script>
 

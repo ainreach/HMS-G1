@@ -9,7 +9,8 @@ class UserModel extends Model
     protected $primaryKey       = 'id';
 
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
         'employee_id', 'username', 'email', 'password', 'first_name', 'last_name', 'phone',

@@ -10,10 +10,34 @@ class PatientModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields    = [
-        'patient_id','first_name','last_name','date_of_birth','gender','phone','email','address','branch_id','admission_type','assigned_room_id','admission_date','is_active'
+        'patient_id',
+        'first_name',
+        'last_name',
+        'middle_name',
+        'date_of_birth',
+        'gender',
+        'blood_type',
+        'phone',
+        'email',
+        'address',
+        'city',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'emergency_contact_relation',
+        'insurance_provider',
+        'insurance_number',
+        'allergies',
+        'medical_history',
+        'branch_id',
+        'admission_type',
+        'assigned_room_id',
+        'admission_date',
+        'discharge_date',
+        'is_active',
     ];
 
     protected $useTimestamps = true;

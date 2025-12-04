@@ -10,7 +10,7 @@ class InsuranceClaimModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $allowedFields    = [
-        'claim_no','invoice_no','patient_name','provider','policy_no','amount_claimed','amount_approved','status','submitted_at'
+        'claim_no','invoice_no','billing_id','patient_name','provider','policy_no','amount_claimed','amount_approved','status','submitted_at'
     ];
 
     protected $useTimestamps = true;

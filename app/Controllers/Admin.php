@@ -523,6 +523,102 @@ class Admin extends BaseController
         ]);
     }
 
+    public function staffScheduleYearEvents()
+    {
+        helper(['url']);
+
+        $request = $this->request;
+        $year = (int) ($request->getGet('year') ?? date('Y'));
+        if ($year < 2000 || $year > 2100) {
+            $year = (int) date('Y');
+        }
+
+        $userId = (int) ($request->getGet('user_id') ?? 0);
+
+        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+
+        $builder = $scheduleModel
+            ->select('staff_schedules.*, users.first_name, users.last_name, users.username, users.role')
+            ->join('users', 'users.id = staff_schedules.user_id')
+            ->where('staff_schedules.is_active', 1);
+
+        if ($userId > 0) {
+            $builder->where('staff_schedules.user_id', $userId);
+        }
+
+        $schedules = $builder->findAll(1000);
+
+        $events = [];
+
+        $dayMap = [
+            'sunday' => 0,
+            'monday' => 1,
+            'tuesday' => 2,
+            'wednesday' => 3,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6,
+        ];
+
+        foreach ($schedules as $row) {
+            $dayOfWeek = strtolower((string) ($row['day_of_week'] ?? ''));
+            if (!array_key_exists($dayOfWeek, $dayMap)) {
+                continue;
+            }
+
+            $dow = $dayMap[$dayOfWeek];
+
+            $startDate = new \DateTime($year . '-01-01');
+            $endDate = new \DateTime($year . '-12-31');
+            $endDate->setTime(23, 59, 59);
+
+            while ((int) $startDate->format('w') !== $dow) {
+                $startDate->modify('+1 day');
+            }
+
+            $startTime = (string) ($row['start_time'] ?? '00:00:00');
+            $endTime = (string) ($row['end_time'] ?? '00:00:00');
+
+            $fullName = trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? ''));
+            if ($fullName === '') {
+                $fullName = (string) ($row['username'] ?? 'Staff');
+            }
+
+            $labelParts = [];
+            if ($fullName !== '') {
+                $labelParts[] = $fullName;
+            }
+            if (!empty($row['role'])) {
+                $labelParts[] = ucfirst((string) $row['role']);
+            }
+
+            $title = trim(implode(' - ', $labelParts));
+            if ($title === '') {
+                $title = 'Shift';
+            }
+
+            $current = clone $startDate;
+            while ($current <= $endDate) {
+                $dateStr = $current->format('Y-m-d');
+
+                $events[] = [
+                    'title' => $title,
+                    'start' => $dateStr . 'T' . $startTime,
+                    'end' => $dateStr . 'T' . $endTime,
+                    'extendedProps' => [
+                        'user_id' => (int) ($row['user_id'] ?? 0),
+                        'role' => (string) ($row['role'] ?? ''),
+                        'day_of_week' => $dayOfWeek,
+                    ],
+                ];
+
+                $current->modify('+1 week');
+            }
+        }
+
+        return $this->response->setJSON($events);
+    }
+
     public function storeStaffSchedule()
     {
         helper(['url', 'form']);
@@ -838,7 +934,7 @@ class Admin extends BaseController
         
         $total = $labTestModel->countAllResults();
         $labTests = $labTestModel
-                    ->select('lab_tests.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.username as doctor_name')
+                    ->select('lab_tests.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
                     ->join('patients', 'patients.id = lab_tests.patient_id')
                     ->join('users', 'users.id = lab_tests.doctor_id')
                     ->orderBy('lab_tests.requested_date', 'DESC')
@@ -893,10 +989,11 @@ class Admin extends BaseController
 
         // Validate required fields
         $rules = [
-            'medicine_code' => 'required|alpha_numeric|min_length[2]|max_length[20]',
-            'name' => 'required|min_length[3]|max_length[255]',
-            'unit' => 'required|max_length[20]',
-            'selling_price' => 'required|numeric|greater_than[0]'
+            'name'           => 'required|min_length[3]|max_length[255]',
+            'unit'           => 'required|max_length[20]',
+            'cost_per_unit'  => 'required|numeric',
+            'selling_price'  => 'required|numeric|greater_than[0]',
+            'stock_quantity' => 'required|integer',
         ];
 
         if (! $this->validate($rules)) {
@@ -916,36 +1013,14 @@ class Admin extends BaseController
                              ->withInput();
         }
 
-        // Check if medicine code already exists
-        $existingMedicine = $medicineModel
-            ->where('medicine_code', $this->request->getPost('medicine_code'))
-            ->first();
-
-        if ($existingMedicine) {
-            $message = 'Medicine code already exists';
-
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON(['success' => false, 'message' => $message]);
-            }
-
-            return redirect()->to(site_url('admin/medicines'))
-                             ->with('error', $message)
-                             ->withInput();
-        }
-
         $data = [
-            'medicine_code' => strtoupper(trim($this->request->getPost('medicine_code'))),
-            'name'          => trim($this->request->getPost('name')),
-            'generic_name'  => trim($this->request->getPost('generic_name')) ?: null,
-            'category'      => $this->request->getPost('category') ?: null,
-            'dosage_form'   => $this->request->getPost('dosage_form') ? strtolower((string) $this->request->getPost('dosage_form')) : null,
-            'strength'      => trim($this->request->getPost('strength')) ?: null,
-            'unit'          => trim($this->request->getPost('unit')),
-            'purchase_price' => $this->request->getPost('cost_per_unit') ? (float) $this->request->getPost('cost_per_unit') : null,
-            'selling_price' => (float) $this->request->getPost('selling_price'),
-            'manufacturer'  => trim($this->request->getPost('manufacturer')) ?: null,
-            'description'   => trim($this->request->getPost('description')) ?: null,
-            'is_active'     => $this->request->getPost('is_active') ? 1 : 0,
+            'name'            => trim($this->request->getPost('name')),
+            'unit'            => trim($this->request->getPost('unit')),
+            'price'           => (float) $this->request->getPost('cost_per_unit'),
+            'retail_price'    => (float) $this->request->getPost('selling_price'),
+            'stock'           => (int) $this->request->getPost('stock_quantity'),
+            'expiration_date' => $this->request->getPost('expiry_date') ?: null,
+            'is_active'       => $this->request->getPost('is_active') ? 1 : 0,
         ];
 
         try {
@@ -993,6 +1068,66 @@ class Admin extends BaseController
         }
     }
 
+    public function editMedicine($id)
+    {
+        helper(['url','form']);
+        $medicineModel = model('App\\Models\\MedicineModel');
+        $medicine = $medicineModel->find((int) $id);
+        if (! $medicine) {
+            return redirect()->to(site_url('admin/medicines'))->with('error', 'Medicine not found.');
+        }
+
+        // Reuse pharmacist form but allow custom action
+        return view('pharmacy/medicine_form', [
+            'medicine'   => $medicine,
+            'formAction' => site_url('admin/medicines/save/' . $id),
+        ]);
+    }
+
+    public function updateMedicine($id)
+    {
+        helper(['form','url']);
+        $medicineModel = model('App\\Models\\MedicineModel');
+
+        $rules = [
+            'name'           => 'required|min_length[3]|max_length[255]',
+            'purchase_price' => 'required|numeric',
+            'selling_price'  => 'required|numeric',
+            'stock_quantity' => 'required|integer',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'name'            => $this->request->getPost('name'),
+            'unit'            => $this->request->getPost('unit'),
+            'price'           => $this->request->getPost('purchase_price'),
+            'retail_price'    => $this->request->getPost('selling_price'),
+            'stock'           => $this->request->getPost('stock_quantity'),
+            'expiration_date' => $this->request->getPost('expiry_date'),
+            'is_active'       => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+
+        $medicineModel->update((int) $id, $data);
+
+        return redirect()->to(site_url('admin/medicines'))->with('success', 'Medicine updated successfully.');
+    }
+
+    public function deleteMedicine($id)
+    {
+        helper(['url']);
+        $medicineModel = model('App\\Models\\MedicineModel');
+        $medicine = $medicineModel->find((int) $id);
+
+        if ($medicine) {
+            $medicineModel->delete((int) $id);
+        }
+
+        return redirect()->to(site_url('admin/medicines'))->with('success', 'Medicine deleted successfully.');
+    }
+
     public function inventory()
     {
         helper(['url']);
@@ -1004,7 +1139,7 @@ class Admin extends BaseController
         
         $total = $inventoryModel->countAllResults();
         $inventory = $inventoryModel
-                    ->select('inventory.*, medicines.name as medicine_name, medicines.medicine_code')
+                    ->select('inventory.*, medicines.name as medicine_name')
                     ->join('medicines', 'medicines.id = inventory.medicine_id')
                     ->orderBy('inventory.updated_at', 'DESC')
                     ->findAll($perPage, $offset);
