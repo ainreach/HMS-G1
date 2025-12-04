@@ -55,7 +55,6 @@
         </nav>
 
         <div class="right-actions">
-          <a href="<?= site_url('notifications') ?>" title="Notifications"><i class="fa-regular fa-bell"></i></a>
           <a href="<?= site_url('about') ?>">ABOUT US</a>
           <a href="<?= site_url('login') ?>">LOGIN</a>
         </div>
@@ -68,13 +67,14 @@
         FIFTY 50 MEDTECHIE
       </h1>
       <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at mi augue. Maecenas a nisl nec nulla aliquam tristique.
-        Integer aliquet, magna in dictum mattis, urna arcu tempus enim, eu placerat dui erat nec lorem. Curabitur efficitur, quam non aliquet cursus, ligula lacus fermentum velit, sed dapibus sem orci ac justo.
+        Step into a smarter, faster, and more reliable way of managing healthcare. Our Hospital Management System is designed to simplify complex medical workflows, improve patient care, and keep every department connected—from admissions and consultations to billing and laboratory services. With an easy-to-use interface and powerful automation, we empower hospitals to reduce errors, save time, and focus on what truly matters: delivering quality healthcare to every patient.
       </p>
       <p>
-        Praesent vitae magna vitae mauris vulputate viverra. Quisque posuere, neque non placerat dictum, ligula tellus pellentesque elit, sit amet varius lorem odio et nunc. Phasellus id urna id justo efficitur volutpat. Etiam non leo at quam
-        tristique pellentesque. Donec tincidunt, nunc et blandit rhoncus, nibh felis semper.
+        Whether you’re a doctor, nurse, admin staff, or facility manager, FIFTY 50 MEDTECHIE provides the tools you need to make informed decisions, streamline daily operations, and maintain accurate, secure records. Experience a system built for efficiency, trusted by professionals, and crafted to bring modern technology into the heart of healthcare.
       </p>
+      <p>
+        Your journey toward a more organized and innovative hospital environment starts here.
+</p>
     </section>
 
     <section class="cards" aria-label="Quick contacts">
