@@ -37,23 +37,63 @@
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <?php
                     $txt = $rx['medications_prescribed'] ?? '';
-                    $summary = $txt;
                     if ($txt) {
                       $decoded = json_decode($txt, true);
-                      if (is_array($decoded)) {
-                        $parts = [];
-                        foreach ($decoded as $item) {
-                          if (is_array($item)) {
-                            $parts[] = trim(($item['drug'] ?? $item['name'] ?? 'Medicine') . ' ' . ($item['dose'] ?? ''));
-                          }
+                      if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        // Handle the medication data structure
+                        $medicineName = $decoded['medicine_name'] ?? $decoded['drug'] ?? $decoded['name'] ?? 'Unknown Medicine';
+                        $dosage = $decoded['dosage'] ?? $decoded['dose'] ?? '';
+                        $frequency = $decoded['frequency'] ?? '';
+                        $duration = $decoded['duration'] ?? '';
+                        $purchaseLocation = $decoded['purchase_location'] ?? '';
+                        $status = $decoded['status'] ?? '';
+                        
+                        // Format purchase location
+                        $locationText = '';
+                        if ($purchaseLocation === 'hospital_pharmacy') {
+                          $locationText = '<span style="color:#3b82f6;font-size:0.75rem"><i class="fas fa-hospital"></i> Hospital Pharmacy</span>';
+                        } elseif ($purchaseLocation === 'outside') {
+                          $locationText = '<span style="color:#6b7280;font-size:0.75rem"><i class="fas fa-store"></i> Outside</span>';
                         }
-                        if (!empty($parts)) {
-                          $summary = implode(', ', $parts);
+                        
+                        // Format status badge
+                        $statusBadge = '';
+                        if ($status === 'pending_pharmacy') {
+                          $statusBadge = '<span style="padding:2px 6px;background:#fef3c7;color:#92400e;border-radius:4px;font-size:0.75rem;margin-left:8px">Pending</span>';
+                        } elseif ($status === 'dispensed') {
+                          $statusBadge = '<span style="padding:2px 6px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:0.75rem;margin-left:8px">Dispensed</span>';
                         }
+                  ?>
+                    <div style="line-height:1.6">
+                      <div style="font-weight:600;color:#1e293b;margin-bottom:4px">
+                        <i class="fas fa-pills" style="color:#3b82f6;margin-right:6px"></i><?= esc($medicineName) ?>
+                      </div>
+                      <div style="font-size:0.875rem;color:#64748b;margin-bottom:2px">
+                        <?php if ($dosage): ?>
+                          <span><strong>Dosage:</strong> <?= esc($dosage) ?></span>
+                        <?php endif; ?>
+                        <?php if ($frequency): ?>
+                          <span style="margin-left:12px"><strong>Frequency:</strong> <?= esc($frequency) ?></span>
+                        <?php endif; ?>
+                      </div>
+                      <div style="font-size:0.875rem;color:#64748b;margin-bottom:4px">
+                        <?php if ($duration): ?>
+                          <span><strong>Duration:</strong> <?= esc($duration) ?></span>
+                        <?php endif; ?>
+                        <?= $locationText ?>
+                        <?= $statusBadge ?>
+                      </div>
+                    </div>
+                  <?php
+                      } else {
+                        // If not valid JSON, just display as text (truncated)
+                        $displayText = strlen($txt) > 100 ? substr($txt, 0, 100) . '...' : $txt;
+                        echo '<span style="color:#6b7280;font-size:0.875rem">' . esc($displayText) . '</span>';
                       }
+                    } else {
+                      echo '<span style="color:#9ca3af">—</span>';
                     }
                   ?>
-                  <?= esc($summary ?: '—') ?>
                 </td>
               </tr>
             <?php endforeach; else: ?>

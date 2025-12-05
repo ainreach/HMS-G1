@@ -60,8 +60,8 @@
           <label>Date of Birth *
             <input type="date" name="date_of_birth" value="<?= old('date_of_birth') ?>" required>
           </label>
-          <label>Gender
-            <select name="gender">
+          <label>Gender *
+            <select name="gender" required>
               <option value="">Select gender</option>
               <option value="male" <?= old('gender')==='male' ? 'selected' : '' ?>>Male</option>
               <option value="female" <?= old('gender')==='female' ? 'selected' : '' ?>>Female</option>

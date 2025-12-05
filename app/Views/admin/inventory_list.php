@@ -68,9 +68,17 @@
                   <span class="badge <?= $badgeClass ?>"><?= ucfirst(str_replace('_', ' ', $status)) ?></span>
                 </td>
                 <td>
-                  <a href="<?= site_url('pharmacy/inventory/' . $item['id']) ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
-                    <i class="fas fa-eye"></i> View
-                  </a>
+                  <div style="display:flex;gap:4px;">
+                    <a href="<?= site_url('admin/inventory/edit/' . $item['id']) ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
+                      <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <form method="post" action="<?= site_url('admin/inventory/delete/' . $item['id']) ?>" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this stock entry?');">
+                      <?= csrf_field() ?>
+                      <button type="submit" class="btn btn-danger" style="padding:0.25rem 0.5rem;font-size:0.75rem;background:#dc2626;color:white;border:none;cursor:pointer;">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>

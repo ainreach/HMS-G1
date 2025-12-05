@@ -43,11 +43,16 @@ class LinkPaymentsAndClaimsToBilling extends Migration
                     // Ignore if something goes wrong; FK will still be added.
                 }
 
-                // Add FK constraint
-                $db->query('ALTER TABLE `payments`
-                    ADD CONSTRAINT `fk_payments_billing`
-                    FOREIGN KEY (`billing_id`) REFERENCES `billing`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                // Add FK constraint (check if exists first)
+                $this->addForeignKeyIfNotExists(
+                    'payments',
+                    'fk_payments_billing',
+                    'billing_id',
+                    'billing',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
         }
 
@@ -77,10 +82,15 @@ class LinkPaymentsAndClaimsToBilling extends Migration
                     // Ignore matching errors
                 }
 
-                $db->query('ALTER TABLE `insurance_claims`
-                    ADD CONSTRAINT `fk_insurance_claims_billing`
-                    FOREIGN KEY (`billing_id`) REFERENCES `billing`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'insurance_claims',
+                    'fk_insurance_claims_billing',
+                    'billing_id',
+                    'billing',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
         }
     }
@@ -111,6 +121,43 @@ class LinkPaymentsAndClaimsToBilling extends Migration
             $fields = $db->getFieldNames('insurance_claims');
             if (in_array('billing_id', $fields, true)) {
                 $this->forge->dropColumn('insurance_claims', 'billing_id');
+            }
+        }
+    }
+
+    /**
+     * Helper method to add foreign key constraint only if it doesn't exist
+     */
+    private function addForeignKeyIfNotExists(
+        string $table,
+        string $constraintName,
+        string $column,
+        string $referencedTable,
+        string $referencedColumn,
+        string $onDelete = 'RESTRICT',
+        string $onUpdate = 'CASCADE'
+    ): void {
+        $db = $this->db;
+
+        // Check if constraint already exists
+        $constraints = $db->query("
+            SELECT CONSTRAINT_NAME 
+            FROM information_schema.KEY_COLUMN_USAGE 
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = '{$table}'
+            AND CONSTRAINT_NAME = '{$constraintName}'
+        ")->getResultArray();
+
+        if (empty($constraints)) {
+            try {
+                $db->query("
+                    ALTER TABLE `{$table}`
+                    ADD CONSTRAINT `{$constraintName}`
+                    FOREIGN KEY (`{$column}`) REFERENCES `{$referencedTable}`(`{$referencedColumn}`)
+                    ON DELETE {$onDelete} ON UPDATE {$onUpdate}
+                ");
+            } catch (\Throwable $e) {
+                log_message('error', "Failed to add foreign key {$constraintName}: " . $e->getMessage());
             }
         }
     }

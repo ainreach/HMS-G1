@@ -21,7 +21,6 @@
   <a href="<?= site_url('dashboard/pharmacist') ?>" class="active" aria-current="page">Overview</a>
   <a href="<?= site_url('pharmacy/prescriptions') ?>" data-feature="pharmacy">Prescriptions</a>
   <a href="<?= site_url('pharmacy/medicines') ?>" data-feature="pharmacy">Medicines</a>
-  <a href="<?= site_url('pharmacy/dispense/new') ?>" data-feature="pharmacy">Dispense</a>
   <a href="<?= site_url('pharmacy/inventory') ?>" data-feature="pharmacy">Inventory</a>
   <a href="<?= site_url('pharmacy/low-stock-alerts') ?>" data-feature="pharmacy">Low Stock</a>
   <a href="<?= site_url('pharmacy/medicine-expiry') ?>" data-feature="pharmacy">Expiry Alerts</a>
@@ -37,9 +36,6 @@
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn" href="<?= site_url('pharmacy/medicines/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;background-color:#10b981;color:white">
           <i class="fas fa-plus"></i> Add Medicine
-        </a>
-        <a class="btn" href="<?= site_url('pharmacy/dispense/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
-          <i class="fas fa-pills"></i> Dispense
         </a>
         <a class="btn" href="<?= site_url('pharmacy/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">
           <i class="fas fa-prescription"></i> Prescriptions

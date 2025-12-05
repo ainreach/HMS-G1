@@ -17,12 +17,13 @@
                 <th>Type</th>
                 <th>Status</th>
                 <th>Duration</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <?php foreach ($appointments as $appointment): ?>
                 <tr>
-                  <td><?= esc($appointment['appointment_number']) ?></td>
+                  <td><?= esc($appointment['appointment_number'] ?? 'N/A') ?></td>
                   <td>
                     <?php 
                     if (isset($appointment['patient_first_name']) && isset($appointment['patient_last_name'])) {
@@ -68,6 +69,19 @@
                     </span>
                   </td>
                   <td style="white-space:nowrap;"><?= (int)($appointment['duration'] ?? 0) ?> min</td>
+                  <td>
+                    <div style="display:flex;gap:4px;">
+                      <a href="<?= site_url('admin/appointments/edit/' . $appointment['id']) ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
+                        <i class="fas fa-edit"></i> Edit
+                      </a>
+                      <form method="post" action="<?= site_url('admin/appointments/delete/' . $appointment['id']) ?>" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this appointment?');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-danger" style="padding:0.25rem 0.5rem;font-size:0.75rem;background:#dc2626;color:white;border:none;cursor:pointer;">
+                          <i class="fas fa-trash"></i> Delete
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             </tbody>

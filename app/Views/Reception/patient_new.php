@@ -1,346 +1,351 @@
+<?php
+helper('form');
+$errors = session('errors') ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register Patient | Hospital Management System</title>
+  <title>Register Patient | HMS</title>
   <base href="<?= rtrim(base_url(), '/') ?>/">
-  <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    :root {
+      --primary-blue: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --text-dark: #1f2937;
+      --text-gray: #6b7280;
+      --bg-light: #f8fafc;
+      --border-color: #e5e7eb;
+      --focus-ring: rgba(37, 99, 235, 0.3);
+    }
+
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f2f7fb;
-      margin: 0;
-      padding: 0;
-      color: #333;
+      background: var(--bg-light);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
-    .dash-topbar {
-      background: #7ec8e3;
-      padding: 12px 20px;
+    .registration-wrapper {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .page-header-section {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .dash-topbar .menu-btn {
-      color: #fff;
-      text-decoration: none;
-      margin-right: 16px;
-      font-weight: 600;
+    .page-title-main {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0;
     }
 
-    main.content {
-      max-width: 900px;
-      margin: 30px auto;
-      background: #fff;
+    .form-container {
+      background: #ffffff;
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      padding: 32px 40px;
-      border-top: 6px solid #7ec8e3;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
     }
 
-    h1 {
-      text-align: center;
-      color: #1e6f9f;
-      font-size: 28px;
-      margin-bottom: 24px;
+    .form-content {
+      padding: 24px;
     }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .form-section {
-      border: 1px solid #c9d9e8;
-      padding: 16px;
-      border-radius: 12px;
-      background: #f9fbfd;
-    }
-
-    .form-section h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
-      color: #1e6f9f;
-      border-bottom: 1px solid #c9d9e8;
-      padding-bottom: 6px;
-    }
-
-    label {
-      display: flex;
-      flex-direction: column;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: #2f4f6f;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="date"],
-    input[type="number"],
-    select,
-    textarea {
+    .section-header {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-dark);
+      margin: 20px 0 12px;
       padding: 10px 14px;
-      border: 1px solid #c9d9e8;
+      background: var(--bg-light);
+      border-left: 4px solid var(--primary-blue);
       border-radius: 8px;
-      font-size: 15px;
-      background: #fff;
+    }
+
+    .section-header:first-child {
+      margin-top: 0;
+    }
+
+    .form-label-custom {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .form-control-custom,
+    .form-select-custom {
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-size: 0.95rem;
       transition: all 0.2s ease;
+      background: #fff;
+    }
+
+    .form-control-custom:focus,
+    .form-select-custom:focus {
+      border-color: var(--primary-blue);
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+
+    .invalid-feedback-custom {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.875rem;
+      color: #dc2626;
+    }
+
+    .btn-primary-custom {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: #fff;
+      padding: 11px 24px;
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary-custom:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary-custom {
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      color: var(--text-dark);
+      padding: 11px 24px;
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary-custom:hover {
+      background: var(--bg-light);
+      border-color: #cbd5e1;
+    }
+
+    .alert-custom {
+      border-radius: 12px;
+      border: 0;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+
+    .text-required {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .text-hint {
+      font-size: 0.875rem;
+      color: var(--text-gray);
       margin-top: 4px;
     }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: #7ec8e3;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(126, 200, 227, 0.2);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-    }
-
-    .alert {
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-weight: 500;
-    }
-
-    .alert-error {
-      background: #ffe5e5;
-      color: #b40000;
-      border: 1px solid #f5b5b5;
-    }
-
-    .alert-success {
-      background: #e6f7ef;
-      color: #1b7f46;
-      border: 1px solid #a7dfb8;
-    }
-
-    .btn {
-      background: #7ec8e3;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.1s ease;
-      text-decoration: none;
-      text-align: center;
-    }
-
-    .btn:hover {
-      background: #6dbcd9;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #e0e6ec;
-      color: #333;
-    }
-
-    .btn-secondary:hover {
-      background: #d0d9e2;
-    }
-
-    @media (max-width: 600px) {
-      main.content {
-        padding: 24px;
+    @media (max-width: 768px) {
+      .registration-wrapper {
+        margin: 16px auto;
+        padding: 0 12px;
+      }
+      .form-content {
+        padding: 16px;
+      }
+      .page-header-section {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
 </head>
 <body>
 
-<header class="dash-topbar">
-  <a href="<?= site_url('dashboard/receptionist') ?>" class="menu-btn">← Back</a>
-  <small>Room Management</small>
-</header>
+<div class="registration-wrapper">
+  <div class="page-header-section">
+    <h1 class="page-title-main">
+      <i class="fas fa-user-plus me-2"></i>Register New Patient
+    </h1>
+    <a href="<?= site_url('dashboard/receptionist') ?>" class="btn btn-secondary-custom">
+      <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+  </div>
 
-<main class="content">
   <?php if (session()->getFlashdata('error')): ?>
-    <div class="alert alert-error"><?= esc(session()->getFlashdata('error')) ?></div>
+    <div class="alert alert-danger alert-custom">
+      <i class="fas fa-exclamation-circle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
+    </div>
   <?php endif; ?>
 
   <?php if (session()->getFlashdata('success')): ?>
-    <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+    <div class="alert alert-success alert-custom">
+      <i class="fas fa-check-circle me-2"></i><?= esc(session()->getFlashdata('success')) ?>
+    </div>
   <?php endif; ?>
-  
-  <?php
-    // This is a temporary script to create rooms.php
-    $roomsFile = __DIR__ . '/rooms.php';
-    if (!file_exists($roomsFile)) {
-        $template = file_get_contents(__DIR__ . '/patient_lookup.php');
-        // Replace content for room management
-        $roomsContent = str_replace('Patient Lookup', 'Room Management', $template);
-        $roomsContent = str_replace('class="active" aria-current="page">Patient Lookup</a>', 'class="active" aria-current="page">Room Management</a>', $roomsContent);
-        $roomsContent = str_replace('>Patient Lookup</a>', '>Room Management</a>', $roomsContent);
-        $roomsContent = str_replace('Search Patients', 'Room List', $roomsContent);
-        file_put_contents($roomsFile, $roomsContent);
-        echo '<div style="color:green">rooms.php created successfully!</div>';
-    }
-  ?>
 
-  <form method="post" action="<?= site_url('reception/patients') ?>">
-    <?= csrf_field() ?>
+  <div class="form-container">
+    <div class="form-content">
+      <form method="post" action="<?= site_url('reception/patients') ?>">
+        <?= csrf_field() ?>
 
-    <!-- Basic Information -->
-    <div class="form-section">
-      <h2>Basic Information</h2>
-      <div class="grid">
-        <label>First Name
-          <input type="text" name="first_name" value="<?= old('first_name') ?>" required>
-        </label>
-        <label>Last Name
-          <input type="text" name="last_name" value="<?= old('last_name') ?>" required>
-        </label>
-        <label>Date of Birth
-          <input type="date" name="date_of_birth" value="<?= old('date_of_birth') ?>" required>
-        </label>
-        <label>Gender
-          <select name="gender" required>
-            <option value="">Select</option>
-            <option value="male" <?= old('gender')=='male'?'selected':'' ?>>Male</option>
-            <option value="female" <?= old('gender')=='female'?'selected':'' ?>>Female</option>
-            <option value="other" <?= old('gender')=='other'?'selected':'' ?>>Other</option>
-          </select>
-        </label>
-        <label>Phone
-          <input type="text" name="phone" value="<?= old('phone') ?>" required>
-        </label>
-        <label>Email
-          <input type="email" name="email" value="<?= old('email') ?>">
-        </label>
-      </div>
-    </div>
-
-    <!-- Address Information -->
-    <div class="form-section">
-      <h2>Address Details</h2>
-      <label>Street Address
-        <input type="text" name="address_street" value="<?= old('address_street') ?>">
-      </label>
-      <div class="grid">
-        <label>City
-          <input type="text" name="city" value="<?= old('city') ?>">
-        </label>
-        <label>State/Province
-          <input type="text" name="state" value="<?= old('state') ?>">
-        </label>
-        <label>Postal Code
-          <input type="text" name="postal_code" value="<?= old('postal_code') ?>">
-        </label>
-        <label>Country
-          <input type="text" name="country" value="<?= old('country') ?>">
-        </label>
-      </div>
-    </div>
-
-    <!-- Medical Information -->
-    <div class="form-section">
-      <h2>Medical Information</h2>
-      <div class="grid">
-        <label>Blood Type
-          <select name="blood_type">
-            <option value="">Select</option>
-            <option value="A+" <?= old('blood_type')=='A+'?'selected':'' ?>>A+</option>
-            <option value="A-" <?= old('blood_type')=='A-'?'selected':'' ?>>A-</option>
-            <option value="B+" <?= old('blood_type')=='B+'?'selected':'' ?>>B+</option>
-            <option value="B-" <?= old('blood_type')=='B-'?'selected':'' ?>>B-</option>
-            <option value="AB+" <?= old('blood_type')=='AB+'?'selected':'' ?>>AB+</option>
-            <option value="AB-" <?= old('blood_type')=='AB-'?'selected':'' ?>>AB-</option>
-            <option value="O+" <?= old('blood_type')=='O+'?'selected':'' ?>>O+</option>
-            <option value="O-" <?= old('blood_type')=='O-'?'selected':'' ?>>O-</option>
-          </select>
-        </label>
-        <label>Known Allergies
-          <textarea name="allergies" rows="2"><?= old('allergies') ?></textarea>
-        </label>
-        <label>Chronic Conditions
-          <textarea name="chronic_conditions" rows="2"><?= old('chronic_conditions') ?></textarea>
-        </label>
-        <label>Current Medications
-          <textarea name="medications" rows="2"><?= old('medications') ?></textarea>
-        </label>
-      </div>
-    </div>
-
-    <!-- Emergency Contact -->
-    <div class="form-section">
-      <h2>Emergency Contact</h2>
-      <div class="grid">
-        <label>Contact Name
-          <input type="text" name="emergency_name" value="<?= old('emergency_name') ?>">
-        </label>
-        <label>Relationship
-          <input type="text" name="emergency_relation" value="<?= old('emergency_relation') ?>">
-        </label>
-        <label>Phone
-          <input type="text" name="emergency_phone" value="<?= old('emergency_phone') ?>">
-        </label>
-      </div>
-    </div>
-
-    <!-- Insurance Information -->
-    <div class="form-section">
-      <h2>Insurance Information</h2>
-      <div class="grid">
-        <label>Insurance Provider
-          <input type="text" name="insurance_provider" value="<?= old('insurance_provider') ?>">
-        </label>
-        <label>Policy Number
-          <input type="text" name="insurance_policy_number" value="<?= old('insurance_policy_number') ?>">
-        </label>
-      </div>
-    </div>
-
-    <!-- Admission Information -->
-    <div class="form-section">
-      <h2>Admission Information</h2>
-      <div class="grid">
-        <label>Admission Type
-          <select name="admission_type" id="admission_type" onchange="toggleRoomAssignment()">
-            <option value="checkup" <?= old('admission_type')=='checkup'?'selected':'' ?>>Check-up Only</option>
-            <option value="admission" <?= old('admission_type')=='admission'?'selected':'' ?>>Admit Patient</option>
-          </select>
-        </label>
-        <label>Date of Birth
-          <input type="date" name="date_of_birth" value="<?= old('date_of_birth') ?>" onchange="calculateAge()">
-        </label>
-      </div>
-      
-      <!-- Room Assignment (shown only for admission) -->
-      <div id="room_assignment" style="display: <?= old('admission_type')=='admission' ? 'block' : 'none' ?>; margin-top: 20px;">
-        <h3>Room Assignment</h3>
-        <div class="grid">
-          <label>Available Rooms
-            <select name="assigned_room_id" id="room_select">
-              <option value="">Select a room</option>
+        <!-- Personal Information Section -->
+        <h5 class="section-header">
+          <i class="fas fa-id-card me-2"></i>Personal Information
+        </h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label-custom">
+              First Name <span class="text-required">*</span>
+            </label>
+            <input type="text" name="first_name" 
+                   class="form-control form-control-custom <?= isset($errors['first_name']) ? 'is-invalid' : '' ?>" 
+                   value="<?= set_value('first_name', old('first_name')) ?>" required>
+            <?php if (isset($errors['first_name'])): ?>
+              <div class="invalid-feedback-custom"><?= esc($errors['first_name']) ?></div>
+            <?php endif; ?>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">
+              Last Name <span class="text-required">*</span>
+            </label>
+            <input type="text" name="last_name" 
+                   class="form-control form-control-custom <?= isset($errors['last_name']) ? 'is-invalid' : '' ?>" 
+                   value="<?= set_value('last_name', old('last_name')) ?>" required>
+            <?php if (isset($errors['last_name'])): ?>
+              <div class="invalid-feedback-custom"><?= esc($errors['last_name']) ?></div>
+            <?php endif; ?>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">
+              Gender <span class="text-required">*</span>
+            </label>
+            <select name="gender" 
+                    class="form-select form-select-custom <?= isset($errors['gender']) ? 'is-invalid' : '' ?>" required>
+              <option value="">-- Select Gender --</option>
+              <option value="male" <?= set_select('gender', 'male', old('gender') == 'male') ?>>Male</option>
+              <option value="female" <?= set_select('gender', 'female', old('gender') == 'female') ?>>Female</option>
+              <option value="other" <?= set_select('gender', 'other', old('gender') == 'other') ?>>Other</option>
             </select>
-          </label>
+            <?php if (isset($errors['gender'])): ?>
+              <div class="invalid-feedback-custom"><?= esc($errors['gender']) ?></div>
+            <?php endif; ?>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">Date of Birth</label>
+            <input type="date" name="date_of_birth" 
+                   class="form-control form-control-custom" 
+                   value="<?= set_value('date_of_birth', old('date_of_birth')) ?>" 
+                   id="dob_input">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">Phone Number</label>
+            <input type="text" name="phone" 
+                   class="form-control form-control-custom" 
+                   value="<?= set_value('phone', old('phone')) ?>" 
+                   placeholder="09XX-XXX-XXXX">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-custom">Email Address</label>
+            <input type="email" name="email" 
+                   class="form-control form-control-custom" 
+                   value="<?= set_value('email', old('email')) ?>" 
+                   placeholder="patient@example.com">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label-custom">Complete Address</label>
+            <input type="text" name="address" 
+                   class="form-control form-control-custom" 
+                   value="<?= set_value('address', old('address')) ?>" 
+                   placeholder="Street, City, Province">
+          </div>
         </div>
-        <div id="room_details" style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; display: none;">
-          <small id="room_info"></small>
+
+        <!-- Admission Information Section -->
+        <h5 class="section-header">
+          <i class="fas fa-hospital me-2"></i>Admission Information
+        </h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label-custom">Admission Type</label>
+            <select name="admission_type" id="admission_type_select" class="form-select form-select-custom">
+              <option value="checkup" <?= set_select('admission_type', 'checkup', old('admission_type') == 'checkup') ?>>Out-Patient (Check-up)</option>
+              <option value="admission" <?= set_select('admission_type', 'admission', old('admission_type') == 'admission') ?>>In-Patient (Admission)</option>
+            </select>
+            <div class="text-hint">
+              <i class="fas fa-info-circle me-1"></i>
+              Select admission type. In-Patient requires room assignment.
+            </div>
+          </div>
+          <div class="col-md-6" id="room_selection_section" style="display: none;">
+            <label class="form-label-custom">Room Assignment</label>
+            <select name="assigned_room_id" class="form-select form-select-custom">
+              <option value="">-- Select Room --</option>
+              <?php if (!empty($availableRooms)): ?>
+                <?php foreach ($availableRooms as $room): ?>
+                  <option value="<?= esc($room['id']) ?>">
+                    <?= esc($room['room_number']) ?> - 
+                    <?= esc($room['room_type'] ?? 'Standard') ?> 
+                    (₱<?= number_format($room['rate_per_day'] ?? 0, 2) ?>/day)
+                  </option>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <option value="" disabled>No available rooms</option>
+              <?php endif; ?>
+            </select>
+            <div class="text-hint">Room assignment is required for In-Patient admission</div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Buttons -->
-    <div style="display:flex;gap:12px;margin-top:16px;">
-      <button type="submit" class="btn">💾 Save Patient</button>
-      <a class="btn btn-secondary" href="<?= site_url('dashboard/receptionist') ?>">Cancel</a>
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3 mt-4 pt-3 border-top">
+          <button type="submit" class="btn btn-primary-custom">
+            <i class="fas fa-save me-2"></i>Register Patient
+          </button>
+          <a href="<?= site_url('dashboard/receptionist') ?>" class="btn btn-secondary-custom">
+            <i class="fas fa-times me-2"></i>Cancel
+          </a>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
-  </form>
-</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle room selection based on admission type
+  const admissionSelect = document.getElementById('admission_type_select');
+  const roomSection = document.getElementById('room_selection_section');
+  
+  if (admissionSelect && roomSection) {
+    function toggleRoomSection() {
+      if (admissionSelect.value === 'admission') {
+        roomSection.style.display = 'block';
+      } else {
+        roomSection.style.display = 'none';
+      }
+    }
+    
+    admissionSelect.addEventListener('change', toggleRoomSection);
+    toggleRoomSection(); // Check on page load
+  }
+});
+</script>
+
 </body>
 </html>

@@ -63,208 +63,348 @@ class AddForeignKeysAndSoftDeletes extends Migration
 
         // users.branch_id -> branches.id (staff belongs to a branch)
         if ($db->tableExists('users') && $db->tableExists('branches')) {
-            $db->query('ALTER TABLE `users`
-                ADD CONSTRAINT `fk_users_branch`
-                FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                ON DELETE SET NULL ON UPDATE CASCADE');
+            $this->addForeignKeyIfNotExists(
+                'users',
+                'fk_users_branch',
+                'branch_id',
+                'branches',
+                'id',
+                'SET NULL',
+                'CASCADE'
+            );
         }
 
         // patients.branch_id -> branches.id
         if ($db->tableExists('patients') && $db->tableExists('branches')) {
-            $db->query('ALTER TABLE `patients`
-                ADD CONSTRAINT `fk_patients_branch`
-                FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                ON DELETE RESTRICT ON UPDATE CASCADE');
+            $this->addForeignKeyIfNotExists(
+                'patients',
+                'fk_patients_branch',
+                'branch_id',
+                'branches',
+                'id',
+                'RESTRICT',
+                'CASCADE'
+            );
         }
 
         // patients.assigned_room_id -> rooms.id (added by AddAdmissionFieldsToPatientsTable)
         if ($db->tableExists('patients') && $db->tableExists('rooms')) {
             $fields = $db->getFieldNames('patients');
             if (in_array('assigned_room_id', $fields, true)) {
-                $db->query('ALTER TABLE `patients`
-                    ADD CONSTRAINT `fk_patients_room`
-                    FOREIGN KEY (`assigned_room_id`) REFERENCES `rooms`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'patients',
+                    'fk_patients_room',
+                    'assigned_room_id',
+                    'rooms',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
         }
 
         // rooms.branch_id -> branches.id
         if ($db->tableExists('rooms') && $db->tableExists('branches')) {
-            $db->query('ALTER TABLE `rooms`
-                ADD CONSTRAINT `fk_rooms_branch`
-                FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                ON DELETE RESTRICT ON UPDATE CASCADE');
+            $this->addForeignKeyIfNotExists(
+                'rooms',
+                'fk_rooms_branch',
+                'branch_id',
+                'branches',
+                'id',
+                'RESTRICT',
+                'CASCADE'
+            );
         }
 
         // appointments relations
         if ($db->tableExists('appointments')) {
             if ($db->tableExists('patients')) {
-                $db->query('ALTER TABLE `appointments`
-                    ADD CONSTRAINT `fk_appointments_patient`
-                    FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'appointments',
+                    'fk_appointments_patient',
+                    'patient_id',
+                    'patients',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `appointments`
-                    ADD CONSTRAINT `fk_appointments_doctor`
-                    FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'appointments',
+                    'fk_appointments_doctor',
+                    'doctor_id',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
 
-                $db->query('ALTER TABLE `appointments`
-                    ADD CONSTRAINT `fk_appointments_created_by`
-                    FOREIGN KEY (`created_by`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'appointments',
+                    'fk_appointments_created_by',
+                    'created_by',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `appointments`
-                    ADD CONSTRAINT `fk_appointments_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'appointments',
+                    'fk_appointments_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // billing relations
         if ($db->tableExists('billing')) {
             if ($db->tableExists('patients')) {
-                $db->query('ALTER TABLE `billing`
-                    ADD CONSTRAINT `fk_billing_patient`
-                    FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'billing',
+                    'fk_billing_patient',
+                    'patient_id',
+                    'patients',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('appointments')) {
-                $db->query('ALTER TABLE `billing`
-                    ADD CONSTRAINT `fk_billing_appointment`
-                    FOREIGN KEY (`appointment_id`) REFERENCES `appointments`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'billing',
+                    'fk_billing_appointment',
+                    'appointment_id',
+                    'appointments',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `billing`
-                    ADD CONSTRAINT `fk_billing_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'billing',
+                    'fk_billing_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `billing`
-                    ADD CONSTRAINT `fk_billing_created_by`
-                    FOREIGN KEY (`created_by`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'billing',
+                    'fk_billing_created_by',
+                    'created_by',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // billing_items.billing_id -> billing.id (child rows cascade when header removed)
         if ($db->tableExists('billing_items') && $db->tableExists('billing')) {
-            $db->query('ALTER TABLE `billing_items`
-                ADD CONSTRAINT `fk_billing_items_billing`
-                FOREIGN KEY (`billing_id`) REFERENCES `billing`(`id`)
-                ON DELETE CASCADE ON UPDATE CASCADE');
+            $this->addForeignKeyIfNotExists(
+                'billing_items',
+                'fk_billing_items_billing',
+                'billing_id',
+                'billing',
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
         }
 
         // inventory relations
         if ($db->tableExists('inventory')) {
             if ($db->tableExists('medicines')) {
-                $db->query('ALTER TABLE `inventory`
-                    ADD CONSTRAINT `fk_inventory_medicine`
-                    FOREIGN KEY (`medicine_id`) REFERENCES `medicines`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'inventory',
+                    'fk_inventory_medicine',
+                    'medicine_id',
+                    'medicines',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `inventory`
-                    ADD CONSTRAINT `fk_inventory_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'inventory',
+                    'fk_inventory_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `inventory`
-                    ADD CONSTRAINT `fk_inventory_last_updated_by`
-                    FOREIGN KEY (`last_updated_by`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'inventory',
+                    'fk_inventory_last_updated_by',
+                    'last_updated_by',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // lab_tests relations
         if ($db->tableExists('lab_tests')) {
             if ($db->tableExists('patients')) {
-                $db->query('ALTER TABLE `lab_tests`
-                    ADD CONSTRAINT `fk_lab_tests_patient`
-                    FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'lab_tests',
+                    'fk_lab_tests_patient',
+                    'patient_id',
+                    'patients',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `lab_tests`
-                    ADD CONSTRAINT `fk_lab_tests_doctor`
-                    FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'lab_tests',
+                    'fk_lab_tests_doctor',
+                    'doctor_id',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
 
-                $db->query('ALTER TABLE `lab_tests`
-                    ADD CONSTRAINT `fk_lab_tests_technician`
-                    FOREIGN KEY (`lab_technician_id`) REFERENCES `users`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'lab_tests',
+                    'fk_lab_tests_technician',
+                    'lab_technician_id',
+                    'users',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `lab_tests`
-                    ADD CONSTRAINT `fk_lab_tests_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'lab_tests',
+                    'fk_lab_tests_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // medical_records relations
         if ($db->tableExists('medical_records')) {
             if ($db->tableExists('patients')) {
-                $db->query('ALTER TABLE `medical_records`
-                    ADD CONSTRAINT `fk_medical_records_patient`
-                    FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'medical_records',
+                    'fk_medical_records_patient',
+                    'patient_id',
+                    'patients',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('appointments')) {
-                $db->query('ALTER TABLE `medical_records`
-                    ADD CONSTRAINT `fk_medical_records_appointment`
-                    FOREIGN KEY (`appointment_id`) REFERENCES `appointments`(`id`)
-                    ON DELETE SET NULL ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'medical_records',
+                    'fk_medical_records_appointment',
+                    'appointment_id',
+                    'appointments',
+                    'id',
+                    'SET NULL',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `medical_records`
-                    ADD CONSTRAINT `fk_medical_records_doctor`
-                    FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'medical_records',
+                    'fk_medical_records_doctor',
+                    'doctor_id',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `medical_records`
-                    ADD CONSTRAINT `fk_medical_records_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'medical_records',
+                    'fk_medical_records_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // prescriptions relations
         if ($db->tableExists('prescriptions')) {
             if ($db->tableExists('patients')) {
-                $db->query('ALTER TABLE `prescriptions`
-                    ADD CONSTRAINT `fk_prescriptions_patient`
-                    FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'prescriptions',
+                    'fk_prescriptions_patient',
+                    'patient_id',
+                    'patients',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `prescriptions`
-                    ADD CONSTRAINT `fk_prescriptions_doctor`
-                    FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'prescriptions',
+                    'fk_prescriptions_doctor',
+                    'doctor_id',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
 
         // staff_schedules relations
         if ($db->tableExists('staff_schedules')) {
             if ($db->tableExists('users')) {
-                $db->query('ALTER TABLE `staff_schedules`
-                    ADD CONSTRAINT `fk_staff_schedules_user`
-                    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'staff_schedules',
+                    'fk_staff_schedules_user',
+                    'user_id',
+                    'users',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
             if ($db->tableExists('branches')) {
-                $db->query('ALTER TABLE `staff_schedules`
-                    ADD CONSTRAINT `fk_staff_schedules_branch`
-                    FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`)
-                    ON DELETE RESTRICT ON UPDATE CASCADE');
+                $this->addForeignKeyIfNotExists(
+                    'staff_schedules',
+                    'fk_staff_schedules_branch',
+                    'branch_id',
+                    'branches',
+                    'id',
+                    'RESTRICT',
+                    'CASCADE'
+                );
             }
         }
     }
@@ -349,6 +489,43 @@ class AddForeignKeysAndSoftDeletes extends Migration
                 if (in_array('deleted_at', $fields, true)) {
                     $this->forge->dropColumn($table, 'deleted_at');
                 }
+            }
+        }
+    }
+
+    /**
+     * Helper method to add foreign key constraint only if it doesn't exist
+     */
+    private function addForeignKeyIfNotExists(
+        string $table,
+        string $constraintName,
+        string $column,
+        string $referencedTable,
+        string $referencedColumn,
+        string $onDelete = 'RESTRICT',
+        string $onUpdate = 'CASCADE'
+    ): void {
+        $db = $this->db;
+
+        // Check if constraint already exists
+        $constraints = $db->query("
+            SELECT CONSTRAINT_NAME 
+            FROM information_schema.KEY_COLUMN_USAGE 
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = '{$table}'
+            AND CONSTRAINT_NAME = '{$constraintName}'
+        ")->getResultArray();
+
+        if (empty($constraints)) {
+            try {
+                $db->query("
+                    ALTER TABLE `{$table}`
+                    ADD CONSTRAINT `{$constraintName}`
+                    FOREIGN KEY (`{$column}`) REFERENCES `{$referencedTable}`(`{$referencedColumn}`)
+                    ON DELETE {$onDelete} ON UPDATE {$onUpdate}
+                ");
+            } catch (\Throwable $e) {
+                log_message('error', "Failed to add foreign key {$constraintName}: " . $e->getMessage());
             }
         }
     }

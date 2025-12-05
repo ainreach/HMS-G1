@@ -33,6 +33,7 @@
     <nav class="side-nav">
       <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
       <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+      <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
       <a href="<?= site_url('accountant/invoices') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>Invoices</a>
       <a href="<?= site_url('accountant/payments') ?>"><i class="fa-solid fa-sack-dollar" style="margin-right:8px"></i>Payments</a>
       <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
@@ -158,9 +159,20 @@
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($invoice['issued_at']) ?></td>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                     <div style="display:flex;gap:4px">
-                      <a href="<?= site_url('accountant/billing') ?>" class="btn-small" style="background:#f3f4f6;color:#374151;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
+                      <a href="<?= site_url('accountant/billing') ?>" class="btn-small" style="background:#3b82f6;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
                         <i class="fa-solid fa-eye"></i> View
                       </a>
+                      <a href="<?= site_url('accountant/invoices/edit/' . $invoice['id']) ?>" class="btn-small" style="background:#f59e0b;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
+                        <i class="fa-solid fa-edit"></i> Edit
+                      </a>
+                      <?php if ($invoice['status'] !== 'paid'): ?>
+                      <form method="post" action="<?= site_url('accountant/invoices/delete/' . $invoice['id']) ?>" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this invoice?');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn-small" style="background:#ef4444;color:white;padding:4px 8px;border-radius:4px;border:none;font-size:0.75rem;cursor:pointer">
+                          <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                      </form>
+                      <?php endif; ?>
                     </div>
                   </td>
                 </tr>

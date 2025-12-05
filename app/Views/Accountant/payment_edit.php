@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Payment - Hospital Billing System</title>
+  <base href="<?= rtrim(base_url(), '/') ?>/">
+  <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<header class="dash-topbar" role="banner">
+  <div class="topbar-inner">
+    <a href="<?= site_url('accountant/payments') ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
+    <div class="brand">
+      <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
+      <div class="brand-text">
+        <h1 style="font-size:1.25rem;margin:0">Edit Payment</h1>
+        <small>Update payment details</small>
+      </div>
+    </div>
+    <div class="top-right" aria-label="User session">
+      <span class="role"><i class="fa-regular fa-user"></i>
+        <?= esc(session('username') ?? session('role') ?? 'User') ?>
+      </span>
+      <a href="<?= site_url('logout') ?>" class="logout-btn">Logout</a>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation">
+    <nav class="side-nav">
+      <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+      <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+      <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
+      <a href="<?= site_url('accountant/invoices') ?>"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>Invoices</a>
+      <a href="<?= site_url('accountant/payments') ?>" class="active" aria-current="page"><i class="fa-solid fa-sack-dollar" style="margin-right:8px"></i>Payments</a>
+      <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
+      <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <?php if (session()->getFlashdata('error')): ?>
+      <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
+    <?php endif; ?>
+    
+    <?php if (session()->getFlashdata('success')): ?>
+      <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+    <?php endif; ?>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 style="margin:0;font-size:1.1rem">Edit Payment Record</h2>
+      </div>
+      <div class="panel-body">
+        <form method="post" action="<?= site_url('accountant/payments/' . $payment['id']) ?>" style="max-width:800px;">
+          <?= csrf_field() ?>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151">Patient *</label>
+              <select name="patient_id" required style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:1rem;">
+                <option value="">Select Patient</option>
+                <?php foreach ($patients as $patient): ?>
+                  <option value="<?= $patient['id'] ?>" <?= (isset($payment['patient_name']) && strpos($payment['patient_name'], $patient['first_name']) !== false) ? 'selected' : '' ?>>
+                    <?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?> (ID: <?= $patient['patient_id'] ?? $patient['id'] ?>)
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151">Payment Date *</label>
+              <input type="datetime-local" name="payment_date" value="<?= esc(date('Y-m-d\TH:i', strtotime($payment['paid_at'] ?? 'now'))) ?>" required 
+                     style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:1rem;" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151">Invoice # (Optional)</label>
+              <input type="text" name="invoice_no" value="<?= esc($payment['invoice_no'] ?? '') ?>" 
+                     style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:1rem;" />
+            </div>
+            <div>
+              <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151">Amount ($) *</label>
+              <input type="number" name="amount" step="0.01" value="<?= esc($payment['amount'] ?? 0) ?>" required 
+                     style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:1rem;" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid #e5e7eb;">
+            <a href="<?= site_url('accountant/payments') ?>" class="btn" style="padding:10px 20px;background:#6b7280;color:white;text-decoration:none;border-radius:6px;font-weight:500;">
+              Cancel
+            </a>
+            <button type="submit" class="btn" style="padding:10px 20px;background:#10b981;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;">
+              <i class="fa-solid fa-save"></i> Update Payment
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

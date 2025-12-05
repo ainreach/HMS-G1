@@ -17,7 +17,7 @@
     <?= csrf_field() ?>
     <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <label>Patient ID
-        <input type="number" name="patient_id" value="<?= old('patient_id') ?>" required>
+        <input type="number" name="patient_id" value="<?= old('patient_id', $patient_id ?? '') ?>" required>
       </label>
       <label>Appointment ID
         <input type="number" name="appointment_id" value="<?= old('appointment_id') ?>">

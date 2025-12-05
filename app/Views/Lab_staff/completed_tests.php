@@ -39,9 +39,66 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colspan="5" style="padding:12px;text-align:center;color:#6b7280">No completed tests.</td>
-            </tr>
+            <?php if (!empty($tests)): ?>
+              <?php foreach ($tests as $test): ?>
+                <tr>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?= esc($test['test_number'] ?? 'TEST-' . $test['id']) ?>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <div><?= esc(($test['first_name'] ?? '') . ' ' . ($test['last_name'] ?? '')) ?></div>
+                    <small style="color:#6b7280"><?= esc($test['patient_code'] ?? 'N/A') ?></small>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <div><?= esc($test['test_name'] ?? 'N/A') ?></div>
+                    <small style="color:#6b7280"><?= esc($test['test_type'] ?? '') ?></small>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?php if (!empty($test['result_date'])): ?>
+                      <?= esc(date('M d, Y H:i', strtotime($test['result_date']))) ?>
+                    <?php else: ?>
+                      <span style="color:#6b7280">N/A</span>
+                    <?php endif; ?>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?php 
+                    $resultsData = $test['results'] ?? '';
+                    if (!empty($resultsData)) {
+                      $decoded = json_decode($resultsData, true);
+                      if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        if (isset($decoded['text'])) {
+                          $resultsData = $decoded['text'];
+                        } else {
+                          $resultsData = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+                        }
+                      }
+                      // Truncate if too long
+                      $displayResults = strlen($resultsData) > 50 ? substr($resultsData, 0, 50) . '...' : $resultsData;
+                    } else {
+                      $displayResults = 'No results';
+                    }
+                    ?>
+                    <span style="color:#374151"><?= esc($displayResults) ?></span>
+                    <br>
+                    <a href="<?= site_url('lab/tests/' . $test['id']) ?>" style="color:#3b82f6;text-decoration:none;font-size:0.75rem">
+                      <i class="fas fa-eye"></i> View Details
+                    </a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="5" style="padding:40px;text-align:center;color:#6b7280">
+                  <div style="margin-bottom:16px">
+                    <i class="fa-solid fa-check-circle" style="font-size:3rem;color:#d1d5db"></i>
+                  </div>
+                  <h3 style="margin:0 0 8px 0;font-size:1.125rem;color:#374151;font-weight:600">No Completed Tests</h3>
+                  <p style="margin:0;color:#6b7280;font-size:0.875rem">
+                    Completed test results will appear here after lab staff enter and save the results.
+                  </p>
+                </td>
+              </tr>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>

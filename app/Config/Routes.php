@@ -25,6 +25,12 @@ $routes->get('/it/security', 'Itstaff::security', ['filter' => 'role:it_staff'])
 $routes->get('/it/health', 'Itstaff::health', ['filter' => 'role:it_staff,admin']);
 $routes->get('/it/backups/export/users', 'Itstaff::exportUsersCsv', ['filter' => 'role:it_staff']);
 $routes->get('/it/backups/export/zip', 'Itstaff::exportZip', ['filter' => 'role:it_staff']);
+$routes->get('/it/branch-integration', 'Itstaff::branchIntegration', ['filter' => 'role:it_staff']);
+$routes->get('/it/system-monitoring', 'Itstaff::systemMonitoring', ['filter' => 'role:it_staff']);
+$routes->get('/it/security-scan', 'Itstaff::securityScan', ['filter' => 'role:it_staff']);
+$routes->get('/it/database-maintenance', 'Itstaff::databaseMaintenance', ['filter' => 'role:it_staff']);
+$routes->post('/it/database-maintenance/optimize', 'Itstaff::optimizeDatabase', ['filter' => 'role:it_staff']);
+$routes->get('/it/database-maintenance/optimize', 'Itstaff::optimizeDatabase', ['filter' => 'role:it_staff']);
 $routes->get('/admin/users/new', 'Admin::newUser', ['filter' => 'role:admin']);
 $routes->post('/admin/users', 'Admin::storeUser', ['filter' => 'role:admin']);
 $routes->get('/admin/roles/assign', 'Admin::assignRole', ['filter' => 'role:admin']);
@@ -45,6 +51,9 @@ $routes->post('/admin/patients/delete/(:num)', 'Admin::deletePatient/$1', ['filt
 
 // Appointment Management Routes
 $routes->get('/admin/appointments', 'Admin::appointments', ['filter' => 'role:admin']);
+$routes->get('/admin/appointments/edit/(:num)', 'Admin::editAppointment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/appointments/(:num)', 'Admin::updateAppointment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/appointments/delete/(:num)', 'Admin::deleteAppointment/$1', ['filter' => 'role:admin']);
 $routes->get('/admin/staff-schedules', 'Admin::staffSchedules', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules', 'Admin::storeStaffSchedule', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules/delete/(:num)', 'Admin::deleteStaffSchedule/$1', ['filter' => 'role:admin']);
@@ -52,6 +61,7 @@ $routes->get('/admin/staff-schedules/year-events', 'Admin::staffScheduleYearEven
 
 // Medical Records Management Routes
 $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'role:admin']);
+$routes->get('/admin/medical-records/(:num)', 'Admin::getMedicalRecord/$1', ['filter' => 'role:admin']);
 
 // Financial Management Routes
 $routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin,accountant']);
@@ -60,6 +70,9 @@ $routes->get('/admin/payments/(:num)', 'Admin::viewPayment/$1', ['filter' => 'ro
 $routes->get('/admin/insurance-claims', 'Admin::insuranceClaims', ['filter' => 'role:admin,accountant']);
 // Detailed billing view (reuses Accountant::viewBilling)
 $routes->get('/admin/billing/view/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:admin,accountant']);
+$routes->get('/accountant/billing/view/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/billing/invoice/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/billing/print/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:accountant']);
 
 // Lab Test Management Routes
 $routes->get('/admin/lab-tests', 'Admin::labTests', ['filter' => 'role:admin']);
@@ -68,6 +81,9 @@ $routes->get('/admin/lab-tests', 'Admin::labTests', ['filter' => 'role:admin']);
 $routes->get('/admin/inventory', 'Admin::inventory', ['filter' => 'role:admin']);
 $routes->get('/admin/add-stock', 'Admin::addStock', ['filter' => 'role:admin']);
 $routes->post('/admin/add-stock', 'Admin::storeStock', ['filter' => 'role:admin']);
+$routes->get('/admin/inventory/edit/(:num)', 'Admin::editStock/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/inventory/(:num)', 'Admin::updateStock/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/inventory/delete/(:num)', 'Admin::deleteStock/$1', ['filter' => 'role:admin']);
 $routes->get('/admin/medicines', 'Admin::medicines', ['filter' => 'role:admin']);
 $routes->post('/admin/medicines/add', 'Admin::addMedicine', ['filter' => 'role:admin']);
 $routes->get('/admin/medicines/edit/(:num)', 'Admin::editMedicine/$1', ['filter' => 'role:admin']);
@@ -78,6 +94,14 @@ $routes->get('/admin/medicines/delete/(:num)', 'Admin::deleteMedicine/$1', ['fil
 $routes->get('/admin/analytics', 'Admin::analytics', ['filter' => 'role:admin']);
 $routes->get('/admin/audit-logs', 'Admin::auditLogs', ['filter' => 'role:admin']);
 $routes->get('/accountant/billing', 'Accountant::billing', ['filter' => 'role:accountant']);
+$routes->get('/accountant/pending-charges', 'Accountant::pendingCharges', ['filter' => 'role:accountant']);
+$routes->get('/accountant/pending-charges/approve/(:num)', 'Accountant::approveCharge/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/pending-charges/pay/(:num)', 'Accountant::payCharge/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/pending-charges/cancel/(:num)', 'Accountant::cancelCharge/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/lab-test-approvals', 'Accountant::labTestApprovals', ['filter' => 'role:accountant']);
+$routes->get('/accountant/setup-lab-test-columns', 'Accountant::setupLabTestColumns', ['filter' => 'role:accountant']);
+$routes->post('/accountant/lab-test-approve/(:num)', 'Accountant::approveLabTest/$1', ['filter' => 'role:accountant']);
+$routes->post('/accountant/lab-test-reject/(:num)', 'Accountant::rejectLabTest/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/patients/billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
 // Alias for patient billing (singular path)
 $routes->get('/accountant/patient-billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
@@ -87,11 +111,17 @@ $routes->get('/accountant/reports', 'Accountant::reports', ['filter' => 'role:ac
 $routes->get('/accountant/invoices', 'Accountant::invoices', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/invoices/new', 'Accountant::newInvoice', ['filter' => 'role:admin,accountant']);
 $routes->post('/accountant/invoices', 'Accountant::storeInvoice', ['filter' => 'role:admin,accountant']);
+$routes->get('/accountant/invoices/edit/(:num)', 'Accountant::editInvoice/$1', ['filter' => 'role:admin,accountant']);
+$routes->post('/accountant/invoices/(:num)', 'Accountant::updateInvoice/$1', ['filter' => 'role:admin,accountant']);
+$routes->post('/accountant/invoices/delete/(:num)', 'Accountant::deleteInvoice/$1', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/payments', 'Accountant::payments', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/(:num)', 'Accountant::viewPayment/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/new', 'Accountant::newPayment', ['filter' => 'role:accountant']);
 $routes->post('/accountant/payments', 'Accountant::storePayment', ['filter' => 'role:accountant']);
 $routes->post('/accountant/storePayment', 'Accountant::storePayment', ['filter' => 'role:accountant']);
+$routes->get('/accountant/payments/edit/(:num)', 'Accountant::editPayment/$1', ['filter' => 'role:admin,accountant']);
+$routes->post('/accountant/payments/(:num)', 'Accountant::updatePayment/$1', ['filter' => 'role:admin,accountant']);
+$routes->post('/accountant/payments/delete/(:num)', 'Accountant::deletePayment/$1', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/statements', 'Accountant::statements', ['filter' => 'role:accountant']);
 $routes->get('/accountant/statements/export', 'Accountant::exportStatement', ['filter' => 'role:accountant']);
 $routes->get('/accountant/invoices/export', 'Accountant::exportInvoicesCsv', ['filter' => 'role:accountant']);
@@ -132,6 +162,17 @@ $routes->get('/reception/rooms/edit/(:num)', 'Reception::editRoom/$1', ['filter'
 $routes->post('/reception/rooms/save', 'Reception::storeRoom', ['filter' => 'role:receptionist']);
 $routes->get('/reception/rooms/delete/(:num)', 'Reception::deleteRoom/$1', ['filter' => 'role:receptionist']);
 $routes->post('/reception/rooms/(:num)/status', 'Reception::updateRoomStatus/$1', ['filter' => 'role:receptionist']);
+$routes->post('/reception/beds/add', 'Reception::addBed', ['filter' => 'role:receptionist']);
+$routes->get('/reception/beds/delete/(:num)', 'Reception::deleteBed/$1', ['filter' => 'role:receptionist']);
+$routes->get('/reception/in-patients', 'Reception::inPatients', ['filter' => 'role:receptionist']);
+$routes->get('/reception/in-patients/view/(:num)', 'Reception::viewInPatient/$1', ['filter' => 'role:receptionist']);
+
+// Admin Room Management Routes
+$routes->get('/admin/rooms', 'Admin::rooms', ['filter' => 'role:admin']);
+$routes->get('/admin/rooms/new', 'Admin::newRoom', ['filter' => 'role:admin']);
+$routes->get('/admin/rooms/edit/(:num)', 'Admin::editRoom/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/rooms/save', 'Admin::storeRoom', ['filter' => 'role:admin']);
+$routes->get('/admin/rooms/delete/(:num)', 'Admin::deleteRoom/$1', ['filter' => 'role:admin']);
 
 // Doctor functional routes
 $routes->get('/doctor/patient_records', 'Doctor::patient_records', ['filter' => 'role:doctor']);
@@ -144,6 +185,9 @@ $routes->get('/doctor/records/new', 'Doctor::newRecord', ['filter' => 'role:doct
 $routes->post('/doctor/records', 'Doctor::storeRecord', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records', 'Doctor::patientRecords', ['filter' => 'role:doctor']);
 $routes->get('/doctor/records/(:num)', 'Doctor::viewRecord/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/records/(:num)/edit', 'Doctor::editRecord/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/records/(:num)', 'Doctor::updateRecord/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/records/(:num)/delete', 'Doctor::deleteRecord/$1', ['filter' => 'role:doctor']);
 $routes->get('/doctor/lab-requests/new', 'Doctor::newLabRequest', ['filter' => 'role:doctor']);
 $routes->post('/doctor/lab-requests', 'Doctor::storeLabRequest', ['filter' => 'role:doctor']);
 $routes->get('/doctor/lab-results', 'Doctor::labResults', ['filter' => 'role:doctor']);
@@ -154,6 +198,24 @@ $routes->get('/doctor/patients/search', 'Doctor::searchPatients', ['filter' => '
 $routes->get('/doctor/patients/new', 'Doctor::newPatient', ['filter' => 'role:doctor,admin']);
 $routes->post('/doctor/patients', 'Doctor::storePatient', ['filter' => 'role:doctor,admin']);
 $routes->get('/doctor/patients/view/(:num)', 'Doctor::viewPatient/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/patients/consultation/(:num)', 'Doctor::startConsultation/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/consultations/start/(:num)', 'Doctor::startConsultation/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/consultations/save-consultation', 'Doctor::saveConsultation', ['filter' => 'role:doctor']);
+$routes->get('/doctor/consultations/done/(:num)', 'Doctor::consultationDone/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/patients/edit/(:num)', 'Doctor::editPatient/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/patients/update/(:num)', 'Doctor::updatePatient/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/patients/delete/(:num)', 'Doctor::deletePatient/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/patients/view/(:num)', 'Doctor::viewPatient/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/admit-patients', 'Doctor::admitPatients', ['filter' => 'role:doctor']);
+$routes->get('/doctor/admit-patient/(:num)', 'Doctor::admitPatientForm/$1', ['filter' => 'role:doctor']);
+$routes->post('/doctor/admit-patient/(:num)', 'Doctor::processAdmission/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/get-beds-by-room/(:num)', 'Doctor::getBedsByRoom/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/upcoming-consultations', 'Doctor::upcomingConsultations', ['filter' => 'role:doctor']);
+$routes->get('/doctor/lab-requests-nurses', 'Doctor::labRequestsFromNurses', ['filter' => 'role:doctor']);
+$routes->post('/doctor/lab-requests-nurses/(:num)/confirm', 'Doctor::confirmLabRequest/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/orders', 'Doctor::orders', ['filter' => 'role:doctor']);
+$routes->get('/doctor/discharge-patients', 'Doctor::dischargePatients', ['filter' => 'role:doctor']);
+$routes->post('/doctor/discharge-patient/(:num)', 'Doctor::processDischarge/$1', ['filter' => 'role:doctor']);
 // Doctor schedule management
 $routes->get('/doctor/schedule', 'Doctor::schedule', ['filter' => 'role:doctor']);
 $routes->post('/doctor/schedule', 'Doctor::storeSchedule', ['filter' => 'role:doctor']);
@@ -182,19 +244,31 @@ $routes->get('/nurse/patient-monitoring/(:num)', 'Nurse::patientMonitoring/$1', 
 
 // Lab Samples
 $routes->get('/nurse/lab-samples', 'Nurse::labSamples', ['filter' => 'role:nurse']);
-$routes->get('/nurse/lab-samples/collect/(:num)', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
-$routes->post('/nurse/lab-samples/(:num)/collect', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
+$routes->post('/nurse/lab-samples/collect/(:num)', 'Nurse::collectSample/$1', ['filter' => 'role:nurse']);
+$routes->get('/nurse/lab-request', 'Nurse::newLabRequest', ['filter' => 'role:nurse']);
+$routes->post('/nurse/lab-request', 'Nurse::storeLabRequest', ['filter' => 'role:nurse']);
 
 // Treatment Updates
 $routes->get('/nurse/treatment-updates', 'Nurse::treatmentUpdates', ['filter' => 'role:nurse']);
 $routes->post('/nurse/treatment-updates', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
 $routes->post('/nurse/treatment-update', 'Nurse::updateTreatment', ['filter' => 'role:nurse']);
 
+// Pending Admissions
+$routes->get('/nurse/pending-admissions', 'Nurse::pendingAdmissions', ['filter' => 'role:nurse']);
+$routes->get('/nurse/admit-patient/(:num)', 'Nurse::admitPatient/$1', ['filter' => 'role:nurse']);
+$routes->post('/nurse/admit-patient/(:num)', 'Nurse::processAdmission/$1', ['filter' => 'role:nurse']);
+$routes->get('/nurse/get-beds-by-room/(:num)', 'Nurse::getBedsByRoom/$1', ['filter' => 'role:nurse']);
+$routes->get('/nurse/patients/consultation/(:num)', 'Nurse::viewPatientConsultation/$1', ['filter' => 'role:nurse']);
+
 // Pharmacy functional routes
 $routes->get('/pharmacy/dispense/new', 'Pharmacy::newDispense', ['filter' => 'role:pharmacist']);
 $routes->post('/pharmacy/dispense', 'Pharmacy::storeDispense', ['filter' => 'role:pharmacist']);
+$routes->get('/pharmacy/dispense/from-prescription/(:num)', 'Pharmacy::dispenseFromPrescription/$1', ['filter' => 'role:pharmacist']);
+$routes->post('/pharmacy/dispense/from-prescription/(:num)', 'Pharmacy::processDispenseFromPrescription/$1', ['filter' => 'role:pharmacist']);
+$routes->post('/pharmacy/prescriptions/(:num)/update-status', 'Pharmacy::updatePrescriptionStatus/$1', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/inventory', 'Pharmacy::inventory', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/prescriptions', 'Pharmacy::prescriptions', ['filter' => 'role:pharmacist']);
+$routes->get('/pharmacy/prescription/view/(:num)', 'Pharmacy::viewPrescription/$1', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/dispensing-history', 'Pharmacy::dispensingHistory', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/medicines/search', 'Pharmacy::medicineSearch', ['filter' => 'role:pharmacist']);
 $routes->get('/pharmacy/patient-search', 'Pharmacy::patientSearch', ['filter' => 'role:pharmacist']);

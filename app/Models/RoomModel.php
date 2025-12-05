@@ -102,4 +102,43 @@ class RoomModel extends Model
                     ->orderBy('room_number', 'ASC')
                     ->findAll($limit, $offset);
     }
+
+    // Relationships
+    public function getBranch()
+    {
+        return $this->db->table('branches')
+            ->where('id', $this->branch_id ?? null)
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getPatients()
+    {
+        return $this->db->table('patients')
+            ->where('assigned_room_id', $this->id ?? null)
+            ->where('is_active', 1)
+            ->get()
+            ->getResultArray();
+    }
+
+    // Get room with all related data
+    public function getRoomWithRelations($roomId)
+    {
+        $room = $this->find($roomId);
+        if ($room) {
+            $room['branch'] = $this->getBranch();
+            $room['patients'] = $this->getPatients();
+        }
+        return $room;
+    }
+
+    // Validation rules
+    protected $validationRules = [
+        'room_number' => 'required|max_length[20]|is_unique[rooms.room_number,id,{id}]',
+        'room_type' => 'required|in_list[private,ward,icu,emergency,consultation,operating]',
+        'floor' => 'required|integer|greater_than[0]',
+        'capacity' => 'required|integer|greater_than[0]',
+        'status' => 'permit_empty|in_list[available,occupied,maintenance,reserved]',
+        'branch_id' => 'required|integer',
+    ];
 }

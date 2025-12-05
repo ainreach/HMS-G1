@@ -34,7 +34,7 @@
             <?php if (!empty($records)) : foreach ($records as $rec) : ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <a href="<?= site_url('doctor/records/' . (int)$rec['id']) ?>" style="text-decoration:none"><?= esc($rec['record_number'] ?? ('#' . $rec['id'])) ?></a>
+                  <a href="<?= site_url('doctor/records/' . (int)$rec['id']) ?>" style="text-decoration:none;font-weight:600;"><?= esc($rec['record_number'] ?? ('#' . $rec['id'])) ?></a>
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(($rec['first_name'] ?? '') . ' ' . ($rec['last_name'] ?? '')) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(isset($rec['visit_date']) ? date('M j, Y H:i', strtotime($rec['visit_date'])) : '-') ?></td>

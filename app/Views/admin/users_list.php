@@ -29,7 +29,11 @@
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.85em;"><?= esc($u['role'] ?? '') ?></span></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($u['created_at'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <a class="btn" href="<?= site_url('admin/users/edit/' . $u['id']) ?>" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">Edit</a>
+                  <?php if ($u['id'] == session('user_id')): ?>
+                    <span style="padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;color:#9ca3af;cursor:not-allowed;background:#f3f4f6;">Edit (Self)</span>
+                  <?php else: ?>
+                    <a class="btn" href="<?= site_url('admin/users/edit/' . $u['id']) ?>" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">Edit</a>
+                  <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; else: ?>

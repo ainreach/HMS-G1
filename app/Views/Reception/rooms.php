@@ -98,7 +98,7 @@
             <?php if (!empty($rooms)) : foreach ($rooms as $room) : ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($room['room_number'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($room['room_type'] ?? '')) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucwords(str_replace('_', ' ', $room['room_type'] ?? ''))) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($room['floor'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($room['capacity'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">

@@ -9,97 +9,84 @@ class MedicineModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
 
     protected $allowedFields = [
-        'name', 'stock', 'price', 'retail_price', 'unit', 'is_active', 'expiration_date'
+        'name', 'stock', 'price', 'retail_price', 'unit', 'is_active', 'expiration_date', 'description', 'manufacturer', 'category'
     ];
 
     protected $validationRules = [
         'name'         => 'required|min_length[3]|max_length[255]',
-        'price'        => 'required|numeric',
-        'retail_price' => 'required|numeric',
-        'stock'        => 'required|integer'
+        'price'        => 'required|numeric|greater_than_equal_to[0]',
+        'retail_price' => 'required|numeric|greater_than_equal_to[0]',
+        'stock'        => 'required|integer|greater_than_equal_to[0]',
+        'unit' => 'permit_empty|max_length[50]',
+        'is_active' => 'permit_empty|in_list[0,1]',
     ];
 
     protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    // Get available rooms by type
-    public function getAvailableRooms($roomType = null, $branchId = 1)
+    // Relationships
+    public function getInventory($branchId = null)
     {
-        $builder = $this->where('status', 'available')
-                      ->where('branch_id', $branchId)
-                      ->where('current_occupancy < capacity');
+        $builder = $this->db->table('inventory')
+            ->where('medicine_id', $this->id ?? null);
         
-        if ($roomType) {
-            $builder = $builder->where('room_type', $roomType);
+        if ($branchId) {
+            $builder->where('branch_id', $branchId);
         }
         
-        return $builder->orderBy('room_number', 'ASC')->findAll();
+        return $builder->get()->getResultArray();
     }
 
-    // Get room by ID with details
-    public function getRoomWithDetails($roomId)
+    public function getDispensing()
     {
-        return $this->find($roomId);
+        return $this->db->table('dispensing')
+            ->where('medicine_id', $this->id ?? null)
+            ->orderBy('dispensed_at', 'DESC')
+            ->get()
+            ->getResultArray();
     }
 
-    // Update room occupancy
-    public function updateOccupancy($roomId, $change)
+    // Get medicine with all related data
+    public function getMedicineWithRelations($medicineId, $branchId = null)
     {
-        $room = $this->find($roomId);
-        if ($room) {
-            $newOccupancy = $room['current_occupancy'] + $change;
-            if ($newOccupancy >= 0 && $newOccupancy <= $room['capacity']) {
-                $status = ($newOccupancy >= $room['capacity']) ? 'occupied' : 'available';
-                return $this->update($roomId, [
-                    'current_occupancy' => $newOccupancy,
-                    'status' => $status
-                ]);
-            }
+        $medicine = $this->find($medicineId);
+        if ($medicine) {
+            $medicine['inventory'] = $this->getInventory($branchId);
+            $medicine['dispensing'] = $this->getDispensing();
         }
-        return false;
+        return $medicine;
     }
 
-    // Get rooms by patient age (pediatrics for under 18)
-    public function getRoomsByAge($age, $branchId = 1)
+    // Helper methods
+    public function getActiveMedicines()
     {
-        if ($age < 18) {
-            return $this->getAvailableRooms('pediatrics', $branchId);
-        }
-        return $this->getAvailableRooms(null, $branchId);
+        return $this->where('is_active', 1)
+                   ->orderBy('name', 'ASC')
+                   ->findAll();
     }
 
-    // Get room statistics
-    public function getRoomStats($branchId = 1)
+    public function getLowStockMedicines($threshold = 10)
     {
-        $total = $this->where('branch_id', $branchId)->countAllResults();
-        $available = $this->where('branch_id', $branchId)
-                          ->where('status', 'available')
-                          ->countAllResults();
-        $occupied = $this->where('branch_id', $branchId)
-                         ->where('status', 'occupied')
-                         ->countAllResults();
-        $maintenance = $this->where('branch_id', $branchId)
-                             ->where('status', 'maintenance')
-                             ->countAllResults();
-        
-        return [
-            'total' => $total,
-            'available' => $available,
-            'occupied' => $occupied,
-            'maintenance' => $maintenance,
-            'occupancy_rate' => $total > 0 ? round(($occupied / $total) * 100, 1) : 0
-        ];
+        return $this->where('is_active', 1)
+                   ->where('stock <=', $threshold)
+                   ->orderBy('stock', 'ASC')
+                   ->findAll();
     }
 
-    // Get all rooms with pagination
-    public function getAllRooms($branchId = 1, $limit = 50, $offset = 0)
+    public function searchMedicines($searchTerm)
     {
-        return $this->where('branch_id', $branchId)
-                    ->orderBy('floor', 'ASC')
-                    ->orderBy('room_number', 'ASC')
-                    ->findAll($limit, $offset);
+        return $this->where('is_active', 1)
+                   ->groupStart()
+                       ->like('name', $searchTerm)
+                       ->orLike('description', $searchTerm)
+                       ->orLike('category', $searchTerm)
+                   ->groupEnd()
+                   ->orderBy('name', 'ASC')
+                   ->findAll();
     }
 }

@@ -32,17 +32,29 @@
         <div class="grid" style="display:grid;grid-template-columns:2fr 1.5fr;gap:1.25rem;align-items:flex-start">
           <div>
             <label>Patient Record *</label>
-            <select name="patient_id" required>
+            <select name="patient_id" id="patient_select" required onchange="checkPaymentStatus()">
               <option value="">Choose patient...</option>
               <?php if (!empty($patients)): ?>
                 <?php foreach ($patients as $p): ?>
-                  <?php $pid = (int)($p['id'] ?? 0); ?>
-                  <option value="<?= $pid ?>" <?= old('patient_id')==$pid ? 'selected' : '' ?>>
-                    <?= esc(($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '') . ' [' . ($p['patient_id'] ?? 'N/A') . ']') ?>
+                  <?php 
+                    $pid = (int)($p['id'] ?? 0);
+                    $paymentInfo = $payment_status[$pid] ?? ['has_paid' => false, 'unpaid_amount' => 0, 'can_request_lab' => false];
+                    $statusText = $paymentInfo['has_paid'] ? '✓ Paid' : ($paymentInfo['unpaid_amount'] > 0 ? '⚠ Unpaid: ₱' . number_format($paymentInfo['unpaid_amount'], 2) : '⚠ No Payment');
+                  ?>
+                  <option value="<?= $pid ?>" 
+                          data-has-paid="<?= $paymentInfo['has_paid'] ? '1' : '0' ?>"
+                          data-unpaid="<?= $paymentInfo['unpaid_amount'] ?>"
+                          data-can-request="<?= $paymentInfo['can_request_lab'] ? '1' : '0' ?>"
+                          <?= old('patient_id')==$pid ? 'selected' : '' ?>>
+                    <?= esc(($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '') . ' [' . ($p['patient_id'] ?? 'N/A') . '] - ' . $statusText) ?>
                   </option>
                 <?php endforeach; ?>
               <?php endif; ?>
             </select>
+            <div id="payment_warning" style="display:none;margin-top:.5rem;padding:.75rem;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;color:#856404;">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <strong>Payment Required:</strong> <span id="payment_message"></span>
+            </div>
 
             <label style="margin-top:.75rem">Requesting Doctor</label>
             <select name="doctor_id">
@@ -135,8 +147,50 @@
 
         <div style="margin-top:1.25rem;display:flex;justify-content:flex-end;gap:.75rem">
           <a href="<?= site_url('dashboard/doctor') ?>" class="btn btn-secondary">Back to dashboard</a>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-flask"></i>&nbsp;Submit Request</button>
+          <button type="submit" id="submit_btn" class="btn btn-primary"><i class="fa-solid fa-flask"></i>&nbsp;Submit Request</button>
         </div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+function checkPaymentStatus() {
+  const select = document.getElementById('patient_select');
+  const warning = document.getElementById('payment_warning');
+  const message = document.getElementById('payment_message');
+  const submitBtn = document.getElementById('submit_btn');
+  const selectedOption = select.options[select.selectedIndex];
+  
+  if (!selectedOption || selectedOption.value === '') {
+    warning.style.display = 'none';
+    submitBtn.disabled = false;
+    return;
+  }
+  
+  const hasPaid = selectedOption.getAttribute('data-has-paid') === '1';
+  const unpaidAmount = parseFloat(selectedOption.getAttribute('data-unpaid')) || 0;
+  const canRequest = selectedOption.getAttribute('data-can-request') === '1';
+  
+  if (!canRequest && !hasPaid) {
+    if (unpaidAmount > 0) {
+      message.textContent = 'Patient must pay registration fee first. Unpaid amount: ₱' + unpaidAmount.toFixed(2);
+    } else {
+      message.textContent = 'Patient must pay registration fee first before lab test can be requested.';
+    }
+    warning.style.display = 'block';
+    submitBtn.disabled = true;
+  } else {
+    warning.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+
+// Check on page load if patient is pre-selected
+document.addEventListener('DOMContentLoaded', function() {
+  checkPaymentStatus();
+});
+</script>
       </form>
     </div>
   </section>

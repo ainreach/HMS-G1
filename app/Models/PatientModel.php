@@ -129,5 +129,152 @@ class PatientModel extends Model
             'outpatient' => $total - $admitted
         ];
     }
+
+    // Relationships - Static methods that take ID as parameter
+    public function getBranch($patientId = null)
+    {
+        if (!$patientId) {
+            return null;
+        }
+        $patient = $this->find($patientId);
+        if (!$patient || !isset($patient['branch_id'])) {
+            return null;
+        }
+        return $this->db->table('branches')
+            ->where('id', $patient['branch_id'])
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getRoom($patientId = null)
+    {
+        if (!$patientId) {
+            return null;
+        }
+        $patient = $this->find($patientId);
+        if (!$patient || !isset($patient['assigned_room_id'])) {
+            return null;
+        }
+        return $this->db->table('rooms')
+            ->where('id', $patient['assigned_room_id'])
+            ->get()
+            ->getRowArray();
+    }
+
+    public function getAppointments($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('appointments')
+            ->where('patient_id', $patientId)
+            ->orderBy('appointment_date', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getMedicalRecords($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('medical_records')
+            ->where('patient_id', $patientId)
+            ->orderBy('visit_date', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getPrescriptions($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('prescriptions')
+            ->where('patient_id', $patientId)
+            ->orderBy('start_date', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getLabTests($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('lab_tests')
+            ->where('patient_id', $patientId)
+            ->orderBy('requested_date', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getBilling($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('billing')
+            ->where('patient_id', $patientId)
+            ->orderBy('bill_date', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getDispensing($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('dispensing')
+            ->where('patient_id', $patientId)
+            ->orderBy('dispensed_at', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getPayments($patientId = null)
+    {
+        if (!$patientId) {
+            return [];
+        }
+        return $this->db->table('payments')
+            ->join('billing', 'payments.billing_id = billing.id', 'left')
+            ->where('billing.patient_id', $patientId)
+            ->orderBy('payments.paid_at', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
+    // Get patient with all related data
+    public function getPatientWithRelations($patientId)
+    {
+        $patient = $this->find($patientId);
+        if ($patient) {
+            $patient['branch'] = $this->getBranch($patientId);
+            $patient['room'] = $this->getRoom($patientId);
+            $patient['appointments'] = $this->getAppointments($patientId);
+            $patient['medical_records'] = $this->getMedicalRecords($patientId);
+            $patient['prescriptions'] = $this->getPrescriptions($patientId);
+            $patient['lab_tests'] = $this->getLabTests($patientId);
+            $patient['billing'] = $this->getBilling($patientId);
+            $patient['total_billing'] = array_sum(array_column($patient['billing'], 'total_amount'));
+            $patient['total_paid'] = array_sum(array_column($patient['billing'], 'paid_amount'));
+        }
+        return $patient;
+    }
+
+    // Validation rules
+    protected $validationRules = [
+        'first_name' => 'required|max_length[50]',
+        'last_name' => 'required|max_length[50]',
+        'date_of_birth' => 'permit_empty|valid_date',
+        'gender' => 'permit_empty|in_list[male,female,other]',
+        'phone' => 'permit_empty|max_length[20]',
+        'email' => 'permit_empty|valid_email|max_length[100]',
+        'blood_type' => 'permit_empty|in_list[A+,A-,B+,B-,AB+,AB-,O+,O-]',
+        'branch_id' => 'required|integer',
+        'admission_type' => 'permit_empty|in_list[checkup,admission]',
+    ];
 }
 

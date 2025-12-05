@@ -17,6 +17,11 @@ class RoleFilter implements FilterInterface
             return redirect()->to('/login')->with('error', 'Please login to continue.');
         }
 
+        // Admin has access to all routes regardless of required roles
+        if ($role === 'admin') {
+            return null;
+        }
+
         // If no specific role required, allow any authenticated user
         if (empty($arguments)) {
             return null;

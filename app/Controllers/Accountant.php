@@ -117,6 +117,83 @@ class Accountant extends BaseController
         ]);
     }
 
+    public function pendingCharges()
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        $billingItemModel = new BillingItemModel();
+        $patientModel = new PatientModel();
+        
+        // Get filter status from query parameter
+        $statusFilter = $this->request->getGet('status') ?? 'all';
+        
+        // Build query
+        $builder = $billingModel->builder();
+        $builder->select('billing.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+                ->join('patients', 'patients.id = billing.patient_id', 'left')
+                ->orderBy('billing.created_at', 'DESC');
+        
+        // Apply status filter
+        if ($statusFilter !== 'all') {
+            if ($statusFilter === 'approved') {
+                // For approved, treat 'partial' and 'paid' as approved
+                $builder->whereIn('billing.payment_status', ['partial', 'paid']);
+            } else {
+                $builder->where('billing.payment_status', $statusFilter);
+            }
+        }
+        
+        $charges = $builder->get()->getResultArray();
+        
+        // Get item counts and doctor info for each charge
+        $chargesWithDetails = [];
+        foreach ($charges as $charge) {
+            // Count items
+            $itemCount = $billingItemModel->where('billing_id', $charge['id'])->countAllResults();
+            
+            // Get doctor name if appointment_id exists
+            $doctorName = 'N/A';
+            if (!empty($charge['appointment_id'])) {
+                $appointmentModel = model('App\\Models\\AppointmentModel');
+                $appointment = $appointmentModel
+                    ->select('users.username as doctor_name')
+                    ->join('users', 'users.id = appointments.doctor_id', 'left')
+                    ->where('appointments.id', $charge['appointment_id'])
+                    ->first();
+                if ($appointment && !empty($appointment['doctor_name'])) {
+                    $doctorName = $appointment['doctor_name'];
+                }
+            }
+            
+            $chargesWithDetails[] = [
+                'id' => $charge['id'],
+                'charge_number' => $charge['invoice_number'] ?? 'CHG-' . date('Ymd', strtotime($charge['created_at'])) . '-' . str_pad($charge['id'], 3, '0', STR_PAD_LEFT),
+                'patient_name' => trim(($charge['first_name'] ?? '') . ' ' . ($charge['last_name'] ?? '')),
+                'patient_code' => $charge['patient_code'] ?? 'N/A',
+                'doctor_name' => $doctorName,
+                'item_count' => $itemCount,
+                'total_amount' => (float) ($charge['total_amount'] ?? 0),
+                'created_at' => $charge['created_at'],
+                'payment_status' => $charge['payment_status'] ?? 'pending',
+            ];
+        }
+        
+        // Count by status for tabs
+        $statusCounts = [
+            'all' => $billingModel->countAllResults(),
+            'pending' => $billingModel->where('payment_status', 'pending')->countAllResults(),
+            'approved' => $billingModel->whereIn('payment_status', ['partial', 'paid'])->countAllResults(),
+            'paid' => $billingModel->where('payment_status', 'paid')->countAllResults(),
+            'cancelled' => $billingModel->where('payment_status', 'cancelled')->countAllResults(),
+        ];
+        
+        return view('Accountant/pending_charges', [
+            'charges' => $chargesWithDetails,
+            'statusFilter' => $statusFilter,
+            'statusCounts' => $statusCounts,
+        ]);
+    }
+
     public function billing()
     {
         helper('url');
@@ -282,7 +359,44 @@ class Accountant extends BaseController
         
         // Get existing invoices and payments for this patient
         $invoices = $invoiceModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->orderBy('issued_at', 'DESC')->findAll();
-        $payments = $paymentModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->orderBy('paid_at', 'DESC')->findAll();
+        
+        // Get payments by patient_id (if available) or by billing_id linked to this patient
+        $payments = [];
+        if (!empty($patient['id'])) {
+            // First try to get payments by patient_id
+            $paymentsByPatientId = $paymentModel->where('patient_id', $patient['id'])->orderBy('paid_at', 'DESC')->findAll();
+            
+            // Also get payments linked through billing records for this patient
+            $billingModel = model('App\\Models\\BillingModel');
+            $patientBillings = $billingModel->where('patient_id', $patient['id'])->findAll();
+            $billingIds = array_column($patientBillings, 'id');
+            
+            if (!empty($billingIds)) {
+                $paymentsByBilling = $paymentModel->whereIn('billing_id', $billingIds)->orderBy('paid_at', 'DESC')->findAll();
+                // Merge and remove duplicates
+                $allPayments = array_merge($paymentsByPatientId, $paymentsByBilling);
+                $uniquePayments = [];
+                $seenIds = [];
+                foreach ($allPayments as $payment) {
+                    if (!in_array($payment['id'], $seenIds)) {
+                        $uniquePayments[] = $payment;
+                        $seenIds[] = $payment['id'];
+                    }
+                }
+                $payments = $uniquePayments;
+            } else {
+                $payments = $paymentsByPatientId;
+            }
+            
+            // Only include payments made on or after admission date (for room charges)
+            if (!empty($patient['admission_date'])) {
+                $admissionDate = $patient['admission_date'];
+                $payments = array_filter($payments, function($payment) use ($admissionDate) {
+                    $paidAt = $payment['paid_at'] ?? $payment['created_at'] ?? '';
+                    return !empty($paidAt) && strtotime($paidAt) >= strtotime($admissionDate);
+                });
+            }
+        }
         
         // Calculate totals
         $totalInvoices = 0;
@@ -346,9 +460,46 @@ class Accountant extends BaseController
                 }
             }
             
-            // Get invoices and payments
+            // Get invoices and payments - use patient_id to avoid matching other patients with same name
             $invoices = $invoiceModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->findAll();
-            $payments = $paymentModel->where('patient_name', $patient['first_name'] . ' ' . $patient['last_name'])->findAll();
+            
+            // Get payments by patient_id (if available) or by billing_id linked to this patient
+            $payments = [];
+            if (!empty($patient['id'])) {
+                // First try to get payments by patient_id
+                $paymentsByPatientId = $paymentModel->where('patient_id', $patient['id'])->findAll();
+                
+                // Also get payments linked through billing records for this patient
+                $billingModel = model('App\\Models\\BillingModel');
+                $patientBillings = $billingModel->where('patient_id', $patient['id'])->findAll();
+                $billingIds = array_column($patientBillings, 'id');
+                
+                if (!empty($billingIds)) {
+                    $paymentsByBilling = $paymentModel->whereIn('billing_id', $billingIds)->findAll();
+                    // Merge and remove duplicates
+                    $allPayments = array_merge($paymentsByPatientId, $paymentsByBilling);
+                    $uniquePayments = [];
+                    $seenIds = [];
+                    foreach ($allPayments as $payment) {
+                        if (!in_array($payment['id'], $seenIds)) {
+                            $uniquePayments[] = $payment;
+                            $seenIds[] = $payment['id'];
+                        }
+                    }
+                    $payments = $uniquePayments;
+                } else {
+                    $payments = $paymentsByPatientId;
+                }
+                
+                // Only include payments made on or after admission date (for room charges)
+                if (!empty($patient['admission_date'])) {
+                    $admissionDate = $patient['admission_date'];
+                    $payments = array_filter($payments, function($payment) use ($admissionDate) {
+                        $paidAt = $payment['paid_at'] ?? $payment['created_at'] ?? '';
+                        return !empty($paidAt) && strtotime($paidAt) >= strtotime($admissionDate);
+                    });
+                }
+            }
             
             $totalInvoices = 0;
             foreach ($invoices as $invoice) {
@@ -508,6 +659,87 @@ class Accountant extends BaseController
         AuditLogger::log('invoice_create', 'invoice_no=' . ($data['invoice_no'] ?: 'n/a') . ' amount=' . $data['amount']);
         return redirect()->to(site_url('accountant/invoices'))->with('success', 'Invoice created successfully.');
     }
+
+    public function editInvoice($id)
+    {
+        helper('url');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        
+        $invoice = $invoiceModel->find($id);
+        if (!$invoice) {
+            return redirect()->to(site_url('accountant/invoices'))->with('error', 'Invoice not found.');
+        }
+
+        $patients = $patientModel->getActivePatients();
+        $formattedPatients = array_map(function($patient) {
+            return [
+                'id' => $patient['id'],
+                'name' => $patient['first_name'] . ' ' . $patient['last_name'],
+                'mobile' => $patient['phone'] ?? 'N/A'
+            ];
+        }, $patients);
+
+        return view('Accountant/invoice_edit', [
+            'invoice' => $invoice,
+            'patients' => $formattedPatients
+        ]);
+    }
+
+    public function updateInvoice($id)
+    {
+        helper(['url', 'form']);
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $invoice = $invoiceModel->find($id);
+        if (!$invoice) {
+            return redirect()->to(site_url('accountant/invoices'))->with('error', 'Invoice not found.');
+        }
+
+        $patientId = $this->request->getPost('patient_id');
+        $patient = $patientModel->find($patientId);
+        
+        if (!$patient) {
+            return redirect()->back()->with('error', 'Patient not found.')->withInput();
+        }
+
+        $data = [
+            'invoice_no'   => trim((string)$this->request->getPost('invoice_no')),
+            'patient_name' => $patient['first_name'] . ' ' . $patient['last_name'],
+            'amount'       => (float)$this->request->getPost('amount'),
+            'status'       => $this->request->getPost('status') ?: 'unpaid',
+            'issued_at'    => $this->request->getPost('invoice_date') ?: date('Y-m-d'),
+        ];
+
+        if ($data['amount'] <= 0) {
+            return redirect()->back()->with('error', 'Valid amount is required.')->withInput();
+        }
+
+        $invoiceModel->update($id, $data);
+        AuditLogger::log('invoice_update', 'invoice_id=' . $id . ' invoice_no=' . ($data['invoice_no'] ?: 'n/a') . ' amount=' . $data['amount']);
+        return redirect()->to(site_url('accountant/invoices'))->with('success', 'Invoice updated successfully.');
+    }
+
+    public function deleteInvoice($id)
+    {
+        helper('url');
+        $invoiceModel = model('App\\Models\\InvoiceModel');
+        
+        $invoice = $invoiceModel->find($id);
+        if (!$invoice) {
+            return redirect()->to(site_url('accountant/invoices'))->with('error', 'Invoice not found.');
+        }
+
+        // Check if invoice is paid
+        if ($invoice['status'] === 'paid') {
+            return redirect()->to(site_url('accountant/invoices'))->with('error', 'Cannot delete a paid invoice.');
+        }
+
+        $invoiceModel->delete($id);
+        AuditLogger::log('invoice_delete', 'invoice_id=' . $id);
+        return redirect()->to(site_url('accountant/invoices'))->with('success', 'Invoice deleted successfully.');
+    }
     public function insurance()
     {
         helper('url');
@@ -613,6 +845,82 @@ class Accountant extends BaseController
         AuditLogger::log('payment_record', 'patient=' . $patient['first_name'] . ' ' . $patient['last_name'] . ' amount=' . $amount . ' invoice_no=' . ($invoice ?: 'n/a'));
         return redirect()->to(site_url('accountant/payments'))
             ->with('success', 'Payment recorded successfully.');
+    }
+
+    public function editPayment($id)
+    {
+        helper('url');
+        $paymentModel = model('App\\Models\\PaymentModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        
+        $payment = $paymentModel->find($id);
+        if (!$payment) {
+            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+        }
+
+        $patients = $patientModel
+            ->select('id, patient_id, first_name, last_name')
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll(200);
+
+        return view('Accountant/payment_edit', [
+            'payment' => $payment,
+            'patients' => $patients
+        ]);
+    }
+
+    public function updatePayment($id)
+    {
+        helper(['url', 'form']);
+        $paymentModel = model('App\\Models\\PaymentModel');
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $payment = $paymentModel->find($id);
+        if (!$payment) {
+            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+        }
+
+        $patientId = (int) $this->request->getPost('patient_id');
+        $invoice = trim((string) $this->request->getPost('invoice_no'));
+        $amount  = (float) $this->request->getPost('amount');
+        $paymentDate = (string) $this->request->getPost('payment_date');
+
+        if ($patientId <= 0 || $amount <= 0) {
+            return redirect()->back()->with('error', 'Patient and valid amount are required.')->withInput();
+        }
+
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->back()->with('error', 'Patient not found.')->withInput();
+        }
+
+        $data = [
+            'patient_name' => $patient['first_name'] . ' ' . $patient['last_name'],
+            'invoice_no'   => $invoice !== '' ? $invoice : null,
+            'amount'       => $amount,
+            'paid_at'      => $paymentDate !== '' ? $paymentDate : date('Y-m-d H:i:s'),
+        ];
+
+        $paymentModel->update($id, $data);
+        AuditLogger::log('payment_update', 'payment_id=' . $id . ' amount=' . $amount);
+        return redirect()->to(site_url('accountant/payments'))->with('success', 'Payment updated successfully.');
+    }
+
+    public function deletePayment($id)
+    {
+        helper('url');
+        $paymentModel = model('App\\Models\\PaymentModel');
+        
+        $payment = $paymentModel->find($id);
+        if (!$payment) {
+            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+        }
+
+        $paymentModel->delete($id);
+        AuditLogger::log('payment_delete', 'payment_id=' . $id);
+        return redirect()->to(site_url('accountant/payments'))->with('success', 'Payment deleted successfully.');
     }
 
     public function exportStatement()
@@ -748,6 +1056,293 @@ class Accountant extends BaseController
             ->setHeader('Content-Type', 'text/csv')
             ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->setBody($csv);
+    }
+
+    public function setupLabTestColumns()
+    {
+        helper('url');
+        $db = \Config\Database::connect();
+        
+        try {
+            // Check if table exists
+            $tables = $db->listTables();
+            $tableExists = in_array('lab_tests', $tables);
+            
+            if (!$tableExists) {
+                // Create table with all columns
+                $sql = "CREATE TABLE IF NOT EXISTS `lab_tests` (
+                  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                  `test_number` varchar(20) NOT NULL,
+                  `patient_id` int(11) UNSIGNED NOT NULL,
+                  `doctor_id` int(11) UNSIGNED NOT NULL,
+                  `test_type` varchar(100) NOT NULL,
+                  `test_name` varchar(200) NOT NULL,
+                  `test_category` enum('blood','urine','imaging','pathology','microbiology','other') NOT NULL,
+                  `requires_specimen` TINYINT(1) DEFAULT 1 COMMENT '1 = requires specimen, 0 = no specimen needed',
+                  `accountant_approved` TINYINT(1) DEFAULT 0 COMMENT '1 = approved by accountant, 0 = pending approval',
+                  `accountant_approved_by` INT(11) UNSIGNED NULL,
+                  `accountant_approved_at` DATETIME NULL,
+                  `requested_date` datetime NOT NULL,
+                  `sample_collected_date` datetime DEFAULT NULL,
+                  `result_date` datetime DEFAULT NULL,
+                  `status` enum('requested','sample_collected','in_progress','completed','cancelled') NOT NULL DEFAULT 'requested',
+                  `results` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+                  `normal_range` text DEFAULT NULL,
+                  `interpretation` text DEFAULT NULL,
+                  `lab_technician_id` int(11) UNSIGNED DEFAULT NULL,
+                  `branch_id` int(11) UNSIGNED NOT NULL,
+                  `priority` enum('routine','urgent','stat') NOT NULL DEFAULT 'routine',
+                  `cost` decimal(8,2) NOT NULL DEFAULT 0.00,
+                  `notes` text DEFAULT NULL,
+                  `created_at` datetime DEFAULT NULL,
+                  `updated_at` datetime DEFAULT NULL,
+                  `deleted_at` datetime DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `test_number` (`test_number`),
+                  KEY `patient_id` (`patient_id`),
+                  KEY `doctor_id` (`doctor_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+                
+                $db->query($sql);
+                return redirect()->to(site_url('accountant/lab-test-approvals'))->with('success', 'Lab tests table created successfully with all required columns!');
+            }
+            
+            // Table exists, check if columns exist
+            $columns = $db->getFieldNames('lab_tests');
+            $hasApprovalColumns = in_array('accountant_approved', $columns);
+            
+            if ($hasApprovalColumns) {
+                return redirect()->to(site_url('accountant/lab-test-approvals'))->with('success', 'Columns already exist!');
+            }
+            
+            // Add columns to existing table
+            $sql = "ALTER TABLE `lab_tests` 
+                    ADD COLUMN `requires_specimen` TINYINT(1) DEFAULT 1 COMMENT '1 = requires specimen, 0 = no specimen needed' AFTER `test_category`,
+                    ADD COLUMN `accountant_approved` TINYINT(1) DEFAULT 0 COMMENT '1 = approved by accountant, 0 = pending approval' AFTER `requires_specimen`,
+                    ADD COLUMN `accountant_approved_by` INT(11) UNSIGNED NULL AFTER `accountant_approved`,
+                    ADD COLUMN `accountant_approved_at` DATETIME NULL AFTER `accountant_approved_by`";
+            
+            $db->query($sql);
+            
+            return redirect()->to(site_url('accountant/lab-test-approvals'))->with('success', 'Database columns added successfully!');
+            
+        } catch (\Exception $e) {
+            return redirect()->to(site_url('accountant/lab-test-approvals'))->with('error', 'Error: ' . $e->getMessage() . '. Please check your database connection and make sure you are using the correct database.');
+        }
+    }
+
+    public function labTestApprovals()
+    {
+        helper('url');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $billingModel = new BillingModel();
+        
+        // Check if columns exist
+        $db = \Config\Database::connect();
+        $columns = $db->getFieldNames('lab_tests');
+        $hasApprovalColumns = in_array('accountant_approved', $columns);
+        
+        if (!$hasApprovalColumns) {
+            return view('Accountant/lab_test_approvals', [
+                'tests' => [],
+                'error' => 'Database columns not found. Please run the migration or SQL script to add the required columns.',
+            ]);
+        }
+        
+        // Get pending lab tests that need approval (not yet approved)
+        $pendingTests = $labTestModel
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
+            ->join('patients', 'patients.id = lab_tests.patient_id', 'left')
+            ->join('users', 'users.id = lab_tests.doctor_id', 'left')
+            ->where('lab_tests.accountant_approved', 0)
+            ->where('lab_tests.status !=', 'cancelled')
+            ->orderBy('lab_tests.requested_date', 'DESC')
+            ->findAll(100);
+        
+        // Check payment status for each test
+        $testsWithPaymentStatus = [];
+        foreach ($pendingTests as $test) {
+            $patientId = $test['patient_id'];
+            $billings = $billingModel
+                ->where('patient_id', $patientId)
+                ->where('payment_status !=', 'cancelled')
+                ->orderBy('created_at', 'DESC')
+                ->findAll();
+            
+            $hasPaid = false;
+            foreach ($billings as $billing) {
+                if ($billing['payment_status'] === 'paid') {
+                    $hasPaid = true;
+                    break;
+                }
+            }
+            
+            $testsWithPaymentStatus[] = [
+                'test' => $test,
+                'has_paid' => $hasPaid,
+            ];
+        }
+        
+        return view('Accountant/lab_test_approvals', [
+            'tests' => $testsWithPaymentStatus,
+        ]);
+    }
+
+    public function approveLabTest($testId)
+    {
+        helper(['url', 'form']);
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $billingModel = new BillingModel();
+        
+        $test = $labTestModel->find($testId);
+        if (!$test) {
+            return redirect()->to(site_url('accountant/lab-test-approvals'))->with('error', 'Lab test not found.');
+        }
+        
+        // Check if patient has paid
+        $patientId = $test['patient_id'];
+        $billings = $billingModel
+            ->where('patient_id', $patientId)
+            ->where('payment_status !=', 'cancelled')
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+        
+        $hasPaid = false;
+        foreach ($billings as $billing) {
+            if ($billing['payment_status'] === 'paid') {
+                $hasPaid = true;
+                break;
+            }
+        }
+        
+        if (!$hasPaid) {
+            return redirect()->to(site_url('accountant/lab-test-approvals'))->with('error', 'Cannot approve. Patient must pay registration fee first.');
+        }
+        
+        // Approve the test and set status based on specimen requirement
+        // If requires_specimen = 1: status = 'requested' (goes to nurse for collection)
+        // If requires_specimen = 0: status = 'requested' (goes directly to lab staff)
+        $statusToSet = 'requested'; // Default for tests requiring specimen
+        if (isset($test['requires_specimen']) && (int)$test['requires_specimen'] === 0) {
+            $statusToSet = 'requested'; // For tests not requiring specimen, also 'requested' but lab staff will see it directly
+        }
+        
+        $labTestModel->update($testId, [
+            'accountant_approved' => 1,
+            'accountant_approved_by' => session('user_id') ?: 0,
+            'accountant_approved_at' => date('Y-m-d H:i:s'),
+            'status' => $statusToSet, // Set status based on specimen requirement
+        ]);
+        
+        return redirect()->to(site_url('accountant/lab-test-approvals'))->with('success', 'Lab test approved successfully.');
+    }
+
+    public function rejectLabTest($testId)
+    {
+        helper(['url', 'form']);
+        $labTestModel = model('App\\Models\\LabTestModel');
+        
+        $test = $labTestModel->find($testId);
+        if (!$test) {
+            return redirect()->to(site_url('accountant/lab-test-approvals'))->with('error', 'Lab test not found.');
+        }
+        
+        // Reject by cancelling
+        $labTestModel->update($testId, [
+            'status' => 'cancelled',
+        ]);
+        
+        return redirect()->to(site_url('accountant/lab-test-approvals'))->with('success', 'Lab test rejected and cancelled.');
+    }
+
+    public function approveCharge($id)
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        
+        $charge = $billingModel->find($id);
+        if (!$charge) {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Charge not found.');
+        }
+        
+        if ($charge['payment_status'] !== 'pending') {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Only pending charges can be approved.');
+        }
+        
+        // Approve by changing status to partial (approved but not yet paid)
+        $billingModel->update($id, [
+            'payment_status' => 'partial',
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        
+        return redirect()->to(site_url('accountant/pending-charges'))->with('success', 'Charge approved successfully.');
+    }
+
+    public function payCharge($id)
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        $paymentModel = new PaymentModel();
+        
+        $charge = $billingModel->find($id);
+        if (!$charge) {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Charge not found.');
+        }
+        
+        if ($charge['payment_status'] === 'paid') {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Charge is already paid.');
+        }
+        
+        if ($charge['payment_status'] === 'cancelled') {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Cannot pay a cancelled charge.');
+        }
+        
+        // Create payment record
+        $paymentData = [
+            'billing_id' => $id,
+            'patient_id' => $charge['patient_id'],
+            'amount' => $charge['total_amount'],
+            'payment_method' => 'cash',
+            'paid_at' => date('Y-m-d H:i:s'),
+            'created_by' => session('user_id') ?: 0,
+        ];
+        $paymentModel->insert($paymentData);
+        
+        // Update billing status
+        $billingModel->update($id, [
+            'payment_status' => 'paid',
+            'balance' => 0,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        
+        return redirect()->to(site_url('accountant/pending-charges'))->with('success', 'Charge marked as paid successfully.');
+    }
+
+    public function cancelCharge($id)
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        
+        $charge = $billingModel->find($id);
+        if (!$charge) {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Charge not found.');
+        }
+        
+        if ($charge['payment_status'] === 'paid') {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Cannot cancel a paid charge.');
+        }
+        
+        if ($charge['payment_status'] === 'cancelled') {
+            return redirect()->to(site_url('accountant/pending-charges'))->with('error', 'Charge is already cancelled.');
+        }
+        
+        // Cancel the charge
+        $billingModel->update($id, [
+            'payment_status' => 'cancelled',
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        
+        return redirect()->to(site_url('accountant/pending-charges'))->with('success', 'Charge cancelled successfully.');
     }
 
     public function viewBilling($id)

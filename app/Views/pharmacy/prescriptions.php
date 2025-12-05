@@ -20,7 +20,6 @@
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Pharmacy navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/pharmacist') ?>">Overview</a>
   <a href="<?= site_url('pharmacy/prescriptions') ?>" class="active" aria-current="page" data-feature="pharmacy">Prescriptions</a>
-  <a href="<?= site_url('pharmacy/dispense/new') ?>" data-feature="pharmacy">Dispense</a>
   <a href="<?= site_url('pharmacy/inventory') ?>" data-feature="pharmacy">Inventory</a>
   <a href="<?= site_url('pharmacy/low-stock-alerts') ?>" data-feature="pharmacy">Low Stock</a>
   <a href="<?= site_url('pharmacy/medicine-expiry') ?>" data-feature="pharmacy">Expiry Alerts</a>

@@ -5,30 +5,18 @@
 <section class="panel" style="margin-top:16px">
   <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Financial Summary</h2></div>
   <div class="panel-body">
-    <div class="row">
-      <div class="col-md-4">
-        <div class="card text-center mb-3">
-          <div class="card-body">
-            <h6 class="card-title text-muted">Outstanding Balance</h6>
-            <h3 class="text-danger">₱<?= number_format((float)($outstandingBalance ?? 0), 2) ?></h3>
-          </div>
-        </div>
+    <div style="display:flex;gap:12px;flex-wrap:nowrap;">
+      <div style="flex:1;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;text-align:center;min-width:0;">
+        <h6 style="margin:0 0 8px 0;font-size:0.875rem;color:#6b7280;font-weight:500;">Outstanding Balance</h6>
+        <h3 style="margin:0;font-size:1.5rem;color:#dc2626;font-weight:600;">₱<?= number_format((float)($outstandingBalance ?? 0), 2) ?></h3>
       </div>
-      <div class="col-md-4">
-        <div class="card text-center mb-3">
-          <div class="card-body">
-            <h6 class="card-title text-muted">Total Collected</h6>
-            <h3 class="text-success">₱<?= number_format((float)($totalCollected ?? 0), 2) ?></h3>
-          </div>
-        </div>
+      <div style="flex:1;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;text-align:center;min-width:0;">
+        <h6 style="margin:0 0 8px 0;font-size:0.875rem;color:#6b7280;font-weight:500;">Total Collected</h6>
+        <h3 style="margin:0;font-size:1.5rem;color:#16a34a;font-weight:600;">₱<?= number_format((float)($totalCollected ?? 0), 2) ?></h3>
       </div>
-      <div class="col-md-4">
-        <div class="card text-center mb-3">
-          <div class="card-body">
-            <h6 class="card-title text-muted">Overdue Amount</h6>
-            <h3 class="text-warning">₱<?= number_format((float)($overdueAmount ?? 0), 2) ?></h3>
-          </div>
-        </div>
+      <div style="flex:1;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;text-align:center;min-width:0;">
+        <h6 style="margin:0 0 8px 0;font-size:0.875rem;color:#6b7280;font-weight:500;">Overdue Amount</h6>
+        <h3 style="margin:0;font-size:1.5rem;color:#ca8a04;font-weight:600;">₱<?= number_format((float)($overdueAmount ?? 0), 2) ?></h3>
       </div>
     </div>
   </div>

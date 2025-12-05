@@ -88,9 +88,18 @@
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <div style="display:flex;gap:4px">
-                    <a href="<?= site_url('accountant/statements') ?>" class="btn-small" style="background:#f3f4f6;color:#374151;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
-                      <i class="fa-solid fa-receipt"></i> Receipt
+                    <a href="<?= site_url('accountant/payments/' . $payment['id']) ?>" class="btn-small" style="background:#3b82f6;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
+                      <i class="fa-solid fa-eye"></i> View
                     </a>
+                    <a href="<?= site_url('accountant/payments/edit/' . $payment['id']) ?>" class="btn-small" style="background:#f59e0b;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
+                      <i class="fa-solid fa-edit"></i> Edit
+                    </a>
+                    <form method="post" action="<?= site_url('accountant/payments/delete/' . $payment['id']) ?>" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this payment?');">
+                      <?= csrf_field() ?>
+                      <button type="submit" class="btn-small" style="background:#ef4444;color:white;padding:4px 8px;border-radius:4px;border:none;font-size:0.75rem;cursor:pointer">
+                        <i class="fa-solid fa-trash"></i> Delete
+                      </button>
+                    </form>
                   </div>
                 </td>
               </tr>

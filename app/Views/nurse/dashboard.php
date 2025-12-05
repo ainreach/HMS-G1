@@ -21,6 +21,7 @@
   <a href="<?= site_url('dashboard/nurse') ?>" class="active" aria-current="page"><i class="fa-solid fa-house-medical" style="margin-right:8px"></i>Overview</a>
   <a href="<?= site_url('nurse/ward-patients') ?>" data-feature="ehr"><i class="fa-solid fa-bed-pulse" style="margin-right:8px"></i>Ward Patients</a>
   <a href="<?= site_url('nurse/lab-samples') ?>" data-feature="laboratory"><i class="fa-solid fa-flask" style="margin-right:8px"></i>Lab Samples</a>
+  <a href="<?= site_url('nurse/lab-request') ?>" data-feature="laboratory"><i class="fa-solid fa-vial" style="margin-right:8px"></i>New Lab Request</a>
   <a href="<?= site_url('nurse/treatment-updates') ?>" data-feature="ehr"><i class="fa-solid fa-notes-medical" style="margin-right:8px"></i>Treatment Updates</a>
   <a href="<?= site_url('nurse/vitals/new') ?>" data-feature="ehr"><i class="fa-solid fa-heart-pulse" style="margin-right:8px"></i>Record Vitals</a>
 </nav></aside>
@@ -39,9 +40,66 @@
         <a class="btn" href="<?= site_url('nurse/notes/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Update Care Notes</a>
         <a class="btn" href="<?= site_url('nurse/ward-patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Ward Patients</a>
         <a class="btn" href="<?= site_url('nurse/lab-samples') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Samples</a>
+        <a class="btn" href="<?= site_url('nurse/lab-request') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-vial" style="margin-right:4px"></i>New Lab Request</a>
         <a class="btn" href="<?= site_url('nurse/treatment-updates') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Treatment Updates</a>
       </div>
     </section>
+
+    <!-- Pending Admissions Section -->
+    <?php if (!empty($pendingAdmissions)): ?>
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-hospital" style="color:#000000;font-size:1.1rem"></i>
+          <i class="fa-solid fa-user" style="color:#000000;font-size:1.1rem"></i>
+          <h2 style="margin:0;font-size:1.1rem;color:#000000">Pending Admissions</h2>
+        </div>
+        <a href="<?= site_url('nurse/pending-admissions') ?>" style="background:#000000;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          View All <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="panel-body" style="padding:16px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <?php foreach ($pendingAdmissions as $admission): 
+            $fullName = trim(($admission['first_name'] ?? '') . ' ' . ($admission['last_name'] ?? ''));
+            $doctorName = $admission['doctor_name'] ?? 'N/A';
+            $consultationDate = $admission['consultation_date'] ?? $admission['created_at'] ?? date('Y-m-d');
+            if ($consultationDate) {
+              try {
+                $consultationDate = date('M d, Y', strtotime($consultationDate));
+              } catch (\Exception $e) {
+                $consultationDate = date('M d, Y');
+              }
+            }
+          ?>
+            <div style="background:#ffffff;border:1px solid #000000;border-left:4px solid #000000;border-radius:6px;padding:16px;display:flex;justify-content:space-between;align-items:center">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                  <i class="fa-solid fa-user" style="color:#000000;font-size:0.875rem"></i>
+                  <strong style="color:#000000;font-size:1rem"><?= esc($fullName) ?></strong>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;color:#000000;font-size:0.875rem">
+                  <i class="fa-solid fa-user-doctor" style="color:#000000;font-size:0.875rem"></i>
+                  <span>Doctor: <?= esc($doctorName) ?></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;color:#000000;font-size:0.875rem">
+                  <i class="fa-solid fa-calendar" style="color:#000000;font-size:0.875rem"></i>
+                  <span>Consultation: <?= esc($consultationDate) ?></span>
+                </div>
+              </div>
+              <?php if (($admission['room_number'] ?? 'Not assigned') === 'Not assigned'): ?>
+                <a href="<?= site_url('nurse/admit-patient/' . $admission['id']) ?>" style="background:#000000;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+                  <i class="fa-solid fa-bed-pulse"></i> Admit Patient
+                </a>
+              <?php else: ?>
+                <span style="color:#10b981;font-weight:600;font-size:0.875rem">Already Admitted</span>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+    <?php endif; ?>
 
     <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">My Weekly Schedule</h2></div>
@@ -159,8 +217,11 @@
 
       <!-- Pending Lab Samples -->
       <section class="panel">
-        <div class="panel-head">
+        <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
           <h2 style="margin:0;font-size:1.1rem">Pending Lab Samples</h2>
+          <a href="<?= site_url('nurse/lab-samples') ?>" style="padding:6px 12px;background:#3b82f6;color:white;border-radius:6px;text-decoration:none;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+            <i class="fa-solid fa-flask"></i> View All Samples
+          </a>
         </div>
         <div class="panel-body" style="overflow:auto">
           <table class="table" style="width:100%;border-collapse:collapse">
@@ -169,18 +230,78 @@
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Test</th>
                 <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Priority</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Status</th>
+                <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <?php if (!empty($pendingSamples)) : foreach ($pendingSamples as $sample) : ?>
+              <?php if (!empty($pendingSamples)) : foreach ($pendingSamples as $sample) : 
+                $currentStatus = trim($sample['status'] ?? '');
+                $requiresSpecimen = (int)($sample['requires_specimen'] ?? 0);
+                $accountantApproved = (int)($sample['accountant_approved'] ?? 0);
+                $testId = (int)($sample['id'] ?? 0);
+              ?>
                 <tr>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($sample['first_name'] . ' ' . $sample['last_name']) ?></td>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($sample['test_name']) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($sample['test_name'] ?? 'N/A') ?></td>
                   <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(ucfirst($sample['priority'] ?: 'Routine')) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?php if ($currentStatus === 'requested'): ?>
+                      <span style="padding:4px 8px;background:#fef3c7;color:#92400e;border-radius:4px;font-size:0.75rem;font-weight:600">
+                        <i class="fas fa-clock"></i> Ready to Collect
+                      </span>
+                    <?php elseif ($currentStatus === 'sample_collected'): ?>
+                      <span style="padding:4px 8px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:0.75rem;font-weight:600">
+                        <i class="fas fa-check-circle"></i> Collected
+                      </span>
+                    <?php else: ?>
+                      <span style="padding:4px 8px;background:#e5e7eb;color:#374151;border-radius:4px;font-size:0.75rem">
+                        <?= esc(ucfirst(str_replace('_', ' ', $currentStatus ?: 'pending'))) ?>
+                      </span>
+                    <?php endif; ?>
+                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                    <?php if ($currentStatus === 'requested' && $requiresSpecimen == 1): ?>
+                      <?php if ($accountantApproved == 1): ?>
+                        <!-- Approved - can mark as collected -->
+                      <form action="<?= site_url('nurse/lab-samples/collect/' . $testId) ?>" method="post" style="display:inline">
+                        <?= csrf_field() ?>
+                        <button type="submit" style="background:#10b981;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="return confirm('Mark this sample as collected? This will send it to the lab for processing.')">
+                          <i class="fas fa-check-circle"></i> Mark as Collected
+                        </button>
+                      </form>
+                      <?php else: ?>
+                        <!-- Not approved yet - show waiting message -->
+                        <span style="color:#f59e0b;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px">
+                          <i class="fas fa-clock"></i> Waiting for Approval
+                        </span>
+                        <br><small style="color:#6b7280;font-size:0.7rem">Needs accountant approval first</small>
+                      <?php endif; ?>
+                    <?php elseif ($currentStatus === 'sample_collected'): ?>
+                      <span style="color:#10b981;font-weight:600;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px">
+                        <i class="fas fa-check-circle"></i> Collected
+                      </span>
+                      <br><small style="color:#6b7280;font-size:0.7rem">Sent to lab</small>
+                    <?php else: ?>
+                      <span style="color:#6b7280;font-size:0.75rem">
+                        <?php if ($requiresSpecimen == 0): ?>
+                          <small style="color:#6b7280;font-size:0.7rem">No specimen required</small>
+                        <?php else: ?>
+                          <small style="color:#6b7280;font-size:0.7rem">Status: <?= esc(ucfirst(str_replace('_', ' ', $currentStatus ?: 'unknown'))) ?></small>
+                        <?php endif; ?>
+                      </span>
+                    <?php endif; ?>
+                  </td>
                 </tr>
               <?php endforeach; else: ?>
                 <tr>
-                  <td colspan="3" style="padding:10px;color:#6b7280;text-align:center">No pending samples.</td>
+                  <td colspan="5" style="padding:20px;color:#6b7280;text-align:center">
+                    <div style="margin-bottom:8px">
+                      <i class="fa-solid fa-flask" style="font-size:2rem;color:#d1d5db"></i>
+                    </div>
+                    <div style="font-weight:600;margin-bottom:4px">No pending samples</div>
+                    <div style="font-size:0.875rem">Go to <a href="<?= site_url('nurse/lab-samples') ?>" style="color:#3b82f6;text-decoration:underline">Lab Samples</a> to view all samples and mark as collected.</div>
+                  </td>
                 </tr>
               <?php endif; ?>
             </tbody>

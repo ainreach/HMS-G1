@@ -257,12 +257,14 @@ class Reception extends BaseController
         
         $data = [
             'branch_id' => $branchId,
-            'room_number' => $this->request->getPost('room_number'),
+            'room_number' => trim($this->request->getPost('room_number')),
             'room_type' => $this->request->getPost('room_type'),
             'floor' => (int) $this->request->getPost('floor'),
             'capacity' => (int) $this->request->getPost('capacity'),
-            'rate_per_day' => (float) $this->request->getPost('rate_per_day'),
+            'current_occupancy' => 0,
+            'rate_per_day' => (float) ($this->request->getPost('rate_per_day') ?: 0.00),
             'status' => $this->request->getPost('status') ?? 'available',
+            'is_active' => 1,
         ];
         
         // Validation
@@ -270,20 +272,146 @@ class Reception extends BaseController
             return redirect()->back()->with('error', 'Please fill all required fields correctly.')->withInput();
         }
         
+        // Check if room number already exists (including soft-deleted)
+        if (!$id) {
+            $existingRoom = $roomModel
+                ->where('room_number', $data['room_number'])
+                ->where('branch_id', $branchId)
+                ->first();
+            
+            if ($existingRoom) {
+                return redirect()->back()->with('error', 'Room number "' . esc($data['room_number']) . '" already exists for this branch. Please use a different room number.')->withInput();
+            }
+        } else {
+            // For updates, check if room number conflicts with another room
+            $existingRoom = $roomModel
+                ->where('room_number', $data['room_number'])
+                ->where('branch_id', $branchId)
+                ->where('id !=', $id)
+                ->first();
+            
+            if ($existingRoom) {
+                return redirect()->back()->with('error', 'Room number "' . esc($data['room_number']) . '" is already used by another room. Please use a different room number.')->withInput();
+            }
+        }
+        
         try {
+            $db = \Config\Database::connect();
+            
             if ($id) {
                 // Update existing room
                 $data['id'] = $id;
-                $roomModel->save($data);
+                $result = $roomModel->save($data);
+                if (!$result) {
+                    $errors = $roomModel->errors();
+                    throw new \Exception('Failed to update room: ' . implode(', ', $errors));
+                }
+                $roomId = $id;
                 $message = 'Room updated successfully.';
             } else {
-                // Create new room
-                $roomModel->save($data);
-                $message = 'Room added successfully.';
+                // Start transaction for new room
+                $db->transStart();
+                
+                // Create new room using model insert
+                try {
+                    $result = $roomModel->insert($data);
+                } catch (\Exception $insertException) {
+                    $db->transRollback();
+                    $errorMsg = $insertException->getMessage();
+                    if (strpos($errorMsg, 'unique') !== false || strpos($errorMsg, 'Duplicate') !== false) {
+                        throw new \Exception('Room number "' . esc($data['room_number']) . '" already exists. Please use a different room number.');
+                    }
+                    throw new \Exception('Failed to insert room: ' . $errorMsg);
+                }
+                
+                if (!$result) {
+                    $errors = $roomModel->errors();
+                    $db->transRollback();
+                    $errorMsg = implode(', ', $errors);
+                    if (strpos($errorMsg, 'unique') !== false || strpos($errorMsg, 'must contain a unique') !== false) {
+                        throw new \Exception('Room number "' . esc($data['room_number']) . '" already exists. Please use a different room number.');
+                    }
+                    throw new \Exception('Failed to insert room: ' . $errorMsg);
+                }
+                
+                $roomId = $roomModel->getInsertID();
+                
+                // If getInsertID() doesn't work, try database insertID
+                if (!$roomId || $roomId == 0) {
+                    $roomId = $db->insertID();
+                }
+                
+                // If still no ID, try to get it from the last inserted room
+                if (!$roomId || $roomId == 0) {
+                    $lastRoom = $roomModel
+                        ->where('room_number', $data['room_number'])
+                        ->where('branch_id', $branchId)
+                        ->orderBy('id', 'DESC')
+                        ->first();
+                    if ($lastRoom) {
+                        $roomId = $lastRoom['id'];
+                    }
+                }
+                
+                if (!$roomId || $roomId == 0) {
+                    $db->transRollback();
+                    throw new \Exception('Failed to get room ID after insertion. Room may not have been created.');
+                }
+                
+                // Create beds if beds_data is provided
+                $bedsData = $this->request->getPost('beds_data');
+                $bedCount = 0;
+                if ($bedsData && !empty(trim($bedsData))) {
+                    $beds = json_decode($bedsData, true);
+                    if (is_array($beds) && !empty($beds)) {
+                        $bedModel = model('App\\Models\\BedModel');
+                        foreach ($beds as $bed) {
+                            if (!empty($bed['bed_number']) && !empty($bed['bed_type'])) {
+                                $bedResult = $bedModel->insert([
+                                    'room_id' => $roomId,
+                                    'bed_number' => trim($bed['bed_number']),
+                                    'bed_type' => $bed['bed_type'],
+                                    'status' => 'available',
+                                    'is_active' => 1,
+                                ]);
+                                
+                                if (!$bedResult) {
+                                    $bedErrors = $bedModel->errors();
+                                    $db->transRollback();
+                                    throw new \Exception('Failed to create bed: ' . implode(', ', $bedErrors));
+                                }
+                                $bedCount++;
+                            }
+                        }
+                    }
+                }
+                
+                // Complete transaction
+                $db->transComplete();
+                
+                if ($db->transStatus() === false) {
+                    $error = $db->error();
+                    $errorMsg = 'Transaction failed. ';
+                    if (isset($error['message'])) {
+                        $errorMsg .= $error['message'];
+                    } elseif (isset($error['code'])) {
+                        $errorMsg .= 'Error code: ' . $error['code'];
+                    } else {
+                        $errorMsg .= 'Unknown database error.';
+                    }
+                    throw new \Exception($errorMsg);
+                }
+                
+                $message = 'Room added successfully' . ($bedCount > 0 ? ' with ' . $bedCount . ' bed(s)' : '') . '.';
             }
             
             return redirect()->to('/reception/rooms')->with('success', $message);
         } catch (\Exception $e) {
+            log_message('error', 'Error saving room: ' . $e->getMessage());
+            log_message('error', 'Room data: ' . json_encode($data));
+            if (isset($db) && $db->transStatus() !== false) {
+                $db->transRollback();
+            }
             return redirect()->back()->with('error', 'Error saving room: ' . $e->getMessage())->withInput();
         }
     }
@@ -702,5 +830,114 @@ class Reception extends BaseController
 
         $apptModel->update($id, $data);
         return redirect()->to(site_url('reception/appointments'))->with('success', 'Appointment updated successfully.');
+    }
+
+    public function inPatients()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        $bedModel = model('App\\Models\\BedModel');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $userModel = model('App\\Models\\UserModel');
+        
+        // Get all in-patients (admission_type = 'admission' and has admission_date)
+        $db = \Config\Database::connect();
+        $inPatients = $db->query("
+            SELECT 
+                p.*,
+                r.room_number,
+                r.room_type,
+                r.floor,
+                r.rate_per_day,
+                b.bed_number,
+                b.bed_type as bed_type_name,
+                u.username as attending_physician_name,
+                u.first_name as doctor_first_name,
+                u.last_name as doctor_last_name,
+                (SELECT COUNT(*) FROM medical_records mr WHERE mr.patient_id = p.id) as total_consultations,
+                (SELECT visit_date FROM medical_records WHERE patient_id = p.id ORDER BY visit_date DESC LIMIT 1) as last_consultation
+            FROM patients p
+            LEFT JOIN rooms r ON r.id = p.assigned_room_id
+            LEFT JOIN beds b ON b.id = p.assigned_bed_id
+            LEFT JOIN users u ON u.id = p.attending_physician_id
+            WHERE p.is_active = 1
+            AND p.admission_type = 'admission'
+            AND p.admission_date IS NOT NULL
+            AND p.admission_date != ''
+            ORDER BY p.admission_date DESC
+        ")->getResultArray();
+        
+        return view('Reception/in_patients', [
+            'inPatients' => $inPatients
+        ]);
+    }
+
+    public function viewInPatient($patientId)
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        $bedModel = model('App\\Models\\BedModel');
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $userModel = model('App\\Models\\UserModel');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $prescriptionModel = model('App\\Models\\PrescriptionModel');
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('reception/in-patients'))->with('error', 'Patient not found.');
+        }
+        
+        // Check if patient is an in-patient
+        if ($patient['admission_type'] !== 'admission' || empty($patient['admission_date'])) {
+            return redirect()->to(site_url('reception/in-patients'))->with('error', 'This patient is not an in-patient.');
+        }
+        
+        // Get room details
+        $room = null;
+        if ($patient['assigned_room_id']) {
+            $room = $roomModel->find($patient['assigned_room_id']);
+        }
+        
+        // Get bed details
+        $bed = null;
+        if ($patient['assigned_bed_id']) {
+            $bed = $bedModel->find($patient['assigned_bed_id']);
+        }
+        
+        // Get attending physician
+        $attendingPhysician = null;
+        if ($patient['attending_physician_id']) {
+            $attendingPhysician = $userModel->find($patient['attending_physician_id']);
+        }
+        
+        // Get medical records
+        $medicalRecords = $medicalRecordModel
+            ->where('patient_id', $patientId)
+            ->orderBy('visit_date', 'DESC')
+            ->findAll(10);
+        
+        // Get lab tests
+        $labTests = $labTestModel
+            ->where('patient_id', $patientId)
+            ->orderBy('created_at', 'DESC')
+            ->findAll(10);
+        
+        // Get prescriptions
+        $prescriptions = $prescriptionModel
+            ->where('patient_id', $patientId)
+            ->orderBy('prescription_date', 'DESC')
+            ->findAll(10);
+        
+        return view('Reception/in_patient_details', [
+            'patient' => $patient,
+            'room' => $room,
+            'bed' => $bed,
+            'attendingPhysician' => $attendingPhysician,
+            'medicalRecords' => $medicalRecords,
+            'labTests' => $labTests,
+            'prescriptions' => $prescriptions,
+        ]);
     }
 }

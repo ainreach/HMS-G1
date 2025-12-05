@@ -256,6 +256,13 @@ class Admin extends BaseController
     {
         helper(['url','form']);
         $id = (int) $id;
+        
+        // Prevent admin from editing their own account
+        $currentUserId = session('user_id');
+        if ($id === $currentUserId) {
+            return redirect()->to(site_url('admin/users'))->with('error','You cannot edit your own account. Please ask another administrator to make changes.');
+        }
+        
         $user = model('App\\Models\\UserModel')->find($id);
         if (!$user) {
             return redirect()->to(site_url('admin/users'))->with('error','User not found.');
@@ -267,6 +274,13 @@ class Admin extends BaseController
     {
         helper(['url','form']);
         $id = (int) $id;
+        
+        // Prevent admin from editing their own account
+        $currentUserId = session('user_id');
+        if ($id === $currentUserId) {
+            return redirect()->to(site_url('admin/users'))->with('error','You cannot edit your own account. Please ask another administrator to make changes.');
+        }
+        
         $req = $this->request;
         $data = [
             'employee_id' => trim((string)$req->getPost('employee_id')),
@@ -489,6 +503,72 @@ class Admin extends BaseController
         return view('admin/appointments_list', $data);
     }
 
+    public function editAppointment($id)
+    {
+        helper('url');
+        $apptModel = model('App\\Models\\AppointmentModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        
+        $appointment = $apptModel->find($id);
+        if (!$appointment) {
+            return redirect()->to(site_url('admin/appointments'))->with('error', 'Appointment not found.');
+        }
+
+        $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(100);
+        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(20);
+
+        return view('admin/appointment_edit', [
+            'appointment' => $appointment,
+            'patients' => $patients,
+            'doctors' => $doctors,
+        ]);
+    }
+
+    public function updateAppointment($id)
+    {
+        helper(['url', 'form']);
+        $apptModel = model('App\\Models\\AppointmentModel');
+        
+        $appointment = $apptModel->find($id);
+        if (!$appointment) {
+            return redirect()->to(site_url('admin/appointments'))->with('error', 'Appointment not found.');
+        }
+
+        $data = [
+            'patient_id' => (int) $this->request->getPost('patient_id'),
+            'doctor_id' => (int) $this->request->getPost('doctor_id'),
+            'appointment_date' => $this->request->getPost('appointment_date'),
+            'appointment_time' => $this->request->getPost('appointment_time'),
+            'duration' => (int) ($this->request->getPost('duration') ?: 30),
+            'type' => $this->request->getPost('type') ?: 'consultation',
+            'status' => $this->request->getPost('status') ?: 'scheduled',
+            'reason' => $this->request->getPost('reason') ?: null,
+            'notes' => $this->request->getPost('notes') ?: null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $apptModel->update($id, $data);
+        AuditLogger::log('appointment_update', 'appointment_id=' . $id);
+        return redirect()->to(site_url('admin/appointments'))->with('success', 'Appointment updated successfully.');
+    }
+
+    public function deleteAppointment($id)
+    {
+        helper('url');
+        $apptModel = model('App\\Models\\AppointmentModel');
+        
+        $appointment = $apptModel->find($id);
+        if (!$appointment) {
+            return redirect()->to(site_url('admin/appointments'))->with('error', 'Appointment not found.');
+        }
+
+        // Soft delete
+        $apptModel->delete($id);
+        AuditLogger::log('appointment_delete', 'appointment_id=' . $id);
+        return redirect()->to(site_url('admin/appointments'))->with('success', 'Appointment deleted successfully.');
+    }
+
     // Staff Scheduling
     public function staffSchedules()
     {
@@ -703,7 +783,7 @@ class Admin extends BaseController
         
         $total = $medicalRecordModel->countAllResults();
         $records = $medicalRecordModel
-                    ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.username as doctor_name')
+                    ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
                     ->join('patients', 'patients.id = medical_records.patient_id')
                     ->join('users', 'users.id = medical_records.doctor_id')
                     ->orderBy('medical_records.visit_date', 'DESC')
@@ -718,6 +798,26 @@ class Admin extends BaseController
             'hasNext' => ($offset + count($records)) < $total,
         ];
         return view('admin/medical_records_list', $data);
+    }
+
+    // Get medical record details as JSON (for modal display)
+    public function getMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        
+        $record = $medicalRecordModel
+            ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, patients.patient_id as patient_code, patients.date_of_birth, patients.gender, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+            ->join('patients', 'patients.id = medical_records.patient_id')
+            ->join('users', 'users.id = medical_records.doctor_id')
+            ->where('medical_records.id', $id)
+            ->first();
+        
+        if (!$record) {
+            return $this->response->setJSON(['error' => 'Record not found'])->setStatusCode(404);
+        }
+        
+        return $this->response->setJSON($record);
     }
 
     // Financial Management
@@ -1221,6 +1321,7 @@ class Admin extends BaseController
         // Create new inventory record
         $data = [
             'medicine_id' => $medicineId,
+            'branch_id' => 1, // Default branch ID
             'batch_number' => $batchNumber,
             'expiry_date' => $expiryDate,
             'quantity_in_stock' => $quantityInStock,
@@ -1228,8 +1329,7 @@ class Admin extends BaseController
             'maximum_stock_level' => $maximumStockLevel,
             'reorder_level' => $reorderLevel,
             'location' => $location,
-            'notes' => $notes,
-            'status' => 'active',
+            'last_updated_by' => session('user_id') ?: 1,
         ];
         
         $inventoryModel->insert($data);
@@ -1238,6 +1338,245 @@ class Admin extends BaseController
         AuditLogger::log('stock_add', 'medicine_id=' . $medicineId . ' batch=' . $batchNumber . ' quantity=' . $quantityInStock);
         
         return redirect()->to(site_url('admin/inventory'))->with('success', 'Stock added successfully.');
+    }
+
+    public function editStock($id)
+    {
+        helper(['url', 'form']);
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        $medicineModel = model('App\\Models\\MedicineModel');
+        
+        $stock = $inventoryModel
+            ->select('inventory.*, medicines.name as medicine_name')
+            ->join('medicines', 'medicines.id = inventory.medicine_id')
+            ->where('inventory.id', $id)
+            ->first();
+        
+        if (!$stock) {
+            return redirect()->to(site_url('admin/inventory'))->with('error', 'Stock entry not found.');
+        }
+
+        $medicines = $medicineModel->orderBy('name', 'ASC')->findAll();
+
+        return view('admin/edit_stock', [
+            'stock' => $stock,
+            'medicines' => $medicines,
+        ]);
+    }
+
+    public function updateStock($id)
+    {
+        helper(['url', 'form']);
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        
+        $stock = $inventoryModel->find($id);
+        if (!$stock) {
+            return redirect()->to(site_url('admin/inventory'))->with('error', 'Stock entry not found.');
+        }
+
+        $batchNumber = $this->request->getPost('batch_number');
+        $expiryDate = $this->request->getPost('expiry_date');
+        $quantityInStock = (int) $this->request->getPost('quantity_in_stock');
+        $minimumStockLevel = (int) $this->request->getPost('minimum_stock_level');
+        $maximumStockLevel = (int) $this->request->getPost('maximum_stock_level');
+        $reorderLevel = (int) $this->request->getPost('reorder_level');
+        $location = $this->request->getPost('location');
+
+        // Validate required fields
+        if (!$batchNumber || !$expiryDate || $quantityInStock < 0) {
+            return redirect()->back()->with('error', 'Please fill in all required fields.')->withInput();
+        }
+
+        // Check if batch number already exists for another stock entry
+        $existingBatch = $inventoryModel
+            ->where('medicine_id', $stock['medicine_id'])
+            ->where('batch_number', $batchNumber)
+            ->where('id !=', $id)
+            ->first();
+            
+        if ($existingBatch) {
+            return redirect()->back()->with('error', 'Batch number already exists for this medicine.')->withInput();
+        }
+
+        $data = [
+            'batch_number' => $batchNumber,
+            'expiry_date' => $expiryDate,
+            'quantity_in_stock' => $quantityInStock,
+            'minimum_stock_level' => $minimumStockLevel,
+            'maximum_stock_level' => $maximumStockLevel,
+            'reorder_level' => $reorderLevel,
+            'location' => $location,
+            'last_updated_by' => session('user_id') ?: 1,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $inventoryModel->update($id, $data);
+        AuditLogger::log('stock_update', 'stock_id=' . $id . ' batch=' . $batchNumber . ' quantity=' . $quantityInStock);
+        
+        return redirect()->to(site_url('admin/inventory'))->with('success', 'Stock updated successfully.');
+    }
+
+    public function deleteStock($id)
+    {
+        helper('url');
+        $inventoryModel = model('App\\Models\\InventoryModel');
+        
+        $stock = $inventoryModel->find($id);
+        if (!$stock) {
+            return redirect()->to(site_url('admin/inventory'))->with('error', 'Stock entry not found.');
+        }
+
+        // Soft delete
+        $inventoryModel->delete($id);
+        AuditLogger::log('stock_delete', 'stock_id=' . $id);
+        
+        return redirect()->to(site_url('admin/inventory'))->with('success', 'Stock entry deleted successfully.');
+    }
+
+    // Room Management (Admin access)
+    public function rooms()
+    {
+        helper('url');
+        $roomModel = model('App\\Models\\RoomModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+        }
+        
+        $allRooms = $roomModel
+            ->select('rooms.*, branches.name as branch_name')
+            ->join('branches', 'branches.id = rooms.branch_id', 'left')
+            ->orderBy('branches.name', 'ASC')
+            ->orderBy('rooms.floor', 'ASC')
+            ->orderBy('rooms.room_number', 'ASC')
+            ->findAll(100);
+            
+        $totalRooms = count($allRooms);
+        $availableRooms = array_filter($allRooms, fn($room) => $room['status'] === 'available');
+        $occupiedRooms = array_filter($allRooms, fn($room) => $room['status'] === 'occupied');
+        $maintenanceRooms = array_filter($allRooms, fn($room) => $room['status'] === 'maintenance');
+        
+        $stats = [
+            'total' => $totalRooms,
+            'available' => count($availableRooms),
+            'occupied' => count($occupiedRooms),
+            'maintenance' => count($maintenanceRooms),
+            'occupancy_rate' => $totalRooms > 0 ? round((count($occupiedRooms) / $totalRooms) * 100, 1) : 0
+        ];
+        
+        return view('admin/rooms', [
+            'rooms' => $allRooms,
+            'stats' => $stats
+        ]);
+    }
+
+    public function newRoom()
+    {
+        helper('url');
+        return view('admin/room_form');
+    }
+
+    public function editRoom($id)
+    {
+        helper('url');
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $room = $roomModel->find($id);
+        if (!$room) {
+            return redirect()->to('/admin/rooms')->with('error', 'Room not found.');
+        }
+        
+        return view('admin/room_form', ['room' => $room]);
+    }
+
+    public function storeRoom()
+    {
+        helper(['url', 'form']);
+        $roomModel = model('App\\Models\\RoomModel');
+        $branchModel = model('App\\Models\\BranchModel');
+        
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $branchId = $branchModel->getInsertID();
+        } else {
+            $branchId = $existingBranch['id'];
+        }
+        
+        $id = $this->request->getPost('id');
+        
+        $data = [
+            'branch_id' => $branchId,
+            'room_number' => $this->request->getPost('room_number'),
+            'room_type' => $this->request->getPost('room_type'),
+            'floor' => (int) $this->request->getPost('floor'),
+            'capacity' => (int) $this->request->getPost('capacity'),
+            'rate_per_day' => (float) $this->request->getPost('rate_per_day'),
+            'status' => $this->request->getPost('status') ?? 'available',
+        ];
+        
+        if (!$data['room_number'] || !$data['room_type'] || $data['floor'] < 1 || $data['capacity'] < 1) {
+            return redirect()->back()->with('error', 'Please fill all required fields correctly.')->withInput();
+        }
+        
+        try {
+            if ($id) {
+                $data['id'] = $id;
+                $roomModel->save($data);
+                $message = 'Room updated successfully.';
+            } else {
+                $roomModel->save($data);
+                $message = 'Room added successfully.';
+            }
+            
+            AuditLogger::log('room_' . ($id ? 'update' : 'create'), 'room_id=' . ($id ?: 'new') . ' room_number=' . $data['room_number']);
+            return redirect()->to('/admin/rooms')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error saving room: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function deleteRoom($id)
+    {
+        helper('url');
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        $room = $roomModel->find($id);
+        if (!$room) {
+            return redirect()->to('/admin/rooms')->with('error', 'Room not found.');
+        }
+        
+        if ($room['current_occupancy'] > 0) {
+            return redirect()->to('/admin/rooms')->with('error', 'Cannot delete room. Room is currently occupied.');
+        }
+        
+        try {
+            $roomModel->delete($id);
+            AuditLogger::log('room_delete', 'room_id=' . $id);
+            return redirect()->to('/admin/rooms')->with('success', 'Room deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->to('/admin/rooms')->with('error', 'Error deleting room: ' . $e->getMessage());
+        }
     }
 
     // System Analytics

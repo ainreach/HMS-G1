@@ -23,6 +23,9 @@
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
   <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+  <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
+  <a href="<?= site_url('accountant/lab-test-approvals') ?>"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
+  <a href="<?= site_url('accountant/patients/bills') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Patient Room Bills</a>
   <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
   <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
 </nav></aside>
@@ -30,12 +33,53 @@
     <section class="panel">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
       <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="<?= site_url('accountant/patients/bills') ?>" style="background:#dc2626;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-bed"></i> Patient Room Bills</a>
-        <a href="<?= site_url('accountant/invoices/new') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-lines"></i> Create Invoice</a>
-        <a href="<?= site_url('accountant/payments/new') ?>" style="background:#10b981;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-sack-dollar"></i> Record Payment</a>
-        <a href="<?= site_url('accountant/statements') ?>" style="background:#6b7280;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-regular fa-file-pdf"></i> Download Statement</a>
-        <a href="<?= site_url('accountant/invoices/export') ?>" style="background:#8b5cf6;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-file-csv"></i> Invoices CSV</a>
-        <a href="<?= site_url('accountant/finance/export/zip') ?>" style="background:#f59e0b;color:white;padding:10px 14px;border-radius:6px;text-decoration:none;font-size:0.875rem;display:inline-block"><i class="fa-solid fa-file-zipper"></i> Finance ZIP</a>
+        <?php
+          // Get pending charges count for badge
+          $billingModel = new \App\Models\BillingModel();
+          $pendingCount = $billingModel->where('payment_status', 'pending')->countAllResults();
+        ?>
+        <a href="<?= site_url('accountant/pending-charges') ?>" style="background:#dc2626;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;position:relative;font-weight:600">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Pending Charges
+          <?php if ($pendingCount > 0): ?>
+            <span style="background:rgba(255,255,255,0.3);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;margin-left:4px"><?= $pendingCount ?></span>
+          <?php endif; ?>
+        </a>
+        <?php
+          // Get pending lab test approvals count
+          try {
+            $labTestModel = model('App\\Models\\LabTestModel');
+            $db = \Config\Database::connect();
+            $columns = $db->getFieldNames('lab_tests');
+            if (in_array('accountant_approved', $columns)) {
+              $pendingLabApprovals = $labTestModel->where('accountant_approved', 0)->where('status !=', 'cancelled')->countAllResults();
+            } else {
+              $pendingLabApprovals = 0;
+            }
+          } catch (\Exception $e) {
+            $pendingLabApprovals = 0;
+          }
+        ?>
+        <a href="<?= site_url('accountant/lab-test-approvals') ?>" style="background:#0891b2;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-vial"></i> Lab Test Approvals
+          <?php if ($pendingLabApprovals > 0): ?>
+            <span style="background:rgba(255,255,255,0.3);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;margin-left:4px"><?= $pendingLabApprovals ?></span>
+          <?php endif; ?>
+        </a>
+        <a href="<?= site_url('accountant/reports') ?>" style="background:#15803d;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-chart-line"></i> Finance Overview
+        </a>
+        <a href="<?= site_url('accountant/payments') ?>" style="background:#2563eb;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-money-bills"></i> Payment Reports
+        </a>
+        <a href="<?= site_url('accountant/medication-billing') ?>" style="background:#0891b2;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-pills"></i> Medication Billing
+        </a>
+        <a href="<?= site_url('accountant/expenses') ?>" style="background:#f97316;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-receipt"></i> Expense Tracking
+        </a>
+        <a href="<?= site_url('accountant/patients/bills') ?>" style="background:#8b5cf6;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-bed"></i> Patient Room Bills
+        </a>
       </div>
     </section>
 

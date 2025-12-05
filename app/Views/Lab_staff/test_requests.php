@@ -48,16 +48,45 @@
                   <small style="color:#6b7280"><?= esc($request['patient_code']) ?></small>
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($request['test_name']) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">Dr. <?= esc($request['doctor_first'] . ' ' . $request['doctor_last']) ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?php 
+                  $doctorName = '';
+                  if (!empty($request['doctor_first']) || !empty($request['doctor_last'])) {
+                      $doctorName = trim(($request['doctor_first'] ?? '') . ' ' . ($request['doctor_last'] ?? ''));
+                  } elseif (!empty($request['doctor_name'])) {
+                      $doctorName = $request['doctor_name'];
+                  } else {
+                      $doctorName = 'N/A';
+                  }
+                  ?>
+                  Dr. <?= esc($doctorName) ?>
+                </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <span style="padding:2px 6px;border-radius:4px;font-size:0.75rem;background-color:<?= $request['priority'] === 'urgent' ? '#fef2f2' : '#f0f9ff' ?>;color:<?= $request['priority'] === 'urgent' ? '#dc2626' : '#1e40af' ?>">
                     <?= esc(ucfirst($request['priority'] ?: 'Routine')) ?>
                   </span>
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <div style="display:flex;gap:6px">
-                    <a href="<?= site_url('lab/collect-sample/' . $request['id']) ?>" style="padding:4px 8px;background:#10b981;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem">Collect Sample</a>
-                    <a href="<?= site_url('lab/enter-result/' . $request['id']) ?>" style="padding:4px 8px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem">Enter Result</a>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <?php if ($request['requires_specimen'] == 1 && $request['status'] === 'sample_collected'): ?>
+                      <!-- Test with specimen - already collected by nurse, ready for processing -->
+                      <span style="padding:4px 8px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:0.75rem;font-weight:600">
+                        <i class="fas fa-check-circle"></i> Sample Collected
+                      </span>
+                      <a href="<?= site_url('lab/tests/' . $request['id']) ?>" style="padding:4px 8px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px">
+                        <i class="fas fa-flask"></i> Process Test
+                      </a>
+                    <?php elseif ($request['requires_specimen'] == 0): ?>
+                      <!-- Test without specimen - direct to lab -->
+                      <a href="<?= site_url('lab/tests/' . $request['id']) ?>" style="padding:4px 8px;background:#3b82f6;color:white;border-radius:4px;text-decoration:none;font-size:0.75rem;display:inline-flex;align-items:center;gap:4px">
+                        <i class="fas fa-flask"></i> Process Test
+                      </a>
+                    <?php else: ?>
+                      <!-- Waiting for nurse to collect -->
+                      <span style="padding:4px 8px;background:#fef3c7;color:#92400e;border-radius:4px;font-size:0.75rem">
+                        <i class="fas fa-clock"></i> Waiting for Collection
+                      </span>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

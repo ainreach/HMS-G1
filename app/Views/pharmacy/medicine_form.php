@@ -176,7 +176,6 @@
     <nav class="side-nav">
       <a href="<?= site_url('dashboard/pharmacist') ?>" class="active">Overview</a>
       <a href="<?= site_url('pharmacy/prescriptions') ?>">Prescriptions</a>
-      <a href="<?= site_url('pharmacy/dispense/new') ?>">Dispense</a>
       <a href="<?= site_url('pharmacy/inventory') ?>">Inventory</a>
       <a href="<?= site_url('pharmacy/low-stock-alerts') ?>">Low Stock</a>
       <a href="<?= site_url('pharmacy/medicine-expiry') ?>">Expiry Alerts</a>

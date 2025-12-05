@@ -1,177 +1,237 @@
-<?= $this->extend('layouts/main') ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice Details - Accountant</title>
+  <base href="<?= rtrim(base_url(), '/') ?>/">
+  <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+<header class="dash-topbar" role="banner">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
+      <div class="brand-text">
+        <h1 style="font-size:1.25rem;margin:0">Billing & Payments</h1>
+        <small>Invoice Details</small>
+      </div>
+    </div>
+    <div class="top-right" aria-label="User session">
+      <span class="role"><i class="fa-regular fa-user"></i> <?= esc(session('username') ?? session('role') ?? 'User') ?></span>
+      <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
+    </div>
+  </div>
+</header>
 
-<?= $this->section('content') ?>
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="mb-0">Invoice Details</h4>
-            <small class="text-muted">Invoice Number: <?= esc($billing['invoice_number'] ?? '') ?></small>
-        </div>
-        <div>
-            <a href="<?= site_url('accountant/billing') ?>" class="btn btn-sm btn-outline-secondary">&larr; Back to Invoices</a>
-            <button type="button" class="btn btn-sm btn-primary" onclick="window.print()">Print Invoice</button>
-        </div>
+<div class="layout">
+  <aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation">
+    <nav class="side-nav">
+      <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+      <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+      <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
+      <a href="<?= site_url('accountant/lab-test-approvals') ?>"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
+      <a href="<?= site_url('accountant/patients/bills') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Patient Room Bills</a>
+      <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
+      <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
+    </nav>
+  </aside>
+
+  <main class="content" style="padding:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <h2 style="margin:0;font-size:1.25rem;font-weight:600">Invoice Details</h2>
+        <small style="color:#6b7280">Invoice Number: <?= esc($billing['invoice_number'] ?? '') ?></small>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="<?= site_url('accountant/billing') ?>" style="padding:8px 16px;background:#6b7280;color:white;text-decoration:none;border-radius:6px;font-size:0.875rem;display:inline-flex;align-items:center;gap:6px">
+          <i class="fa-solid fa-arrow-left"></i> Back to Invoices
+        </a>
+        <button type="button" onclick="window.print()" style="padding:8px 16px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem;display:inline-flex;align-items:center;gap:6px">
+          <i class="fa-solid fa-print"></i> Print Invoice
+        </button>
+      </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <strong>Patient Information</strong>
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><strong>Name:</strong> <?= esc($patient['first_name'] ?? '') . ' ' . esc($patient['last_name'] ?? '') ?></p>
-                    <p class="mb-1"><strong>Patient Code:</strong> <?= esc($patient['patient_id'] ?? '') ?></p>
-                    <p class="mb-1"><strong>Date of Birth:</strong> <?= esc($patient['date_of_birth'] ?? '') ?></p>
-                    <p class="mb-1"><strong>Gender:</strong> <?= esc(ucfirst($patient['gender'] ?? '')) ?></p>
-                    <p class="mb-1"><strong>Contact:</strong> <?= esc($patient['phone'] ?? '') ?></p>
-                    <p class="mb-0"><strong>Insurance:</strong> <?= esc($patient['insurance_provider'] ?? 'N/A') ?></p>
-                </div>
-            </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <!-- Patient Information -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;font-size:1rem;font-weight:600">Patient Information</h3>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <strong>Invoice Summary</strong>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-6 text-muted">Invoice Number</div>
-                        <div class="col-6 text-end"><?= esc($billing['invoice_number'] ?? '') ?></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6 text-muted">Bill Date</div>
-                        <div class="col-6 text-end"><?= esc($billing['bill_date'] ?? '') ?></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-6 text-muted">Due Date</div>
-                        <div class="col-6 text-end"><?= esc($billing['due_date'] ?? '') ?></div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6 text-muted">Status</div>
-                        <div class="col-6 text-end">
-                            <?php $status = strtolower((string)($billing['payment_status'] ?? 'pending')); ?>
-                            <?php
-                                $badgeClass = 'secondary';
-                                if ($status === 'paid') $badgeClass = 'success';
-                                elseif ($status === 'partial') $badgeClass = 'warning';
-                                elseif ($status === 'overdue') $badgeClass = 'danger';
-                            ?>
-                            <span class="badge bg-<?= $badgeClass ?>"><?= esc(ucfirst($status)) ?></span>
-                        </div>
-                    </div>
-
-                    <hr class="mt-0">
-
-                    <div class="row mb-1">
-                        <div class="col-6 text-muted">Total Amount</div>
-                        <div class="col-6 text-end">₱<?= number_format((float)($billing['total_amount'] ?? 0), 2) ?></div>
-                    </div>
-                    <div class="row mb-1">
-                        <div class="col-6 text-muted">Insurance Coverage</div>
-                        <div class="col-6 text-end text-success">-₱<?= number_format((float)($insuranceCoverage ?? 0), 2) ?></div>
-                    </div>
-                    <div class="row mb-1">
-                        <div class="col-6 text-muted">Amount Paid</div>
-                        <div class="col-6 text-end text-primary">₱<?= number_format((float)($totalPaid ?? 0), 2) ?></div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-6 text-muted"><strong>Balance</strong></div>
-                        <?php $balance = (float)($billing['balance'] ?? 0); ?>
-                        <div class="col-6 text-end fw-bold <?= $balance > 0 ? 'text-danger' : 'text-success' ?>">
-                            ₱<?= number_format($balance, 2) ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="panel-body">
+          <p style="margin:0 0 8px 0"><strong>Name:</strong> <?= esc(trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''))) ?></p>
+          <p style="margin:0 0 8px 0"><strong>Patient Code:</strong> <?= esc($patient['patient_id'] ?? 'N/A') ?></p>
+          <p style="margin:0 0 8px 0"><strong>Date of Birth:</strong> <?= esc($patient['date_of_birth'] ?? 'N/A') ?></p>
+          <p style="margin:0 0 8px 0"><strong>Gender:</strong> <?= esc(ucfirst($patient['gender'] ?? 'N/A')) ?></p>
+          <p style="margin:0 0 8px 0"><strong>Contact:</strong> <?= esc($patient['phone'] ?? 'N/A') ?></p>
+          <p style="margin:0"><strong>Insurance:</strong> <?= esc($patient['insurance_provider'] ?? 'N/A') ?></p>
         </div>
+      </section>
+
+      <!-- Invoice Summary -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3 style="margin:0;font-size:1rem;font-weight:600">Invoice Summary</h3>
+        </div>
+        <div class="panel-body">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Invoice Number</span>
+            <strong><?= esc($billing['invoice_number'] ?? '') ?></strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Bill Date</span>
+            <span><?= esc($billing['bill_date'] ?? '') ?></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Due Date</span>
+            <span><?= esc($billing['due_date'] ?? '') ?></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+            <span style="color:#6b7280">Status</span>
+            <?php $status = strtolower((string)($billing['payment_status'] ?? 'pending')); ?>
+            <?php
+              $badgeColor = '#6b7280';
+              if ($status === 'paid') $badgeColor = '#16a34a';
+              elseif ($status === 'partial') $badgeColor = '#f59e0b';
+              elseif ($status === 'overdue') $badgeColor = '#ef4444';
+            ?>
+            <span style="padding:4px 10px;background:<?= $badgeColor ?>;color:white;border-radius:12px;font-size:0.75rem;font-weight:600">
+              <?= esc(ucfirst($status)) ?>
+            </span>
+          </div>
+
+          <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb">
+
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Total Amount</span>
+            <strong>₱<?= number_format((float)($billing['total_amount'] ?? 0), 2) ?></strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Insurance Coverage</span>
+            <span style="color:#16a34a">-₱<?= number_format((float)($insuranceCoverage ?? 0), 2) ?></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="color:#6b7280">Amount Paid</span>
+            <span style="color:#3b82f6">₱<?= number_format((float)($totalPaid ?? 0), 2) ?></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:2px solid #e5e7eb">
+            <strong>Balance</strong>
+            <?php $balance = (float)($billing['balance'] ?? 0); ?>
+            <strong style="color:<?= $balance > 0 ? '#ef4444' : '#16a34a' ?>">
+              ₱<?= number_format($balance, 2) ?>
+            </strong>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-header">
-            <strong>Services &amp; Products</strong>
-        </div>
-        <div class="card-body p-0 table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 15%">Type</th>
-                        <th>Description</th>
-                        <th style="width: 15%">Date</th>
-                        <th style="width: 15%" class="text-end">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($items)): ?>
-                        <?php foreach ($items as $item): ?>
-                            <tr>
-                                <td><?= esc(ucfirst($item['item_type'] ?? '')) ?></td>
-                                <td><?= esc($item['item_name'] ?? '') ?><?= $item['description'] ? ' - ' . esc($item['description']) : '' ?></td>
-                                <td><?= esc($item['created_at'] ?? '') ?></td>
-                                <td class="text-end">₱<?= number_format((float)($item['total_price'] ?? 0), 2) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-3">No items found for this invoice.</td>
-                        </tr>
+    <!-- Services & Products -->
+    <section class="panel" style="margin-bottom:16px">
+      <div class="panel-head">
+        <h3 style="margin:0;font-size:1rem;font-weight:600">Services & Products</h3>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <table class="table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:#f9fafb">
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:15%">Type</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Description</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:15%">Date</th>
+              <th style="text-align:right;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:15%">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!empty($items)): ?>
+              <?php foreach ($items as $item): ?>
+                <tr style="border-bottom:1px solid #f3f4f6">
+                  <td style="padding:12px"><?= esc(ucfirst($item['item_type'] ?? '')) ?></td>
+                  <td style="padding:12px">
+                    <?= esc($item['item_name'] ?? '') ?>
+                    <?php if (!empty($item['description'])): ?>
+                      <span style="color:#6b7280"> - <?= esc($item['description']) ?></span>
                     <?php endif; ?>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="text-end">Subtotal:</td>
-                        <td class="text-end">₱<?= number_format((float)($billing['subtotal'] ?? 0), 2) ?></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" class="text-end">Insurance Coverage:</td>
-                        <td class="text-end text-success">-₱<?= number_format((float)($insuranceCoverage ?? 0), 2) ?></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
-                        <td class="text-end fw-bold">₱<?= number_format((float)($billing['total_amount'] ?? 0), 2) ?></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+                  </td>
+                  <td style="padding:12px;color:#6b7280;font-size:0.875rem">
+                    <?= esc(date('M d, Y', strtotime($item['created_at'] ?? 'now'))) ?>
+                    <br>
+                    <small><?= esc(date('h:i A', strtotime($item['created_at'] ?? 'now'))) ?></small>
+                  </td>
+                  <td style="padding:12px;text-align:right;font-weight:600">₱<?= number_format((float)($item['total_price'] ?? 0), 2) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="4" style="padding:40px;text-align:center;color:#6b7280">No items found for this invoice.</td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+          <tfoot style="background:#f9fafb">
+            <tr>
+              <td colspan="3" style="padding:12px;text-align:right;font-weight:600">Subtotal:</td>
+              <td style="padding:12px;text-align:right;font-weight:600">₱<?= number_format((float)($billing['subtotal'] ?? 0), 2) ?></td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding:12px;text-align:right">Insurance Coverage:</td>
+              <td style="padding:12px;text-align:right;color:#16a34a">-₱<?= number_format((float)($insuranceCoverage ?? 0), 2) ?></td>
+            </tr>
+            <tr style="border-top:2px solid #e5e7eb">
+              <td colspan="3" style="padding:12px;text-align:right;font-weight:700;font-size:1.1rem">Total Amount:</td>
+              <td style="padding:12px;text-align:right;font-weight:700;font-size:1.1rem">₱<?= number_format((float)($billing['total_amount'] ?? 0), 2) ?></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
 
-    <div class="card mb-3">
-        <div class="card-header">
-            <strong>Payment History</strong>
-        </div>
-        <div class="card-body p-0 table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 25%">Payment Date</th>
-                        <th style="width: 20%">Amount</th>
-                        <th style="width: 20%">Method</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($payments)): ?>
-                        <?php foreach ($payments as $p): ?>
-                            <tr>
-                                <td><?= esc($p['paid_at'] ?? '') ?></td>
-                                <td>₱<?= number_format((float)($p['amount'] ?? 0), 2) ?></td>
-                                <td><?= esc($billing['payment_method'] ?? '') ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-3">No payments recorded yet.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td class="text-end fw-bold">Total Paid:</td>
-                        <td class="fw-bold">₱<?= number_format((float)($totalPaid ?? 0), 2) ?></td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+    <!-- Payment History -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3 style="margin:0;font-size:1rem;font-weight:600">Payment History</h3>
+      </div>
+      <div class="panel-body" style="padding:0">
+        <table class="table" style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:#f9fafb">
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:25%">Payment Date</th>
+              <th style="text-align:right;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:20%">Amount</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600;width:20%">Method</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!empty($payments)): ?>
+              <?php foreach ($payments as $p): ?>
+                <tr style="border-bottom:1px solid #f3f4f6">
+                  <td style="padding:12px">
+                    <?= esc(date('M d, Y', strtotime($p['paid_at'] ?? $p['created_at'] ?? 'now'))) ?>
+                    <br>
+                    <small style="color:#6b7280"><?= esc(date('h:i A', strtotime($p['paid_at'] ?? $p['created_at'] ?? 'now'))) ?></small>
+                  </td>
+                  <td style="padding:12px;text-align:right;font-weight:600;color:#16a34a">₱<?= number_format((float)($p['amount'] ?? 0), 2) ?></td>
+                  <td style="padding:12px"><?= esc(ucfirst($p['payment_method'] ?? 'N/A')) ?></td>
+                  <td style="padding:12px;color:#6b7280;font-size:0.875rem"><?= esc($p['notes'] ?? '-') ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="4" style="padding:40px;text-align:center;color:#6b7280">No payments recorded yet.</td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+          <tfoot style="background:#f9fafb">
+            <tr style="border-top:2px solid #e5e7eb">
+              <td style="padding:12px;text-align:right;font-weight:700;font-size:1.1rem" colspan="2">Total Paid:</td>
+              <td colspan="2" style="padding:12px;font-weight:700;font-size:1.1rem;color:#16a34a">₱<?= number_format((float)($totalPaid ?? 0), 2) ?></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </main>
 </div>
-<?= $this->endSection() ?>
+
+<script src="<?= base_url('assets/js/rbac.js') ?>"></script>
+</body>
+</html>
