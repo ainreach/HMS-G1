@@ -98,59 +98,108 @@ class Reception extends BaseController
     public function newPatient()
     {
         helper('url');
-        return view('Reception/patient_new');
+        $userModel = model('App\Models\UserModel');
+        $roomModel = model('App\Models\RoomModel');
+
+        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->findAll();
+        $availableRooms = $roomModel->where('status', 'available')->findAll();
+
+        return view('Reception/patient_new', [
+            'doctors' => $doctors,
+            'availableRooms' => $availableRooms
+        ]);
     }
 
     public function storePatient()
     {
         helper(['url', 'form']);
-        $branchModel = model('App\\Models\\BranchModel');
-        
+        $db = \Config\Database::connect();
+        $branchModel = model('App\Models\BranchModel');
+        $patientModel = model('App\Models\PatientModel');
+        $appointmentModel = model('App\Models\AppointmentModel');
+
         // Get the first available branch
         $existingBranch = $branchModel->first();
         if (!$existingBranch) {
-            // If no branch exists, create one first
-            $branchData = [
-                'name' => 'Main Branch',
-                'code' => 'MAIN',
-                'address' => '123 Hospital Street',
-                'phone' => '123-456-7890',
-                'email' => 'main@hospital.com',
-                'is_main' => 1,
-                'is_active' => 1,
-            ];
+            $branchData = ['name' => 'Main Branch', 'code' => 'MAIN', 'address' => '123 Hospital St', 'phone' => '123-456-7890', 'email' => 'main@hms.com', 'is_main' => 1, 'is_active' => 1];
             $branchModel->save($branchData);
             $branchId = $branchModel->getInsertID();
         } else {
             $branchId = $existingBranch['id'];
         }
-        
-        $data = [
-            'patient_id' => 'P-' . date('YmdHis'),
-            'first_name' => trim((string) $this->request->getPost('first_name')),
-            'last_name'  => trim((string) $this->request->getPost('last_name')),
-            'date_of_birth' => $this->request->getPost('date_of_birth') ?: null,
-            'gender'    => $this->request->getPost('gender') ?: null,
-            'phone'     => trim((string) $this->request->getPost('phone')) ?: null,
-            'email'     => trim((string) $this->request->getPost('email')) ?: null,
-            'address'   => trim((string) $this->request->getPost('address')) ?: null,
-            'branch_id' => $branchId,
-            'is_active' => 1,
-        ];
 
-        // Simplified patient registration - admission fields not implemented in current schema
+        $db->transStart();
 
-        if ($data['first_name'] === '' || $data['last_name'] === '') {
-            return redirect()->back()->with('error', 'First and last name are required.')->withInput();
+        try {
+            // Patient Data
+            $patientData = [
+                'patient_id'      => 'P-' . date('YmdHis'),
+                'first_name'      => trim((string) $this->request->getPost('first_name')),
+                'middle_name'     => trim((string) $this->request->getPost('middle_name')) ?: null,
+                'last_name'       => trim((string) $this->request->getPost('last_name')),
+                'date_of_birth'   => $this->request->getPost('date_of_birth') ?: null,
+                'gender'          => $this->request->getPost('gender') ?: null,
+                'marital_status'  => $this->request->getPost('marital_status') ?: null,
+                'phone'           => trim((string) $this->request->getPost('phone')) ?: null,
+                'email'           => trim((string) $this->request->getPost('email')) ?: null,
+                'address'         => trim((string) $this->request->getPost('address')) ?: null,
+                'emergency_contact_name' => trim((string) $this->request->getPost('emergency_contact_name')) ?: null,
+                'emergency_contact_phone' => trim((string) $this->request->getPost('emergency_contact_phone')) ?: null,
+                'emergency_contact_relation' => trim((string) $this->request->getPost('emergency_contact_relation')) ?: null,
+                'blood_type'      => $this->request->getPost('blood_type') ?: null,
+                'allergies'       => trim((string) $this->request->getPost('allergies')) ?: null,
+                'medical_history' => trim((string) $this->request->getPost('medical_history')) ?: null,
+                'insurance_provider' => trim((string) $this->request->getPost('insurance_provider')) ?: null,
+                'policy_number'   => trim((string) $this->request->getPost('policy_number')) ?: null,
+                'branch_id'       => $branchId,
+                'is_active'       => 1,
+            ];
+
+            if (empty($patientData['first_name']) || empty($patientData['last_name'])) {
+                return redirect()->back()->with('error', 'First and last name are required.')->withInput();
+            }
+
+            $patientModel->insert($patientData);
+            $patientId = $patientModel->getInsertID();
+
+            $message = 'Patient registered successfully.';
+
+            // Handle Admission & Appointment
+            $admissionType = $this->request->getPost('admission_type');
+            if ($admissionType === 'checkup') {
+                $doctorId = $this->request->getPost('doctor_id');
+                $appointmentDate = $this->request->getPost('appointment_date');
+
+                if ($doctorId && $appointmentDate) {
+                    $appointmentData = [
+                        'appointment_number' => 'A-' . date('YmdHis'),
+                        'patient_id'         => $patientId,
+                        'doctor_id'          => $doctorId,
+                        'branch_id'          => $branchId,
+                        'appointment_date'   => date('Y-m-d', strtotime($appointmentDate)),
+                        'appointment_time'   => date('H:i:s', strtotime($appointmentDate)),
+                        'status'             => 'scheduled',
+                        'created_by'         => session('user_id') ?: 0,
+                    ];
+                    $appointmentModel->insert($appointmentData);
+                    $message .= ' Appointment has been scheduled.';
+                }
+            } elseif ($admissionType === 'admission') {
+                $assignedRoomId = $this->request->getPost('assigned_room_id');
+                if ($assignedRoomId) {
+                    $patientModel->update($patientId, ['assigned_room_id' => $assignedRoomId]);
+                }
+            }
+
+            $db->transComplete();
+
+            return redirect()->to(site_url('dashboard/receptionist'))->with('success', $message);
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            log_message('error', '[PATIENT_REGISTRATION] ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to register patient. Please try again.')->withInput();
         }
-
-        // Admission validation removed - not implemented in current schema
-
-        $patients = new \App\Models\PatientModel();
-        $patients->insert($data);
-        
-        $message = 'Patient registered successfully.';
-        return redirect()->to(site_url('dashboard/receptionist'))->with('success', $message);
     }
 
     public function rooms()

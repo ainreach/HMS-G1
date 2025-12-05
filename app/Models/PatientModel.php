@@ -20,6 +20,7 @@ class PatientModel extends Model
         'middle_name',
         'date_of_birth',
         'gender',
+        'marital_status',
         'blood_type',
         'phone',
         'email',
