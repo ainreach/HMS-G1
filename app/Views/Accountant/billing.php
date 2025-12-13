@@ -23,6 +23,7 @@
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
   <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
+  <a href="<?= site_url('accountant/consolidated-bills') ?>"><i class="fa-solid fa-file-invoice" style="margin-right:8px"></i>Consolidated Bills</a>
   <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
   <a href="<?= site_url('accountant/lab-test-approvals') ?>"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
   <a href="<?= site_url('accountant/patients/bills') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Patient Room Bills</a>
@@ -38,6 +39,9 @@
           $billingModel = new \App\Models\BillingModel();
           $pendingCount = $billingModel->where('payment_status', 'pending')->countAllResults();
         ?>
+        <a href="<?= site_url('accountant/consolidated-bills') ?>" style="background:#0ea5e9;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;font-weight:600">
+          <i class="fa-solid fa-file-invoice"></i> Consolidated Bills
+        </a>
         <a href="<?= site_url('accountant/pending-charges') ?>" style="background:#dc2626;color:white;padding:10px 14px;border-radius:8px;text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:8px;position:relative;font-weight:600">
           <i class="fa-solid fa-file-invoice-dollar"></i> Pending Charges
           <?php if ($pendingCount > 0): ?>
@@ -173,8 +177,8 @@
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($patient['patient_id']) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <a href="<?= site_url('accountant/patient-billing/' . $patient['id']) ?>" class="btn-small" style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem">
-                    <i class="fa-solid fa-file-invoice"></i> Bill
+                  <a href="<?= site_url('accountant/consolidated-bill/' . $patient['id']) ?>" class="btn-small" style="background:#0ea5e9;color:white;padding:4px 8px;border-radius:4px;text-decoration:none;font-size:0.75rem" title="View all charges for this patient">
+                    <i class="fa-solid fa-file-invoice"></i> View All Charges
                   </a>
                 </td>
               </tr>

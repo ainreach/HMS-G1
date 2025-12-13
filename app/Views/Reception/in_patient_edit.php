@@ -1,13 +1,11 @@
 <?php
 helper('form');
 $specializations = \Config\DoctorSpecializations::getGrouped();
-$userModel = model('App\\Models\\UserModel');
-$doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(100);
 ?>
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Room Admission | HMS</title>
+  <title>Edit In-Patient | HMS</title>
   <base href="<?= rtrim(base_url(), '/') ?>/">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -113,10 +111,6 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
       background: #f3f4f6;
       border-color: #d1d5db;
     }
-    .bed-option.unavailable:hover {
-      transform: none;
-      box-shadow: none;
-    }
     .bed-number {
       font-size: 1.25rem;
       font-weight: 700;
@@ -151,30 +145,49 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
       border-radius: 8px;
       border: 1px dashed #d1d5db;
     }
+    .patient-info-display {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .patient-info-display strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #1e40af;
+      font-size: 1rem;
+    }
+    .patient-info-display div {
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      color: #374151;
+    }
   </style>
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
   <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
-    <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Receptionist</h1><small>Room Admission</small></div>
+    <div class="brand-text"><h1 style="font-size:1.25rem;margin:0">Receptionist</h1><small>Edit In-Patient</small></div>
   </div>
   <div class="top-right" aria-label="User session">
-    <span class="role"><i class="fa-regular fa-user"></i>
-      <?= esc(session('username') ?? session('role') ?? 'User') ?>
-    </span>
+    <span class="role"><i class="fa-regular fa-user"></i> <?= esc(session('username') ?? session('role') ?? 'User') ?></span>
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Reception navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/receptionist') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-  <a href="<?= site_url('reception/patients') ?>"><i class="fa-solid fa-users" style="margin-right:8px"></i>Patient Management</a>
-  <a href="<?= site_url('reception/appointments') ?>"><i class="fa-solid fa-calendar" style="margin-right:8px"></i>Appointment Management</a>
-  <a href="<?= site_url('reception/rooms') ?>"><i class="fa-solid fa-door-open" style="margin-right:8px"></i>Room Management</a>
-  <a href="<?= site_url('reception/rooms/admit') ?>" class="active" aria-current="page"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Room Admission</a>
-  <a href="<?= site_url('reception/in-patients') ?>"><i class="fa-solid fa-hospital" style="margin-right:8px"></i>In-Patients</a>
-  <a href="<?= site_url('reception/patient-lookup') ?>"><i class="fa-solid fa-magnifying-glass" style="margin-right:8px"></i>Patient Lookup</a>
+  <a href="<?= site_url('dashboard/receptionist') ?>">Overview</a>
+  <a href="<?= site_url('reception/patients') ?>">Patient Management</a>
+  <a href="<?= site_url('reception/appointments') ?>">Appointment Management</a>
+  <a href="<?= site_url('reception/rooms') ?>">Room Management</a>
+  <a href="<?= site_url('reception/in-patients') ?>" class="active">In-Patients</a>
+  <a href="<?= site_url('reception/patient-lookup') ?>">Patient Lookup</a>
 </nav></aside>
   <main class="content" style="padding:20px">
     
+    <a href="<?= site_url('reception/in-patients/view/' . $patient['id']) ?>" style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;color:#6b7280;text-decoration:none;font-weight:600;font-size:0.875rem">
+      <i class="fa-solid fa-arrow-left"></i> Back to Patient Details
+    </a>
+
     <?php if (session()->getFlashdata('error')): ?>
       <div style="background:#fef2f2;border:1px solid #ef4444;border-radius:8px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
         <i class="fa-solid fa-exclamation-circle" style="color:#dc2626;font-size:1.2rem"></i>
@@ -189,7 +202,7 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
       </div>
     <?php endif; ?>
 
-    <form method="post" action="<?= site_url('reception/rooms/admit') ?>" id="admissionForm">
+    <form method="post" action="<?= site_url('reception/in-patients/update/' . $patient['id']) ?>" id="editForm">
       <?= csrf_field() ?>
 
       <!-- Patient Information Section -->
@@ -199,31 +212,57 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
           <span>Patient Information</span>
         </div>
         
-        <div class="form-group">
-          <label class="form-label">
-            Select Patient <span class="required">*</span>
-          </label>
-          <select name="patient_id" id="patientSelect" class="form-control" required>
-            <option value="">-- Select Patient --</option>
-            <?php if (!empty($patients)) : foreach ($patients as $patient) : ?>
-              <option value="<?= esc($patient['id']) ?>" 
-                <?= (old('patient_id') == $patient['id']) ? 'selected' : '' ?>
-                data-phone="<?= esc($patient['phone'] ?? '') ?>"
-                data-email="<?= esc($patient['email'] ?? '') ?>"
-                data-dob="<?= esc($patient['date_of_birth'] ?? '') ?>">
-                <?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?> 
-                (<?= esc($patient['patient_id']) ?>)
-              </option>
-            <?php endforeach; else: ?>
-              <option value="">No patients available</option>
-            <?php endif; ?>
-          </select>
-          <div class="form-hint">
-            <i class="fa-solid fa-info-circle"></i> Select the patient to be admitted to a room
+        <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:12px;padding:24px;color:white;margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <div style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+              <h3 style="margin:0;font-size:1.25rem;font-weight:700;color:white">
+                <?= esc(trim(($patient['first_name'] ?? '') . ' ' . ($patient['middle_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''))) ?>
+              </h3>
+              <p style="margin:4px 0 0 0;font-size:0.875rem;color:rgba(255,255,255,0.9)">
+                Patient ID: <span style="font-family:monospace;font-weight:600"><?= esc($patient['patient_id'] ?? 'N/A') ?></span>
+              </p>
+            </div>
           </div>
-          <div id="patientInfo" class="room-info-card" style="display:none;">
-            <strong>Patient Details:</strong>
-            <div id="patientDetails"></div>
+          
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;background:rgba(255,255,255,0.1);border-radius:8px;padding:16px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fa-solid fa-phone" style="font-size:1.1rem;width:24px"></i>
+              <div>
+                <div style="font-size:0.75rem;opacity:0.9;margin-bottom:2px">Phone</div>
+                <div style="font-weight:600;font-size:0.95rem"><?= esc($patient['phone'] ?? 'N/A') ?></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fa-solid fa-envelope" style="font-size:1.1rem;width:24px"></i>
+              <div>
+                <div style="font-size:0.75rem;opacity:0.9;margin-bottom:2px">Email</div>
+                <div style="font-weight:600;font-size:0.95rem;word-break:break-word"><?= esc($patient['email'] ?? 'N/A') ?></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fa-solid fa-calendar-check" style="font-size:1.1rem;width:24px"></i>
+              <div>
+                <div style="font-size:0.75rem;opacity:0.9;margin-bottom:2px">Admission Date</div>
+                <div style="font-weight:600;font-size:0.95rem">
+                  <?= esc($patient['admission_date'] ? date('M d, Y', strtotime($patient['admission_date'])) : 'N/A') ?>
+                </div>
+              </div>
+            </div>
+            <?php if (!empty($patient['date_of_birth'])): 
+              $dob = new \DateTime($patient['date_of_birth']);
+              $age = $dob->diff(new \DateTime())->y;
+            ?>
+            <div style="display:flex;align-items:center;gap:10px">
+              <i class="fa-solid fa-birthday-cake" style="font-size:1.1rem;width:24px"></i>
+              <div>
+                <div style="font-size:0.75rem;opacity:0.9;margin-bottom:2px">Age</div>
+                <div style="font-weight:600;font-size:0.95rem"><?= $age ?> years old</div>
+              </div>
+            </div>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -241,28 +280,28 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
           </label>
           <select name="room_id" id="roomSelect" class="form-control" required>
             <option value="">-- Select Room --</option>
-            <?php if (!empty($availableRooms)) : foreach ($availableRooms as $room) : ?>
-              <option value="<?= esc($room['id']) ?>" 
-                <?= (old('room_id') == $room['id']) ? 'selected' : '' ?>
-                data-room-number="<?= esc($room['room_number']) ?>"
-                data-room-type="<?= esc($room['room_type']) ?>"
-                data-floor="<?= esc($room['floor'] ?? 1) ?>"
-                data-rate="<?= esc($room['rate_per_day'] ?? 0) ?>"
-                data-capacity="<?= esc($room['capacity'] ?? 1) ?>"
-                data-occupancy="<?= esc($room['current_occupancy'] ?? 0) ?>">
-                <?= esc($room['room_number']) ?> - <?= esc(ucfirst($room['room_type'])) ?>
-                <?php if (isset($room['floor'])): ?>
-                  (Floor <?= esc($room['floor']) ?>)
+            <?php if (!empty($allRooms)) : foreach ($allRooms as $r): ?>
+              <option value="<?= esc($r['id']) ?>" 
+                <?= (old('room_id', $patient['assigned_room_id'] ?? '') == $r['id']) ? 'selected' : '' ?>
+                data-room-number="<?= esc($r['room_number']) ?>"
+                data-room-type="<?= esc($r['room_type']) ?>"
+                data-floor="<?= esc($r['floor'] ?? 1) ?>"
+                data-rate="<?= esc($r['rate_per_day'] ?? 0) ?>"
+                data-capacity="<?= esc($r['capacity'] ?? 1) ?>"
+                data-occupancy="<?= esc($r['current_occupancy'] ?? 0) ?>">
+                <?= esc($r['room_number']) ?> - <?= esc(ucfirst($r['room_type'])) ?>
+                <?php if (isset($r['floor'])): ?>
+                  (Floor <?= esc($r['floor']) ?>)
                 <?php endif; ?>
-                - <?= esc($room['current_occupancy']) ?>/<?= esc($room['capacity']) ?> occupied
-                - ₱<?= number_format($room['rate_per_day'], 2) ?>/day
+                - <?= esc($r['current_occupancy']) ?>/<?= esc($r['capacity']) ?> occupied
+                - ₱<?= number_format($r['rate_per_day'], 2) ?>/day
               </option>
             <?php endforeach; else: ?>
               <option value="">No available rooms</option>
             <?php endif; ?>
           </select>
           <div class="form-hint">
-            <i class="fa-solid fa-info-circle"></i> Only available rooms with capacity are shown
+            <i class="fa-solid fa-info-circle"></i> Select the room for this patient
           </div>
           <div id="roomInfo" class="room-info-card" style="display:none;">
             <strong>Room Details:</strong>
@@ -280,7 +319,7 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
               <p style="margin:0">Loading beds...</p>
             </div>
           </div>
-          <input type="hidden" name="bed_id" id="bedIdField" required>
+          <input type="hidden" name="bed_id" id="bedIdField" required value="<?= old('bed_id', $patient['assigned_bed_id'] ?? '') ?>">
           <div class="form-hint">
             <i class="fa-solid fa-info-circle"></i> Click on an available bed to select it. Selected bed will be highlighted in blue.
           </div>
@@ -305,7 +344,7 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
             <option value="">-- Select Attending Physician --</option>
             <?php if (!empty($doctors)) : foreach ($doctors as $doctor) : ?>
               <option value="<?= esc($doctor['id']) ?>" 
-                <?= (old('attending_physician_id') == $doctor['id']) ? 'selected' : '' ?>>
+                <?= (old('attending_physician_id', $patient['attending_physician_id'] ?? '') == $doctor['id']) ? 'selected' : '' ?>>
                 Dr. <?= esc($doctor['first_name'] . ' ' . $doctor['last_name']) ?>
                 <?php if (!empty($doctor['specialization'])): ?>
                   - <?= esc($doctor['specialization']) ?>
@@ -324,7 +363,7 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
           <label class="form-label">
             Admission Reason <span class="required">*</span>
           </label>
-          <textarea name="admission_reason" class="form-control" rows="3" required placeholder="Describe the reason for admission (e.g., surgery, observation, treatment, etc.)"><?= old('admission_reason') ?></textarea>
+          <textarea name="admission_reason" class="form-control" rows="3" required placeholder="Describe the reason for admission (e.g., surgery, observation, treatment, etc.)"><?= esc(old('admission_reason', $patient['admission_reason'] ?? '')) ?></textarea>
           <div class="form-hint">
             <i class="fa-solid fa-info-circle"></i> Provide detailed reason for patient admission
           </div>
@@ -332,140 +371,28 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
 
         <div class="form-group">
           <label class="form-label">Admission Notes</label>
-          <textarea name="admission_notes" class="form-control" rows="3" placeholder="Additional notes, special instructions, or important information about this admission"><?= old('admission_notes') ?></textarea>
-        </div>
-      </div>
-
-      <!-- Admission Details Section -->
-      <div class="form-section">
-        <div class="section-title">
-          <i class="fa-solid fa-calendar-check"></i>
-          <span>Admission Details</span>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">
-            Admission Date <span class="required">*</span>
-          </label>
-          <input type="date" 
-                 name="admission_date" 
-                 class="form-control" 
-                 value="<?= old('admission_date') ?: date('Y-m-d') ?>" 
-                 max="<?= date('Y-m-d') ?>"
-                 required>
-          <div class="form-hint">
-            <i class="fa-solid fa-info-circle"></i> Date when patient is being admitted
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Expected Discharge Date</label>
-          <input type="date" 
-                 name="expected_discharge_date" 
-                 class="form-control" 
-                 value="<?= old('expected_discharge_date') ?>"
-                 min="<?= date('Y-m-d') ?>">
-          <div class="form-hint">
-            <i class="fa-solid fa-info-circle"></i> Estimated discharge date (optional)
-          </div>
+          <textarea name="admission_notes" class="form-control" rows="3" placeholder="Additional notes, special instructions, or important information about this admission"><?= esc(old('admission_notes', $patient['admission_notes'] ?? '')) ?></textarea>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div style="display:flex;gap:12px;margin-top:24px">
-        <button type="submit" style="padding:12px 24px;background:#3b82f6;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.95rem;display:inline-flex;align-items:center;gap:8px">
-          <i class="fa-solid fa-bed"></i> Admit Patient to Room
-        </button>
-        <a href="<?= site_url('reception/rooms') ?>" style="padding:12px 24px;background:#6b7280;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;display:inline-flex;align-items:center;gap:8px">
+      <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid #e5e7eb">
+        <a href="<?= site_url('reception/in-patients/view/' . $patient['id']) ?>" 
+           style="padding:12px 24px;background:#6b7280;color:white;text-decoration:none;border-radius:6px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background 0.2s"
+           onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
           <i class="fa-solid fa-times"></i> Cancel
         </a>
+        <button type="submit" 
+                style="padding:12px 24px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background 0.2s"
+                onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+          <i class="fa-solid fa-save"></i> Update In-Patient
+        </button>
       </div>
     </form>
-
-    <!-- Information Panel -->
-    <section class="panel" style="margin-top:24px">
-      <div class="panel-head">
-        <h2 style="margin:0;font-size:1.1rem">
-          <i class="fa-solid fa-info-circle" style="margin-right:8px"></i>Room Admission Process
-        </h2>
-      </div>
-      <div class="panel-body">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px">
-          <div style="background:#f0f9ff;border-left:4px solid #0ea5e9;padding:16px;border-radius:8px">
-            <h4 style="margin:0 0 8px;color:#0c4a6e;display:flex;align-items:center;gap:8px">
-              <span style="background:#0ea5e9;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">1</span>
-              Patient Registration
-            </h4>
-            <p style="margin:0;color:#075985;font-size:0.875rem">Patient must be registered in the hospital system first.</p>
-          </div>
-
-          <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:16px;border-radius:8px">
-            <h4 style="margin:0 0 8px;color:#166534;display:flex;align-items:center;gap:8px">
-              <span style="background:#22c55e;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">2</span>
-              Doctor Recommendation
-            </h4>
-            <p style="margin:0;color:#166534;font-size:0.875rem">Doctor must recommend admission and specify room type needed.</p>
-          </div>
-
-          <div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px">
-            <h4 style="margin:0 0 8px;color:#92400e;display:flex;align-items:center;gap:8px">
-              <span style="background:#f59e0b;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">3</span>
-              Room Assignment
-            </h4>
-            <p style="margin:0;color:#92400e;font-size:0.875rem">Receptionist assigns available room and bed based on patient needs.</p>
-          </div>
-
-          <div style="background:#fce7f3;border-left:4px solid #ec4899;padding:16px;border-radius:8px">
-            <h4 style="margin:0 0 8px;color:#9f1239;display:flex;align-items:center;gap:8px">
-              <span style="background:#ec4899;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">4</span>
-              Payment Processing
-            </h4>
-            <p style="margin:0;color:#9f1239;font-size:0.875rem">Initial room charges and deposits are processed at billing.</p>
-          </div>
-
-          <div style="background:#e0e7ff;border-left:4px solid #6366f1;padding:16px;border-radius:8px">
-            <h4 style="margin:0 0 8px;color:#312e81;display:flex;align-items:center;gap:8px">
-              <span style="background:#6366f1;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">5</span>
-              Room Occupancy
-            </h4>
-            <p style="margin:0;color:#312e81;font-size:0.875rem">Patient is officially admitted and can proceed to the assigned room.</p>
-          </div>
-        </div>
-
-        <div style="margin-top:20px;padding:14px;background:#fef3c7;border:1px solid #d97706;border-radius:8px">
-          <p style="margin:0;font-weight:600;color:#92400e;display:flex;align-items:start;gap:10px">
-            <i class="fa-solid fa-exclamation-triangle" style="font-size:1.2rem;margin-top:2px"></i>
-            <span><strong>Important:</strong> Ensure all information is accurate before admitting the patient. Once admitted, the room and bed will be marked as occupied.</span>
-          </p>
-        </div>
-      </div>
-    </section>
   </main></div>
 
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
 <script>
-// Patient info display
-document.getElementById('patientSelect').addEventListener('change', function() {
-  const selected = this.options[this.selectedIndex];
-  const infoDiv = document.getElementById('patientInfo');
-  const detailsDiv = document.getElementById('patientDetails');
-  
-  if (this.value && selected.dataset.phone) {
-    let details = '';
-    if (selected.dataset.phone) details += '<div><i class="fa-solid fa-phone"></i> ' + selected.dataset.phone + '</div>';
-    if (selected.dataset.email) details += '<div><i class="fa-solid fa-envelope"></i> ' + selected.dataset.email + '</div>';
-    if (selected.dataset.dob) {
-      const dob = new Date(selected.dataset.dob);
-      const age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
-      details += '<div><i class="fa-solid fa-birthday-cake"></i> DOB: ' + selected.dataset.dob + ' (Age: ' + age + ')</div>';
-    }
-    detailsDiv.innerHTML = details;
-    infoDiv.style.display = 'block';
-  } else {
-    infoDiv.style.display = 'none';
-  }
-});
-
 // Room info display
 document.getElementById('roomSelect').addEventListener('change', function() {
   const selected = this.options[this.selectedIndex];
@@ -499,6 +426,7 @@ function loadBedsForRoom(roomId) {
   const bedIdField = document.getElementById('bedIdField');
   const bedError = document.getElementById('bedSelectionError');
   const bedErrorText = document.getElementById('bedErrorText');
+  const currentBedId = <?= json_encode($patient['assigned_bed_id'] ?? null) ?>;
   
   if (!roomId) {
     bedGroup.style.display = 'none';
@@ -514,7 +442,6 @@ function loadBedsForRoom(roomId) {
       <p style="margin:0">Loading beds for this room...</p>
     </div>
   `;
-  bedIdField.value = '';
   
   // Fetch beds for this room
   fetch('<?= site_url('reception/get-beds-by-room') ?>/' + roomId)
@@ -526,19 +453,17 @@ function loadBedsForRoom(roomId) {
     })
     .then(data => {
       bedSelection.innerHTML = '';
-      bedIdField.value = '';
       bedError.style.display = 'none';
       
       if (data.success && data.beds && data.beds.length > 0) {
-        const availableBeds = data.beds.filter(bed => !bed.is_occupied);
-        const occupiedBeds = data.beds.filter(bed => bed.is_occupied);
+        const availableBeds = data.beds.filter(bed => !bed.is_occupied || bed.id == currentBedId);
+        const occupiedBeds = data.beds.filter(bed => bed.is_occupied && bed.id != currentBedId);
         
         if (availableBeds.length === 0) {
           bedSelection.innerHTML = `
             <div class="no-beds-message" style="grid-column:1/-1">
               <i class="fa-solid fa-bed" style="font-size:2rem;margin-bottom:8px;display:block;opacity:0.3"></i>
               <p style="margin:0;font-weight:600;color:#dc2626">No available beds in this room</p>
-              <p style="margin:4px 0 0 0;font-size:0.875rem">All ${data.beds.length} bed(s) are currently occupied.</p>
             </div>
           `;
           bedError.style.display = 'block';
@@ -549,7 +474,7 @@ function loadBedsForRoom(roomId) {
         // Show available beds first
         availableBeds.forEach(bed => {
           const bedOption = document.createElement('div');
-          bedOption.className = 'bed-option';
+          bedOption.className = 'bed-option' + (bed.id == currentBedId ? ' selected' : '');
           bedOption.innerHTML = `
             <div class="bed-number">
               <i class="fa-solid fa-bed"></i> Bed ${bed.bed_number}
@@ -574,6 +499,11 @@ function loadBedsForRoom(roomId) {
               this.style.transform = '';
             }, 200);
           });
+          
+          // Pre-select current bed
+          if (bed.id == currentBedId) {
+            bedIdField.value = bed.id;
+          }
           
           bedSelection.appendChild(bedOption);
         });
@@ -602,11 +532,10 @@ function loadBedsForRoom(roomId) {
           <div class="no-beds-message" style="grid-column:1/-1">
             <i class="fa-solid fa-exclamation-triangle" style="font-size:2rem;margin-bottom:8px;display:block;color:#f59e0b"></i>
             <p style="margin:0;font-weight:600">No beds found for this room</p>
-            <p style="margin:4px 0 0 0;font-size:0.875rem">This room may not have any beds configured yet.</p>
           </div>
         `;
         bedError.style.display = 'block';
-        bedErrorText.textContent = 'This room has no beds configured. Please contact room management to add beds to this room.';
+        bedErrorText.textContent = 'This room has no beds configured.';
       }
     })
     .catch(error => {
@@ -615,16 +544,15 @@ function loadBedsForRoom(roomId) {
         <div class="no-beds-message" style="grid-column:1/-1">
           <i class="fa-solid fa-exclamation-triangle" style="font-size:2rem;margin-bottom:8px;display:block;color:#dc2626"></i>
           <p style="margin:0;font-weight:600;color:#dc2626">Error loading beds</p>
-          <p style="margin:4px 0 0 0;font-size:0.875rem">Unable to load bed information. Please try again.</p>
         </div>
       `;
       bedError.style.display = 'block';
-      bedErrorText.textContent = 'Failed to load beds. Please refresh the page and try again.';
+      bedErrorText.textContent = 'Failed to load beds. Please try again.';
     });
 }
 
 // Form validation
-document.getElementById('admissionForm').addEventListener('submit', function(e) {
+document.getElementById('editForm').addEventListener('submit', function(e) {
   const bedId = document.getElementById('bedIdField').value;
   const roomId = document.getElementById('roomSelect').value;
   const bedGroup = document.getElementById('bedSelectionGroup');
@@ -637,20 +565,20 @@ document.getElementById('admissionForm').addEventListener('submit', function(e) 
       bedError.style.display = 'block';
       bedErrorText.textContent = 'Please select a bed before submitting the form.';
       bedError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      
-      // Highlight bed selection area
-      const bedSelection = document.getElementById('bedSelection');
-      bedSelection.style.border = '2px solid #ef4444';
-      setTimeout(() => {
-        bedSelection.style.border = '1px solid #e5e7eb';
-      }, 2000);
-      
       return false;
     }
   }
   
-  // Clear any error messages
-  document.getElementById('bedSelectionError').style.display = 'none';
+  return true;
+});
+
+// Load beds on page load if room is already selected
+document.addEventListener('DOMContentLoaded', function() {
+  const roomSelect = document.getElementById('roomSelect');
+  if (roomSelect.value) {
+    loadBedsForRoom(roomSelect.value);
+  }
 });
 </script>
 </body></html>
+

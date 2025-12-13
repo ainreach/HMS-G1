@@ -131,6 +131,9 @@ class Reception extends BaseController
         $db->transStart();
 
         try {
+            // Check which columns exist in the patients table
+            $dbFields = $db->getFieldNames('patients');
+            
             // Patient Data
             $patientData = [
                 'patient_id'      => 'P-' . date('YmdHis'),
@@ -139,7 +142,6 @@ class Reception extends BaseController
                 'last_name'       => trim((string) $this->request->getPost('last_name')),
                 'date_of_birth'   => $this->request->getPost('date_of_birth') ?: null,
                 'gender'          => $this->request->getPost('gender') ?: null,
-                'marital_status'  => $this->request->getPost('marital_status') ?: null,
                 'phone'           => trim((string) $this->request->getPost('phone')) ?: null,
                 'email'           => trim((string) $this->request->getPost('email')) ?: null,
                 'address'         => trim((string) $this->request->getPost('address')) ?: null,
@@ -150,17 +152,38 @@ class Reception extends BaseController
                 'allergies'       => trim((string) $this->request->getPost('allergies')) ?: null,
                 'medical_history' => trim((string) $this->request->getPost('medical_history')) ?: null,
                 'insurance_provider' => trim((string) $this->request->getPost('insurance_provider')) ?: null,
-                'policy_number'   => trim((string) $this->request->getPost('policy_number')) ?: null,
+                'insurance_number'   => trim((string) $this->request->getPost('policy_number')) ?: null,
                 'branch_id'       => $branchId,
                 'is_active'       => 1,
             ];
+            
+            // Only add marital_status if the column exists
+            if (in_array('marital_status', $dbFields)) {
+                $patientData['marital_status'] = $this->request->getPost('marital_status') ?: null;
+            }
+            
+            // Only add city if the column exists
+            if (in_array('city', $dbFields)) {
+                $patientData['city'] = trim((string) $this->request->getPost('city')) ?: null;
+            }
 
             if (empty($patientData['first_name']) || empty($patientData['last_name'])) {
                 return redirect()->back()->with('error', 'First and last name are required.')->withInput();
             }
 
-            $patientModel->insert($patientData);
+            // Check for validation errors before insert
+            if (!$patientModel->insert($patientData)) {
+                $errors = $patientModel->errors();
+                log_message('error', '[PATIENT_REGISTRATION] Validation errors: ' . json_encode($errors));
+                return redirect()->back()->with('error', 'Validation failed: ' . implode(', ', $errors))->withInput();
+            }
+            
             $patientId = $patientModel->getInsertID();
+            
+            if (!$patientId) {
+                log_message('error', '[PATIENT_REGISTRATION] Failed to get patient ID after insert');
+                throw new \Exception('Failed to get patient ID after registration');
+            }
 
             $message = 'Patient registered successfully.';
 
@@ -186,9 +209,56 @@ class Reception extends BaseController
                 }
             } elseif ($admissionType === 'admission') {
                 $assignedRoomId = $this->request->getPost('assigned_room_id');
-                if ($assignedRoomId) {
-                    $patientModel->update($patientId, ['assigned_room_id' => $assignedRoomId]);
+                $assignedBedId = $this->request->getPost('assigned_bed_id') ?: null;
+                $attendingPhysicianId = $this->request->getPost('attending_physician_id') ?: null;
+                $admissionReason = trim((string) $this->request->getPost('admission_reason')) ?: null;
+                
+                if (!$assignedRoomId) {
+                    return redirect()->back()->with('error', 'Room assignment is required for In-Patient admission.')->withInput();
                 }
+                
+                $roomModel = model('App\Models\RoomModel');
+                $bedModel = model('App\Models\BedModel');
+                
+                // Update patient with room assignment
+                $updateData = [
+                    'assigned_room_id' => $assignedRoomId,
+                    'admission_type' => 'admission',
+                    'admission_date' => date('Y-m-d'),
+                ];
+                
+                // Add attending physician if provided
+                if ($attendingPhysicianId) {
+                    $updateData['attending_physician_id'] = $attendingPhysicianId;
+                }
+                
+                // Add admission reason if provided
+                if ($admissionReason) {
+                    $updateData['admission_reason'] = $admissionReason;
+                }
+                
+                // Handle bed assignment if provided
+                if ($assignedBedId) {
+                    $bed = $bedModel->find($assignedBedId);
+                    if ($bed && $bed['room_id'] == $assignedRoomId && $bed['status'] === 'available') {
+                        $updateData['assigned_bed_id'] = $assignedBedId;
+                        
+                        // Update bed status to occupied
+                        $bedModel->update($assignedBedId, ['status' => 'occupied']);
+                    }
+                }
+                
+                // Update room occupancy
+                $room = $roomModel->find($assignedRoomId);
+                if ($room) {
+                    $newOccupancy = ($room['current_occupancy'] ?? 0) + 1;
+                    $roomModel->update($assignedRoomId, [
+                        'current_occupancy' => $newOccupancy,
+                        'status' => $newOccupancy >= ($room['capacity'] ?? 1) ? 'occupied' : 'available'
+                    ]);
+                }
+                
+                $patientModel->update($patientId, $updateData);
             }
 
             $db->transComplete();
@@ -197,8 +267,18 @@ class Reception extends BaseController
 
         } catch (\Exception $e) {
             $db->transRollback();
-            log_message('error', '[PATIENT_REGISTRATION] ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to register patient. Please try again.')->withInput();
+            $errorMessage = $e->getMessage();
+            log_message('error', '[PATIENT_REGISTRATION] Exception: ' . $errorMessage);
+            log_message('error', '[PATIENT_REGISTRATION] Stack trace: ' . $e->getTraceAsString());
+            
+            // Check for database errors
+            $dbError = $db->error();
+            if ($dbError['code'] != 0) {
+                log_message('error', '[PATIENT_REGISTRATION] Database error: ' . json_encode($dbError));
+                $errorMessage .= ' Database error: ' . $dbError['message'];
+            }
+            
+            return redirect()->back()->with('error', 'Failed to register patient: ' . $errorMessage)->withInput();
         }
     }
 
@@ -779,6 +859,24 @@ class Reception extends BaseController
         $patientModel = model('App\\Models\\PatientModel');
         $branchModel = model('App\\Models\\BranchModel');
         
+        // Get search query if provided
+        $search = $this->request->getGet('search') ?? '';
+        
+        // Get sorting parameters
+        $sortBy = $this->request->getGet('sort') ?? 'last_name';
+        $sortOrder = strtoupper($this->request->getGet('order') ?? 'ASC');
+        
+        // Validate sort order
+        if (!in_array($sortOrder, ['ASC', 'DESC'])) {
+            $sortOrder = 'ASC';
+        }
+        
+        // Validate sort column
+        $allowedSortColumns = ['patient_id', 'last_name', 'first_name', 'created_at'];
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'last_name';
+        }
+        
         // Get the first available branch
         $existingBranch = $branchModel->first();
         if (!$existingBranch) {
@@ -798,13 +896,156 @@ class Reception extends BaseController
             $branchId = $existingBranch['id'];
         }
         
-        $patients = $patientModel
+        // Build query
+        $builder = $patientModel
             ->where('branch_id', $branchId)
-            ->where('is_active', 1)
-            ->orderBy('last_name', 'ASC')
-            ->findAll(100);
+            ->where('is_active', 1);
+        
+        // Apply search filter if provided
+        if (!empty($search)) {
+            $builder->groupStart()
+                ->like('first_name', $search)
+                ->orLike('last_name', $search)
+                ->orLike('middle_name', $search)
+                ->orLike('patient_id_number', $search)
+                ->orLike('contact_number', $search)
+                ->groupEnd();
+        }
+        
+        // Get status filter if provided
+        $statusFilter = $this->request->getGet('status') ?? 'all';
+        
+        // Apply status filter if provided
+        if ($statusFilter !== 'all') {
+            if ($statusFilter === 'admitted') {
+                $builder->where('admission_type', 'admission')
+                    ->where('assigned_room_id IS NOT NULL');
+            } elseif ($statusFilter === 'discharged') {
+                $builder->groupStart()
+                    ->where('discharge_date IS NOT NULL')
+                    ->orGroupStart()
+                        ->where('admission_type', null)
+                        ->where('assigned_room_id', null)
+                    ->groupEnd()
+                ->groupEnd();
+            } elseif ($statusFilter === 'outpatient') {
+                $builder->groupStart()
+                    ->where('admission_type !=', 'admission')
+                    ->orWhere('admission_type', null)
+                ->groupEnd()
+                ->where('assigned_room_id', null);
+            }
+        }
+        
+        // Pagination setup
+        $perPage = 20; // Number of records per page
+        $page = (int)($this->request->getGet('page') ?? 1);
+        $page = max(1, $page); // Ensure page is at least 1
+        $offset = ($page - 1) * $perPage;
+        
+        // Get total count before pagination
+        $totalCount = $builder->countAllResults(false);
+        
+        // Apply pagination
+        $patients = $builder->orderBy($sortBy, $sortOrder)
+            ->limit($perPage, $offset)
+            ->findAll();
+        
+        // Calculate pagination variables
+        $totalPages = max(1, ceil($totalCount / $perPage));
+        $hasPrev = $page > 1;
+        $hasNext = $page < $totalPages;
+        
+        // Get room model for room information
+        $roomModel = model('App\\Models\\RoomModel');
+        
+        // Enhance patient data with status and room info
+        foreach ($patients as &$patient) {
+            // Determine patient status
+            $patient['status'] = 'outpatient';
+            $patient['status_label'] = 'Out-Patient';
+            $patient['status_color'] = '#6b7280';
+            
+            if (!empty($patient['discharge_date'])) {
+                $patient['status'] = 'discharged';
+                $patient['status_label'] = 'Discharged';
+                $patient['status_color'] = '#16a34a';
+            } elseif (!empty($patient['assigned_room_id']) && ($patient['admission_type'] ?? '') === 'admission') {
+                $patient['status'] = 'admitted';
+                $patient['status_label'] = 'Admitted';
+                $patient['status_color'] = '#3b82f6';
+            }
+            
+            // Format room info
+            if (!empty($patient['assigned_room_id'])) {
+                $room = $roomModel->find($patient['assigned_room_id']);
+                if ($room) {
+                    $patient['room_display'] = $room['room_number'] ?? 'Room ' . $patient['assigned_room_id'];
+                    if (!empty($patient['assigned_bed_id'])) {
+                        // Try to get bed info if bed table exists
+                        $db = \Config\Database::connect();
+                        $bed = $db->table('beds')
+                            ->where('id', $patient['assigned_bed_id'])
+                            ->get()
+                            ->getRowArray();
+                        if ($bed) {
+                            $patient['room_display'] .= ' - Bed ' . ($bed['bed_number'] ?? $patient['assigned_bed_id']);
+                        }
+                    }
+                } else {
+                    $patient['room_display'] = 'N/A';
+                }
+            } else {
+                $patient['room_display'] = 'N/A';
+            }
+        }
+        unset($patient); // Break reference
+        
+        // Calculate statistics
+        $statsBuilder = $patientModel
+            ->where('branch_id', $branchId)
+            ->where('is_active', 1);
+        
+        $stats = [
+            'total' => $statsBuilder->countAllResults(false),
+            'admitted' => $patientModel
+                ->where('branch_id', $branchId)
+                ->where('is_active', 1)
+                ->where('admission_type', 'admission')
+                ->where('assigned_room_id IS NOT NULL')
+                ->countAllResults(false),
+            'discharged' => $patientModel
+                ->where('branch_id', $branchId)
+                ->where('is_active', 1)
+                ->where('discharge_date IS NOT NULL')
+                ->countAllResults(false),
+            'outpatient' => $patientModel
+                ->where('branch_id', $branchId)
+                ->where('is_active', 1)
+                ->where('admission_type !=', 'admission')
+                ->orWhere('admission_type', null)
+                ->where('assigned_room_id', null)
+                ->countAllResults(false),
+        ];
+        
+        // Total for display (use totalCount for accurate pagination)
+        $total = $totalCount;
 
-        return view('Reception/patients', ['patients' => $patients]);
+        return view('Reception/patients', [
+            'patients' => $patients,
+            'total' => $total,
+            'search' => $search,
+            'stats' => $stats,
+            'sortBy' => $sortBy,
+            'sortOrder' => $sortOrder,
+            'statusFilter' => $statusFilter,
+            'page' => $page,
+            'perPage' => $perPage,
+            'offset' => $offset,
+            'totalPages' => $totalPages,
+            'hasPrev' => $hasPrev,
+            'hasNext' => $hasNext
+        ]);
     }
 
     public function searchPatients()
@@ -890,35 +1131,53 @@ class Reception extends BaseController
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         $userModel = model('App\\Models\\UserModel');
         
-        // Get all in-patients (admission_type = 'admission' and has admission_date)
+        // Get search query
+        $search = $this->request->getGet('search') ?? '';
+        
+        // Build query
         $db = \Config\Database::connect();
-        $inPatients = $db->query("
-            SELECT 
-                p.*,
-                r.room_number,
-                r.room_type,
-                r.floor,
-                r.rate_per_day,
-                b.bed_number,
-                b.bed_type as bed_type_name,
-                u.username as attending_physician_name,
-                u.first_name as doctor_first_name,
-                u.last_name as doctor_last_name,
-                (SELECT COUNT(*) FROM medical_records mr WHERE mr.patient_id = p.id) as total_consultations,
-                (SELECT visit_date FROM medical_records WHERE patient_id = p.id ORDER BY visit_date DESC LIMIT 1) as last_consultation
-            FROM patients p
-            LEFT JOIN rooms r ON r.id = p.assigned_room_id
-            LEFT JOIN beds b ON b.id = p.assigned_bed_id
-            LEFT JOIN users u ON u.id = p.attending_physician_id
-            WHERE p.is_active = 1
-            AND p.admission_type = 'admission'
-            AND p.admission_date IS NOT NULL
-            AND p.admission_date != ''
-            ORDER BY p.admission_date DESC
-        ")->getResultArray();
+        $builder = $db->table('patients p');
+        $builder->select('
+            p.*,
+            r.room_number,
+            r.room_type,
+            r.floor,
+            r.rate_per_day,
+            b.bed_number,
+            b.bed_type as bed_type_name,
+            u.username as attending_physician_name,
+            u.first_name as doctor_first_name,
+            u.last_name as doctor_last_name,
+            (SELECT COUNT(*) FROM medical_records mr WHERE mr.patient_id = p.id) as total_consultations,
+            (SELECT visit_date FROM medical_records WHERE patient_id = p.id ORDER BY visit_date DESC LIMIT 1) as last_consultation
+        ');
+        $builder->join('rooms r', 'r.id = p.assigned_room_id', 'left');
+        $builder->join('beds b', 'b.id = p.assigned_bed_id', 'left');
+        $builder->join('users u', 'u.id = p.attending_physician_id', 'left');
+        $builder->where('p.is_active', 1);
+        $builder->where('p.admission_type', 'admission');
+        $builder->where('p.admission_date IS NOT NULL');
+        $builder->where('p.admission_date !=', '');
+        
+        // Apply search filter
+        if (!empty($search)) {
+            $builder->groupStart()
+                ->like('p.first_name', $search)
+                ->orLike('p.last_name', $search)
+                ->orLike('p.patient_id', $search)
+                ->orLike('p.phone', $search)
+                ->orLike('r.room_number', $search)
+                ->orLike('b.bed_number', $search)
+                ->orLike('u.username', $search)
+                ->groupEnd();
+        }
+        
+        $builder->orderBy('p.admission_date', 'DESC');
+        $inPatients = $builder->get()->getResultArray();
         
         return view('Reception/in_patients', [
-            'inPatients' => $inPatients
+            'inPatients' => $inPatients,
+            'search' => $search
         ]);
     }
 
@@ -976,7 +1235,7 @@ class Reception extends BaseController
         // Get prescriptions
         $prescriptions = $prescriptionModel
             ->where('patient_id', $patientId)
-            ->orderBy('prescription_date', 'DESC')
+            ->orderBy('start_date', 'DESC')
             ->findAll(10);
         
         return view('Reception/in_patient_details', [
@@ -987,6 +1246,199 @@ class Reception extends BaseController
             'medicalRecords' => $medicalRecords,
             'labTests' => $labTests,
             'prescriptions' => $prescriptions,
+        ]);
+    }
+
+    /**
+     * Edit in-patient
+     */
+    public function editInPatient($patientId)
+    {
+        helper('url');
+        $patientModel = model('App\Models\PatientModel');
+        $roomModel = model('App\Models\RoomModel');
+        $bedModel = model('App\Models\BedModel');
+        $userModel = model('App\Models\UserModel');
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('reception/in-patients'))->with('error', 'Patient not found.');
+        }
+        
+        // Check if patient is an in-patient
+        if ($patient['admission_type'] !== 'admission' || empty($patient['admission_date'])) {
+            return redirect()->to(site_url('reception/in-patients'))->with('error', 'This patient is not an in-patient.');
+        }
+        
+        // Get all available rooms
+        $availableRooms = $roomModel->where('status', 'available')->findAll();
+        // Also include the currently assigned room even if it's occupied
+        if ($patient['assigned_room_id']) {
+            $currentRoom = $roomModel->find($patient['assigned_room_id']);
+            if ($currentRoom && !in_array($currentRoom['id'], array_column($availableRooms, 'id'))) {
+                $availableRooms[] = $currentRoom;
+            }
+        }
+        
+        // Get all doctors
+        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->findAll();
+        
+        // Get current room and bed
+        $currentRoom = null;
+        $currentBed = null;
+        if ($patient['assigned_room_id']) {
+            $currentRoom = $roomModel->find($patient['assigned_room_id']);
+        }
+        if ($patient['assigned_bed_id']) {
+            $currentBed = $bedModel->find($patient['assigned_bed_id']);
+        }
+        
+        return view('Reception/in_patient_edit', [
+            'patient' => $patient,
+            'availableRooms' => $availableRooms,
+            'doctors' => $doctors,
+            'currentRoom' => $currentRoom,
+            'currentBed' => $currentBed,
+        ]);
+    }
+
+    /**
+     * Update in-patient
+     */
+    public function updateInPatient($patientId)
+    {
+        helper(['url', 'form']);
+        $patientModel = model('App\Models\PatientModel');
+        $roomModel = model('App\Models\RoomModel');
+        $bedModel = model('App\Models\BedModel');
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('reception/in-patients'))->with('error', 'Patient not found.');
+        }
+        
+        $db = \Config\Database::connect();
+        $db->transStart();
+        
+        try {
+            $assignedRoomId = $this->request->getPost('assigned_room_id');
+            $assignedBedId = $this->request->getPost('assigned_bed_id') ?: null;
+            $attendingPhysicianId = $this->request->getPost('attending_physician_id') ?: null;
+            $admissionReason = trim((string) $this->request->getPost('admission_reason')) ?: null;
+            $admissionNotes = trim((string) $this->request->getPost('admission_notes')) ?: null;
+            
+            if (!$assignedRoomId) {
+                return redirect()->back()->with('error', 'Room assignment is required.')->withInput();
+            }
+            
+            $oldRoomId = $patient['assigned_room_id'];
+            $oldBedId = $patient['assigned_bed_id'];
+            
+            // Update patient data
+            $updateData = [
+                'assigned_room_id' => $assignedRoomId,
+            ];
+            
+            if ($attendingPhysicianId) {
+                $updateData['attending_physician_id'] = $attendingPhysicianId;
+            }
+            
+            if ($admissionReason !== null) {
+                $updateData['admission_reason'] = $admissionReason;
+            }
+            
+            if ($admissionNotes !== null) {
+                $updateData['admission_notes'] = $admissionNotes;
+            }
+            
+            // Handle bed assignment
+            if ($assignedBedId) {
+                $bed = $bedModel->find($assignedBedId);
+                if ($bed && $bed['room_id'] == $assignedRoomId) {
+                    $updateData['assigned_bed_id'] = $assignedBedId;
+                    
+                    // Free old bed if different
+                    if ($oldBedId && $oldBedId != $assignedBedId) {
+                        $bedModel->update($oldBedId, ['status' => 'available']);
+                    }
+                    
+                    // Occupy new bed if different
+                    if ($bed['status'] === 'available') {
+                        $bedModel->update($assignedBedId, ['status' => 'occupied']);
+                    }
+                }
+            } else {
+                // Remove bed assignment
+                if ($oldBedId) {
+                    $updateData['assigned_bed_id'] = null;
+                    $bedModel->update($oldBedId, ['status' => 'available']);
+                }
+            }
+            
+            // Handle room change
+            if ($oldRoomId != $assignedRoomId) {
+                // Decrease occupancy of old room
+                if ($oldRoomId) {
+                    $oldRoom = $roomModel->find($oldRoomId);
+                    if ($oldRoom) {
+                        $newOccupancy = max(0, ($oldRoom['current_occupancy'] ?? 1) - 1);
+                        $roomModel->update($oldRoomId, [
+                            'current_occupancy' => $newOccupancy,
+                            'status' => $newOccupancy > 0 ? 'available' : 'available'
+                        ]);
+                    }
+                }
+                
+                // Increase occupancy of new room
+                $newRoom = $roomModel->find($assignedRoomId);
+                if ($newRoom) {
+                    $newOccupancy = ($newRoom['current_occupancy'] ?? 0) + 1;
+                    $roomModel->update($assignedRoomId, [
+                        'current_occupancy' => $newOccupancy,
+                        'status' => $newOccupancy >= ($newRoom['capacity'] ?? 1) ? 'occupied' : 'available'
+                    ]);
+                }
+            }
+            
+            $patientModel->update($patientId, $updateData);
+            
+            $db->transComplete();
+            
+            return redirect()->to(site_url('reception/in-patients'))->with('success', 'In-patient information updated successfully.');
+            
+        } catch (\Exception $e) {
+            $db->transRollback();
+            log_message('error', '[IN_PATIENT_UPDATE] ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update in-patient: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Get beds by room ID (AJAX endpoint)
+     */
+    public function getBedsByRoom($roomId)
+    {
+        helper('url');
+        $bedModel = model('App\Models\BedModel');
+        
+        $roomId = (int) $roomId;
+        if ($roomId <= 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Invalid room ID',
+                'beds' => []
+            ]);
+        }
+        
+        $beds = $bedModel
+            ->where('room_id', $roomId)
+            ->where('status', 'available')
+            ->orderBy('bed_number', 'ASC')
+            ->findAll();
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'beds' => $beds
         ]);
     }
 }

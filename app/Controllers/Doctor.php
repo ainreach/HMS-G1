@@ -1050,36 +1050,37 @@ class Doctor extends BaseController
             }
         }
         
-        // Create billing for consultation fee
+        // Add consultation fee to patient's consolidated bill
         $consultationFee = 500.00;
-        $invoiceNumber = 'INV-' . date('YmdHis') . '-' . $patientId;
         
-        $billingData = [
-            'invoice_number' => $invoiceNumber,
-            'patient_id' => $patientId,
-            'branch_id' => 1,
-            'bill_date' => date('Y-m-d'),
-            'due_date' => date('Y-m-d', strtotime('+7 days')),
-            'subtotal' => $consultationFee,
-            'total_amount' => $consultationFee,
-            'balance' => $consultationFee,
-            'payment_status' => 'pending',
-            'created_by' => $doctorId,
-        ];
-        $billingModel->insert($billingData);
-        $billingId = $billingModel->getInsertID();
+        // Get or create active bill for this patient (consolidated billing)
+        $activeBill = $billingModel->getOrCreateActiveBill($patientId, 1, $doctorId);
+        $billingId = $activeBill['id'];
         
-        if ($billingId) {
+        // Check if consultation was already added today for this patient (avoid duplicate charges)
+        $today = date('Y-m-d');
+        $existingConsultation = $billingItemModel
+            ->where('billing_id', $billingId)
+            ->where('item_type', 'consultation')
+            ->where('item_name', 'Doctor Consultation')
+            ->where('description LIKE', '%Consultation on ' . $today . '%')
+            ->first();
+        
+        if (!$existingConsultation) {
+            // Add consultation item to the bill
             $billingItemData = [
                 'billing_id' => $billingId,
                 'item_type' => 'consultation',
                 'item_name' => 'Doctor Consultation',
-                'description' => 'Consultation on ' . date('Y-m-d'),
+                'description' => 'Consultation on ' . $today . ' - Doctor ID: ' . $doctorId,
                 'quantity' => 1,
                 'unit_price' => $consultationFee,
                 'total_price' => $consultationFee,
             ];
             $billingItemModel->insert($billingItemData);
+            
+            // Recalculate bill totals
+            $billingModel->recalculateBill($billingId);
         }
         
         // Handle medication prescription if provided

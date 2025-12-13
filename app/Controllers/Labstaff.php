@@ -136,6 +136,47 @@ class Labstaff extends BaseController
             'result_date' => date('Y-m-d H:i:s'),
             'lab_technician_id' => (int) (session('user_id') ?: 0),
         ]);
+        
+        // AUTOMATIC BILLING: Add lab test charge to patient's consolidated bill
+        $test = $model->find($testId);
+        if ($test && !empty($test['patient_id'])) {
+            $testCost = (float)($test['cost'] ?? 0);
+            
+            if ($testCost > 0) {
+                $billingModel = model('App\\Models\\BillingModel');
+                $billingItemModel = model('App\\Models\\BillingItemModel');
+                
+                // Get or create active bill for this patient
+                $activeBill = $billingModel->getOrCreateActiveBill($test['patient_id'], $test['branch_id'] ?? 1, session('user_id'));
+                $billingId = $activeBill['id'];
+                
+                // Check if this lab test is already billed (avoid duplicate charges)
+                $existingItem = $billingItemModel
+                    ->where('billing_id', $billingId)
+                    ->where('item_type', 'lab_test')
+                    ->where('item_name', $test['test_name'] ?? '')
+                    ->where('description LIKE', '%Test Number: ' . $test['test_number'] . '%')
+                    ->first();
+                
+                if (!$existingItem) {
+                    // Add lab test item to the bill
+                    $billingItemData = [
+                        'billing_id' => $billingId,
+                        'item_type' => 'lab_test',
+                        'item_name' => $test['test_name'] ?? 'Lab Test',
+                        'description' => 'Test Number: ' . ($test['test_number'] ?? '') . ' - ' . ($test['test_type'] ?? ''),
+                        'quantity' => 1,
+                        'unit_price' => $testCost,
+                        'total_price' => $testCost,
+                    ];
+                    $billingItemModel->insert($billingItemData);
+                    
+                    // Recalculate bill totals
+                    $billingModel->recalculateBill($billingId);
+                }
+            }
+        }
+        
         return redirect()->to(site_url('dashboard/lab'))
             ->with('success', 'Result saved successfully.');
     }

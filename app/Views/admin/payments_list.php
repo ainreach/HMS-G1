@@ -99,14 +99,28 @@
                 </td>
                 <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;">
                   <div style="display:flex;gap:6px;align-items:center;">
-                    <!-- Pay / collect payment icon (placeholder link to accountant payments) -->
-                    <a
-                      href="<?= site_url('accountant/payments') ?>"
+                    <!-- Pay / collect payment - Floating Card Modal -->
+                    <?php if ($balance > 0): ?>
+                    <button
+                      type="button"
+                      class="quick-payment-btn"
+                      data-bill='<?= json_encode([
+                        'id' => $billId,
+                        'invoice_number' => $invoiceNo,
+                        'patient_name' => $fullName,
+                        'patient_id' => $patient['id'] ?? null,
+                        'total_amount' => $totalAmount,
+                        'amount_paid' => $amountPaid,
+                        'balance' => $balance,
+                        'bill_date' => $billDate,
+                        'due_date' => $dueDate,
+                      ]) ?>'
                       title="Record Payment"
-                      style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #22c55e;color:#22c55e;background:white;"
+                      style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #22c55e;color:#22c55e;background:white;cursor:pointer;"
                     >
                       <i class="fa-solid fa-money-bill-wave"></i>
-                    </a>
+                    </button>
+                    <?php endif; ?>
 
                     <?php if ($billId): ?>
                       <!-- View invoice -->
@@ -144,7 +158,7 @@
   <section class="panel">
     <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Payment Entry</h2></div>
     <div class="panel-body">
-      <form id="paymentForm" method="post" action="<?= site_url('accountant/storePayment') ?>" style="display:flex;flex-direction:column;gap:12px">
+      <form id="paymentForm" method="post" action="<?= site_url('admin/payments') ?>" style="display:flex;flex-direction:column;gap:12px">
         <div>
           <label style="display:block;margin-bottom:4px;font-weight:500">Select Invoice</label>
           <select name="invoice_no" id="invoiceSelect" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px" required>
@@ -320,7 +334,7 @@
       <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success" style="background:#f0fdf4;color:#16a34a;padding:12px;border-radius:8px;margin-bottom:16px;border:1px solid #bbf7d0;"><?= esc(session()->getFlashdata('success')) ?></div>
       <?php endif; ?>
-      <form id="modalInvoiceForm" method="post" action="<?= site_url('accountant/invoices') ?>" style="display:grid;gap:16px">
+      <form id="modalInvoiceForm" method="post" action="<?= site_url('admin/invoices') ?>" style="display:grid;gap:16px">
         <?= csrf_field() ?>
         <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div>
@@ -384,7 +398,7 @@
       <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-error" style="background:#fef2f2;color:#dc2626;padding:12px;border-radius:8px;margin-bottom:16px;border:1px solid #fecaca;"><?= esc(session()->getFlashdata('error')) ?></div>
       <?php endif; ?>
-      <form id="modalPaymentForm" method="post" action="<?= site_url('accountant/storePayment') ?>" style="display:flex;flex-direction:column;gap:12px">
+      <form id="modalPaymentForm" method="post" action="<?= site_url('admin/payments') ?>" style="display:flex;flex-direction:column;gap:12px">
         <?= csrf_field() ?>
         <div>
           <label style="display:block;margin-bottom:4px;font-weight:600">Select Invoice</label>
@@ -615,6 +629,110 @@ document.querySelectorAll('.view-payment-btn').forEach(function(btn) {
     document.getElementById('pv-invoice').textContent = data.invoice_no || '—';
     document.getElementById('pv-patient').textContent = data.patient_name || '—';
     viewPaymentModal.classList.add('show');
+  });
+});
+
+// Floating Card for Quick Payment from Invoice Records
+const quickPaymentModal = document.createElement('div');
+quickPaymentModal.id = 'quickPaymentModal';
+quickPaymentModal.className = 'modal-overlay';
+quickPaymentModal.innerHTML = `
+  <div class="modal-card" style="background:white;border-radius:12px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:2px solid #e5e7eb;background:linear-gradient(to right,#10b981,#059669);color:white;">
+      <div>
+        <div id="qp-invoice-code" style="font-size:0.85rem;opacity:.95;margin-bottom:4px;"></div>
+        <h3 style="margin:0;font-size:1.2rem;font-weight:600;">Quick Payment Entry</h3>
+      </div>
+      <button class="modal-close" id="closeQuickPaymentModal" style="background:rgba(255,255,255,0.2);border:none;font-size:24px;cursor:pointer;color:white;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
+          <div>
+            <div style="color:#6b7280;font-size:0.75rem;margin-bottom:4px;">Patient</div>
+            <div id="qp-patient" style="font-weight:600;color:#111827;"></div>
+          </div>
+          <div>
+            <div style="color:#6b7280;font-size:0.75rem;margin-bottom:4px;">Total Amount</div>
+            <div id="qp-total" style="font-weight:700;color:#059669;font-size:1.1rem;"></div>
+          </div>
+          <div>
+            <div style="color:#6b7280;font-size:0.75rem;margin-bottom:4px;">Amount Paid</div>
+            <div id="qp-paid" style="font-weight:600;color:#16a34a;"></div>
+          </div>
+          <div>
+            <div style="color:#6b7280;font-size:0.75rem;margin-bottom:4px;">Balance Due</div>
+            <div id="qp-balance" style="font-weight:700;color:#dc2626;font-size:1.1rem;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <form id="quickPaymentForm" method="post" action="<?= site_url('admin/payments') ?>" style="display:flex;flex-direction:column;gap:16px;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="patient_id" id="qp-patient-id">
+        <input type="hidden" name="invoice_no" id="qp-invoice-no">
+        
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151;">Payment Amount *</label>
+          <input type="number" name="amount" id="qp-amount" step="0.01" min="0" max="0" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:8px;font-size:1rem;font-weight:600;" placeholder="0.00" required>
+          <small style="color:#6b7280;font-size:0.75rem;margin-top:4px;display:block;">Maximum: <span id="qp-max-amount">₱0.00</span></small>
+        </div>
+        
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151;">Payment Method *</label>
+          <select name="payment_method" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:8px;font-size:0.95rem;" required>
+            <option value="">Select method...</option>
+            <option value="cash">Cash</option>
+            <option value="card">Credit/Debit Card</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="check">Check</option>
+            <option value="online">Online Payment</option>
+          </select>
+        </div>
+        
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:600;color:#374151;">Payment Date *</label>
+          <input type="date" name="payment_date" value="<?= date('Y-m-d') ?>" style="width:100%;padding:12px;border:2px solid #d1d5db;border-radius:8px;font-size:0.95rem;" required>
+        </div>
+        
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="submit" style="flex:1;background:#10b981;color:white;padding:14px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <i class="fa-solid fa-check"></i> Record Payment
+          </button>
+          <button type="button" id="cancelQuickPayment" style="background:#6b7280;color:white;padding:14px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:500;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+`;
+document.body.appendChild(quickPaymentModal);
+
+function closeQuickPayment() {
+  quickPaymentModal.classList.remove('show');
+  document.getElementById('quickPaymentForm').reset();
+}
+
+document.getElementById('closeQuickPaymentModal').addEventListener('click', closeQuickPayment);
+document.getElementById('cancelQuickPayment').addEventListener('click', closeQuickPayment);
+quickPaymentModal.addEventListener('click', function(e) {
+  if (e.target === this) closeQuickPayment();
+});
+
+// Handle quick payment button clicks from invoice records
+document.querySelectorAll('.quick-payment-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const data = JSON.parse(this.getAttribute('data-bill'));
+    document.getElementById('qp-invoice-code').textContent = 'Invoice: ' + (data.invoice_number || 'N/A');
+    document.getElementById('qp-patient').textContent = data.patient_name || 'N/A';
+    document.getElementById('qp-total').textContent = '₱' + Number(data.total_amount || 0).toFixed(2);
+    document.getElementById('qp-paid').textContent = '₱' + Number(data.amount_paid || 0).toFixed(2);
+    document.getElementById('qp-balance').textContent = '₱' + Number(data.balance || 0).toFixed(2);
+    document.getElementById('qp-max-amount').textContent = '₱' + Number(data.balance || 0).toFixed(2);
+    document.getElementById('qp-patient-id').value = data.patient_id || '';
+    document.getElementById('qp-invoice-no').value = data.invoice_number || '';
+    document.getElementById('qp-amount').value = data.balance || 0;
+    document.getElementById('qp-amount').max = data.balance || 0;
+    quickPaymentModal.classList.add('show');
   });
 });
 </script>

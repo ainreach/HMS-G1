@@ -22,7 +22,7 @@ class BillingItemModel extends Model
 
     protected $validationRules = [
         'billing_id' => 'required|integer',
-        'item_type' => 'required|in_list[consultation,medication,lab_test,room,procedure,other]',
+        'item_type' => 'required|in_list[consultation,medication,lab_test,room_charge,room,procedure,other]',
         'item_name' => 'required|max_length[255]',
         'quantity' => 'required|decimal|greater_than[0]',
         'unit_price' => 'required|decimal|greater_than_equal_to[0]',

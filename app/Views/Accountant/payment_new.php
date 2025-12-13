@@ -11,7 +11,11 @@
 <body>
 <header class="dash-topbar" role="banner">
   <div class="topbar-inner">
-    <a href="<?= site_url('accountant/payments') ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
+    <?php 
+      $isAdmin = isset($isAdmin) && $isAdmin;
+      $backUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+    ?>
+    <a href="<?= $backUrl ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="brand">
       <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
       <div class="brand-text">
@@ -52,7 +56,10 @@
         <h2 style="margin:0;font-size:1.1rem">Payment Details</h2>
       </div>
       <div class="panel-body">
-        <form action="<?= site_url('accountant/payments') ?>" method="post" style="max-width:600px">
+        <?php 
+          $formAction = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+        ?>
+        <form action="<?= $formAction ?>" method="post" style="max-width:600px">
           <?= csrf_field() ?>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">

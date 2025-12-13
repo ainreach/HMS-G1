@@ -197,65 +197,24 @@ class Accountant extends BaseController
     public function billing()
     {
         helper('url');
-        $paymentsModel = model('App\\Models\\PaymentModel');
-        $invoiceModel  = model('App\\Models\\InvoiceModel');
-        $patientModel = model('App\\Models\\PatientModel');
+        // Redirect to consolidated bills - the main patient billing interface
+        return redirect()->to(site_url('accountant/consolidated-bills'));
+    }
 
-        // Get today's date
-        $today = date('Y-m-d');
+    public function medicationBilling()
+    {
+        helper('url');
+        $billingItemModel = new BillingItemModel();
+        $builder = $billingItemModel->builder();
+        $builder->select('billing_items.*, billing.patient_id, billing.bill_date, billing.payment_status, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+                ->join('billing', 'billing.id = billing_items.billing_id', 'left')
+                ->join('patients', 'patients.id = billing.patient_id', 'left')
+                ->where('billing_items.item_type', 'medication')
+                ->orderBy('billing.bill_date', 'DESC');
+        $items = $builder->get()->getResultArray();
 
-        // Get recent transactions
-        $payments = $paymentsModel->orderBy('paid_at', 'DESC')->findAll(10);
-        $invoices = $invoiceModel->orderBy('issued_at', 'DESC')->findAll(10);
-
-        // Calculate today's metrics
-        $paymentsToday = (float) ($paymentsModel
-            ->selectSum('amount', 'total')
-            ->where('DATE(paid_at)', $today)
-            ->first()['total'] ?? 0);
-
-        $invoicesToday = $invoiceModel
-            ->where('DATE(issued_at)', $today)
-            ->countAllResults();
-
-        // Calculate outstanding balance
-        $openInvoices = $invoiceModel->where('status !=', 'paid')->findAll();
-        $outstandingBalance = 0;
-        $overdueAmount = 0;
-        $today = date('Y-m-d');
-        
-        foreach ($openInvoices as $invoice) {
-            $amount = (float) $invoice['amount'];
-            $outstandingBalance += $amount;
-            
-            // Calculate overdue amount (invoices past due date)
-            $dueDate = $invoice['due_date'] ?? $invoice['issued_at'];
-            if (strtotime($dueDate) < strtotime($today)) {
-                $overdueAmount += $amount;
-            }
-        }
-
-        // Calculate total collected (sum of all payments)
-        $totalCollected = (float) ($paymentsModel
-            ->selectSum('amount', 'total')
-            ->first()['total'] ?? 0);
-
-        // Get recent patients for billing
-        $recentPatients = $patientModel
-            ->select('id, patient_id, first_name, last_name, created_at')
-            ->orderBy('created_at', 'DESC')
-            ->findAll(5);
-
-        return view('Accountant/billing', [
-            'payments' => $payments,
-            'invoices' => $invoices,
-            'recentPatients' => $recentPatients,
-            'paymentsToday' => $paymentsToday,
-            'invoicesToday' => $invoicesToday,
-            'outstandingBalance' => $outstandingBalance,
-            'openInvoicesCount' => count($openInvoices),
-            'totalCollected' => $totalCollected,
-            'overdueAmount' => $overdueAmount,
+        return view('Accountant/medication_billing', [
+            'items' => $items,
         ]);
     }
 
@@ -284,26 +243,50 @@ class Accountant extends BaseController
             return redirect()->to(site_url('accountant/billing'))->with('error', 'Room not found.');
         }
         
-        // Calculate room charges for the stay
+        // Calculate room charges ONLY for INPATIENTS (admission_type = 'admission')
         $roomCharges = 0;
-        if (!empty($patient['admission_date'])) {
+        $daysStayed = 0;
+        $isInpatient = ($patient['admission_type'] === 'admission' && !empty($patient['assigned_room_id']));
+        
+        if ($isInpatient && !empty($patient['admission_date'])) {
             $admissionDate = new \DateTime($patient['admission_date']);
             $dischargeDate = new \DateTime();
             $daysStayed = $admissionDate->diff($dischargeDate)->days + 1; // include admission day
             $roomCharges = $daysStayed * (float) ($room['rate_per_day'] ?? 0);
         }
         
-        // If there are room charges, create an invoice so it appears in billing lists
-        if ($roomCharges > 0) {
-            $fullName = trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''));
-            $invoiceData = [
-                'invoice_no'   => 'ROOM-' . ($patient['patient_id'] ?? $patientId) . '-' . date('YmdHis'),
-                'patient_name' => $fullName !== '' ? $fullName : 'Patient #' . $patientId,
-                'amount'       => $roomCharges,
-                'status'       => 'unpaid',
-                'issued_at'    => date('Y-m-d'),
-            ];
-            $invoiceModel->insert($invoiceData);
+        // AUTOMATIC BILLING: Add room charges to INPATIENT's consolidated bill only
+        if ($isInpatient && $roomCharges > 0) {
+            $billingModel = new BillingModel();
+            $billingItemModel = new BillingItemModel();
+            
+            // Get or create active bill for this patient
+            $activeBill = $billingModel->getOrCreateActiveBill($patientId, 1, session('user_id'));
+            $billingId = $activeBill['id'];
+            
+            // Check if room charges already added (avoid duplicate on discharge)
+            $existingRoomCharge = $billingItemModel
+                ->where('billing_id', $billingId)
+                ->where('item_type', 'room_charge')
+                ->where('item_name LIKE', '%Room Charges%')
+                ->first();
+            
+            if (!$existingRoomCharge) {
+                // Add room charge item to the bill
+                $billingItemData = [
+                    'billing_id' => $billingId,
+                    'item_type' => 'room_charge',
+                    'item_name' => 'Room Charges - ' . ($room['room_number'] ?? 'Room'),
+                    'description' => 'Inpatient room stay: ' . $daysStayed . ' day(s) @ ₱' . number_format($room['rate_per_day'] ?? 0, 2) . '/day',
+                    'quantity' => $daysStayed,
+                    'unit_price' => (float) ($room['rate_per_day'] ?? 0),
+                    'total_price' => $roomCharges,
+                ];
+                $billingItemModel->insert($billingItemData);
+                
+                // Recalculate bill totals
+                $billingModel->recalculateBill($billingId);
+            }
         }
         
         // Update room occupancy
@@ -618,6 +601,9 @@ class Accountant extends BaseController
     public function newPayment()
     {
         helper('url');
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        
         $patientModel = model('App\\Models\\PatientModel');
         
         $patients = $patientModel
@@ -627,7 +613,10 @@ class Accountant extends BaseController
             ->orderBy('first_name', 'ASC')
             ->findAll(200);
         
-        return view('Accountant/payment_new', ['patients' => $patients]);
+        return view('Accountant/payment_new', [
+            'patients' => $patients,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
     public function storeInvoice()
@@ -800,22 +789,31 @@ class Accountant extends BaseController
     public function viewPayment($paymentId)
     {
         helper('url');
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        $redirectUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+        
         $paymentModel = model('App\\Models\\PaymentModel');
         
         $payment = $paymentModel->find($paymentId);
         
         if (!$payment) {
-            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+            return redirect()->to($redirectUrl)->with('error', 'Payment not found.');
         }
         
         return view('Accountant/payment_view', [
-            'payment' => $payment
+            'payment' => $payment,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
     public function storePayment()
     {
         helper(['url', 'form']);
+
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        $redirectUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
 
         $patientId = (int) $this->request->getPost('patient_id');
         $invoice = trim((string) $this->request->getPost('invoice_no'));
@@ -843,19 +841,23 @@ class Accountant extends BaseController
         ]);
 
         AuditLogger::log('payment_record', 'patient=' . $patient['first_name'] . ' ' . $patient['last_name'] . ' amount=' . $amount . ' invoice_no=' . ($invoice ?: 'n/a'));
-        return redirect()->to(site_url('accountant/payments'))
+        return redirect()->to($redirectUrl)
             ->with('success', 'Payment recorded successfully.');
     }
 
     public function editPayment($id)
     {
         helper('url');
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        $redirectUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+        
         $paymentModel = model('App\\Models\\PaymentModel');
         $patientModel = model('App\\Models\\PatientModel');
         
         $payment = $paymentModel->find($id);
         if (!$payment) {
-            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+            return redirect()->to($redirectUrl)->with('error', 'Payment not found.');
         }
 
         $patients = $patientModel
@@ -867,19 +869,24 @@ class Accountant extends BaseController
 
         return view('Accountant/payment_edit', [
             'payment' => $payment,
-            'patients' => $patients
+            'patients' => $patients,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
     public function updatePayment($id)
     {
         helper(['url', 'form']);
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        $redirectUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+        
         $paymentModel = model('App\\Models\\PaymentModel');
         $patientModel = model('App\\Models\\PatientModel');
 
         $payment = $paymentModel->find($id);
         if (!$payment) {
-            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+            return redirect()->to($redirectUrl)->with('error', 'Payment not found.');
         }
 
         $patientId = (int) $this->request->getPost('patient_id');
@@ -905,22 +912,26 @@ class Accountant extends BaseController
 
         $paymentModel->update($id, $data);
         AuditLogger::log('payment_update', 'payment_id=' . $id . ' amount=' . $amount);
-        return redirect()->to(site_url('accountant/payments'))->with('success', 'Payment updated successfully.');
+        return redirect()->to($redirectUrl)->with('success', 'Payment updated successfully.');
     }
 
     public function deletePayment($id)
     {
         helper('url');
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        $redirectUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+        
         $paymentModel = model('App\\Models\\PaymentModel');
         
         $payment = $paymentModel->find($id);
         if (!$payment) {
-            return redirect()->to(site_url('accountant/payments'))->with('error', 'Payment not found.');
+            return redirect()->to($redirectUrl)->with('error', 'Payment not found.');
         }
 
         $paymentModel->delete($id);
         AuditLogger::log('payment_delete', 'payment_id=' . $id);
-        return redirect()->to(site_url('accountant/payments'))->with('success', 'Payment deleted successfully.');
+        return redirect()->to($redirectUrl)->with('success', 'Payment deleted successfully.');
     }
 
     public function exportStatement()
@@ -1396,6 +1407,451 @@ class Accountant extends BaseController
             'payments'           => $payments,
             'totalPaid'          => $totalPaid,
             'insuranceCoverage'  => $insuranceCoverage,
+        ]);
+    }
+
+    /**
+     * View consolidated bill for a patient (all charges in one bill)
+     */
+    public function viewConsolidatedBill($patientId)
+    {
+        helper('url');
+        
+        $patientId = (int) $patientId;
+        $userRole = session('role');
+        $isAdmin = ($userRole === 'admin');
+        
+        // Determine redirect URL based on user role
+        $redirectUrl = $isAdmin ? site_url('admin/patients') : site_url('accountant/billing');
+        
+        if ($patientId <= 0) {
+            return redirect()->to($redirectUrl)->with('error', 'Invalid patient ID.');
+        }
+
+        $billingModel = new BillingModel();
+        $patientModel = new PatientModel();
+        $itemModel = new BillingItemModel();
+        $paymentModel = new PaymentModel();
+
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to($redirectUrl)->with('error', 'Patient not found.');
+        }
+
+        // Get or create active consolidated bill
+        $billing = $billingModel->getConsolidatedBill($patientId);
+        
+        if (!$billing) {
+            return redirect()->to($redirectUrl)->with('error', 'Could not retrieve patient bill.');
+        }
+
+        $items = $itemModel
+            ->where('billing_id', $billing['id'])
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
+
+        $payments = $paymentModel
+            ->where('billing_id', $billing['id'])
+            ->orderBy('paid_at', 'ASC')
+            ->findAll();
+
+        $totalPaid = 0.0;
+        foreach ($payments as $p) {
+            $totalPaid += (float) ($p['amount'] ?? 0);
+        }
+
+        $insuranceCoverage = 0.0;
+        if (!empty($billing['insurance_claim_number'])) {
+            $insuranceCoverage = max(0.0, (float) (($billing['total_amount'] ?? 0) - ($billing['balance'] ?? 0) - $totalPaid));
+        }
+
+        return view('Accountant/billing_view', [
+            'billing'            => $billing,
+            'patient'            => $patient,
+            'items'              => $items,
+            'payments'           => $payments,
+            'totalPaid'          => $totalPaid,
+            'insuranceCoverage'  => $insuranceCoverage,
+            'isConsolidated'     => true,
+        ]);
+    }
+
+    /**
+     * List all patients with their consolidated bills (Patient-Based Billing Dashboard)
+     */
+    public function consolidatedBills()
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        $patientModel = new PatientModel();
+        $paymentModel = new PaymentModel();
+
+        // Get status filter from query parameter
+        $statusFilter = $this->request->getGet('status') ?? 'all';
+
+        // Get all active patients
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+
+        // Get consolidated bill details for each patient
+        $consolidatedBills = [];
+        $totalAmount = 0;
+        $totalPaid = 0;
+        $totalBalance = 0;
+        
+        foreach ($patients as $patient) {
+            $patientId = $patient['id'];
+            
+            // Get or create consolidated bill for this patient
+            $consolidatedBill = $billingModel->getConsolidatedBill($patientId);
+            
+            if ($consolidatedBill) {
+                $billStatus = strtolower($consolidatedBill['payment_status'] ?? 'pending');
+                
+                // Apply status filter
+                if ($statusFilter !== 'all') {
+                    if ($statusFilter === 'pending' && $billStatus !== 'pending') continue;
+                    if ($statusFilter === 'partial' && $billStatus !== 'partial') continue;
+                    if ($statusFilter === 'paid' && $billStatus !== 'paid') continue;
+                    if ($statusFilter === 'overdue' && $billStatus !== 'overdue') continue;
+                }
+                
+                // Check if patient is inpatient or outpatient
+                $isInpatient = ($patient['admission_type'] === 'admission' && !empty($patient['assigned_room_id']));
+                
+                $totalAmount += (float)($consolidatedBill['total_amount'] ?? 0);
+                $totalPaid += (float)($consolidatedBill['paid_amount'] ?? 0);
+                $totalBalance += (float)($consolidatedBill['balance'] ?? 0);
+                
+                $consolidatedBills[] = [
+                    'patient_id' => $patientId,
+                    'patient_name' => trim($patient['first_name'] . ' ' . $patient['last_name']),
+                    'patient_code' => $patient['patient_id'] ?? 'N/A',
+                    'phone' => $patient['phone'] ?? 'N/A',
+                    'patient_type' => $isInpatient ? 'Inpatient' : 'Outpatient',
+                    'is_inpatient' => $isInpatient,
+                    'bill' => $consolidatedBill,
+                ];
+            } elseif ($statusFilter === 'all' || $statusFilter === 'pending') {
+                // Include patients without bills in 'all' or 'pending' view
+                $isInpatient = ($patient['admission_type'] === 'admission' && !empty($patient['assigned_room_id']));
+                $consolidatedBills[] = [
+                    'patient_id' => $patientId,
+                    'patient_name' => trim($patient['first_name'] . ' ' . $patient['last_name']),
+                    'patient_code' => $patient['patient_id'] ?? 'N/A',
+                    'phone' => $patient['phone'] ?? 'N/A',
+                    'patient_type' => $isInpatient ? 'Inpatient' : 'Outpatient',
+                    'is_inpatient' => $isInpatient,
+                    'bill' => null,
+                ];
+            }
+        }
+
+        // Count by status
+        $statusCounts = [
+            'all' => count($consolidatedBills),
+            'pending' => 0,
+            'partial' => 0,
+            'paid' => 0,
+            'overdue' => 0,
+        ];
+        
+        foreach ($consolidatedBills as $billData) {
+            if ($billData['bill']) {
+                $status = strtolower($billData['bill']['payment_status'] ?? 'pending');
+                if (isset($statusCounts[$status])) {
+                    $statusCounts[$status]++;
+                }
+            } else {
+                $statusCounts['pending']++;
+            }
+        }
+
+        return view('Accountant/consolidated_bills', [
+            'bills' => $consolidatedBills,
+            'statusFilter' => $statusFilter,
+            'statusCounts' => $statusCounts,
+            'totalAmount' => $totalAmount,
+            'totalPaid' => $totalPaid,
+            'totalBalance' => $totalBalance,
+        ]);
+    }
+
+    /**
+     * Add a charge to a patient's consolidated bill
+     */
+    public function addCharge($patientId)
+    {
+        helper(['url', 'form']);
+        
+        if ($this->request->getMethod() === 'post') {
+            $billingModel = new BillingModel();
+            $billingItemModel = new BillingItemModel();
+            
+            $itemType = $this->request->getPost('item_type');
+            $itemName = $this->request->getPost('item_name');
+            $description = $this->request->getPost('description');
+            $quantity = (float)$this->request->getPost('quantity');
+            $unitPrice = (float)$this->request->getPost('unit_price');
+            
+            if (empty($itemName) || $quantity <= 0 || $unitPrice <= 0) {
+                return redirect()->back()->with('error', 'Please fill all required fields with valid values.')->withInput();
+            }
+            
+            // Get or create active bill
+            $bill = $billingModel->getOrCreateActiveBill($patientId, 1, session('user_id'));
+            
+            // Add item
+            $billingItemModel->insert([
+                'billing_id' => $bill['id'],
+                'item_type' => $itemType ?? 'other',
+                'item_name' => $itemName,
+                'description' => $description ?? '',
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'total_price' => $quantity * $unitPrice,
+            ]);
+            
+            // Recalculate bill
+            $billingModel->recalculateBill($bill['id']);
+            
+            AuditLogger::log('charge_added', 'patient_id=' . $patientId . ' item=' . $itemName);
+            return redirect()->to(site_url('accountant/consolidated-bill/' . $patientId))
+                ->with('success', 'Charge added successfully.');
+        }
+        
+        // GET request - show form
+        $patientModel = new PatientModel();
+        $patient = $patientModel->find($patientId);
+        
+        if (!$patient) {
+            return redirect()->to(site_url('accountant/consolidated-bills'))
+                ->with('error', 'Patient not found.');
+        }
+        
+        return view('Accountant/add_charge', [
+            'patient' => $patient,
+        ]);
+    }
+
+    /**
+     * Remove a charge from a patient's consolidated bill
+     */
+    public function removeCharge($itemId)
+    {
+        helper('url');
+        $billingItemModel = new BillingItemModel();
+        $billingModel = new BillingModel();
+        
+        $item = $billingItemModel->find($itemId);
+        if (!$item) {
+            return redirect()->back()->with('error', 'Charge item not found.');
+        }
+        
+        $billingId = $item['billing_id'];
+        $billingItemModel->delete($itemId);
+        
+        // Recalculate bill
+        $billingModel->recalculateBill($billingId);
+        
+        // Get patient ID from billing
+        $billing = $billingModel->find($billingId);
+        $patientId = $billing['patient_id'] ?? null;
+        
+        AuditLogger::log('charge_removed', 'item_id=' . $itemId);
+        
+        if ($patientId) {
+            return redirect()->to(site_url('accountant/consolidated-bill/' . $patientId))
+                ->with('success', 'Charge removed successfully.');
+        }
+        
+        return redirect()->back()->with('success', 'Charge removed successfully.');
+    }
+
+    /**
+     * Apply insurance to a patient's consolidated bill
+     */
+    public function applyInsurance($patientId)
+    {
+        helper(['url', 'form']);
+        
+        if ($this->request->getMethod() === 'post') {
+            $billingModel = new BillingModel();
+            
+            $insuranceClaimNumber = $this->request->getPost('insurance_claim_number');
+            $insuranceAmount = (float)$this->request->getPost('insurance_amount');
+            $notes = $this->request->getPost('notes');
+            
+            // Get or create active bill
+            $bill = $billingModel->getOrCreateActiveBill($patientId, 1, session('user_id'));
+            
+            // Update insurance information
+            $billingModel->update($bill['id'], [
+                'insurance_claim_number' => $insuranceClaimNumber ?? null,
+                'notes' => $notes ?? null,
+            ]);
+            
+            // If insurance amount is provided, add as discount
+            if ($insuranceAmount > 0) {
+                $currentDiscount = (float)($bill['discount_amount'] ?? 0);
+                $billingModel->update($bill['id'], [
+                    'discount_amount' => $currentDiscount + $insuranceAmount,
+                ]);
+                $billingModel->recalculateBill($bill['id']);
+            }
+            
+            AuditLogger::log('insurance_applied', 'patient_id=' . $patientId . ' claim=' . ($insuranceClaimNumber ?? 'n/a'));
+            return redirect()->to(site_url('accountant/consolidated-bill/' . $patientId))
+                ->with('success', 'Insurance applied successfully.');
+        }
+        
+        // GET request - show form
+        $patientModel = new PatientModel();
+        $billingModel = new BillingModel();
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('accountant/consolidated-bills'))
+                ->with('error', 'Patient not found.');
+        }
+        
+        $bill = $billingModel->getConsolidatedBill($patientId);
+        
+        return view('Accountant/apply_insurance', [
+            'patient' => $patient,
+            'bill' => $bill,
+        ]);
+    }
+
+    /**
+     * Accept payment for a patient's consolidated bill
+     */
+    public function acceptPayment($patientId)
+    {
+        helper(['url', 'form']);
+        
+        if ($this->request->getMethod() === 'post') {
+            $billingModel = new BillingModel();
+            $paymentModel = new PaymentModel();
+            $patientModel = new PatientModel();
+            
+            $amount = (float)$this->request->getPost('amount');
+            $paymentMethod = $this->request->getPost('payment_method') ?? 'cash';
+            $paymentDate = $this->request->getPost('payment_date') ?? date('Y-m-d H:i:s');
+            $transactionId = $this->request->getPost('transaction_id');
+            $notes = $this->request->getPost('notes');
+            
+            if ($amount <= 0) {
+                return redirect()->back()->with('error', 'Payment amount must be greater than zero.')->withInput();
+            }
+            
+            // Get patient and bill
+            $patient = $patientModel->find($patientId);
+            if (!$patient) {
+                return redirect()->back()->with('error', 'Patient not found.')->withInput();
+            }
+            
+            $bill = $billingModel->getConsolidatedBill($patientId);
+            if (!$bill) {
+                return redirect()->back()->with('error', 'Bill not found.')->withInput();
+            }
+            
+            // Check if payment exceeds balance
+            $balance = (float)($bill['balance'] ?? 0);
+            if ($amount > $balance) {
+                return redirect()->back()
+                    ->with('error', 'Payment amount ($' . number_format($amount, 2) . ') exceeds balance ($' . number_format($balance, 2) . ').')
+                    ->withInput();
+            }
+            
+            // Record payment
+            $paymentModel->insert([
+                'billing_id' => $bill['id'],
+                'patient_id' => $patientId,
+                'patient_name' => trim($patient['first_name'] . ' ' . $patient['last_name']),
+                'invoice_no' => $bill['invoice_number'] ?? null,
+                'amount' => $amount,
+                'paid_at' => $paymentDate,
+                'payment_method' => $paymentMethod,
+                'transaction_id' => $transactionId ?? null,
+                'notes' => $notes ?? null,
+                'processed_by' => session('user_id'),
+                'created_by' => session('user_id'),
+            ]);
+            
+            // Recalculate bill balance
+            $billingModel->calculateBalance($bill['id']);
+            
+            AuditLogger::log('payment_accepted', 'patient_id=' . $patientId . ' amount=' . $amount);
+            return redirect()->to(site_url('accountant/consolidated-bill/' . $patientId))
+                ->with('success', 'Payment of $' . number_format($amount, 2) . ' recorded successfully.');
+        }
+        
+        // GET request - show form
+        $patientModel = new PatientModel();
+        $billingModel = new BillingModel();
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('accountant/consolidated-bills'))
+                ->with('error', 'Patient not found.');
+        }
+        
+        $bill = $billingModel->getConsolidatedBill($patientId);
+        
+        return view('Accountant/accept_payment', [
+            'patient' => $patient,
+            'bill' => $bill,
+        ]);
+    }
+
+    /**
+     * Print/Export consolidated bill
+     */
+    public function printBill($patientId)
+    {
+        helper('url');
+        $billingModel = new BillingModel();
+        $patientModel = new PatientModel();
+        $billingItemModel = new BillingItemModel();
+        $paymentModel = new PaymentModel();
+        
+        $patient = $patientModel->find($patientId);
+        if (!$patient) {
+            return redirect()->to(site_url('accountant/consolidated-bills'))
+                ->with('error', 'Patient not found.');
+        }
+        
+        $bill = $billingModel->getConsolidatedBill($patientId);
+        if (!$bill) {
+            return redirect()->to(site_url('accountant/consolidated-bills'))
+                ->with('error', 'Bill not found.');
+        }
+        
+        $items = $billingItemModel
+            ->where('billing_id', $bill['id'])
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
+        
+        $payments = $paymentModel
+            ->where('billing_id', $bill['id'])
+            ->orderBy('paid_at', 'ASC')
+            ->findAll();
+        
+        $totalPaid = 0.0;
+        foreach ($payments as $p) {
+            $totalPaid += (float)($p['amount'] ?? 0);
+        }
+        
+        return view('Accountant/print_bill', [
+            'billing' => $bill,
+            'patient' => $patient,
+            'items' => $items,
+            'payments' => $payments,
+            'totalPaid' => $totalPaid,
         ]);
     }
 }

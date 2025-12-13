@@ -11,7 +11,11 @@
 <body>
 <header class="dash-topbar" role="banner">
   <div class="topbar-inner">
-    <a href="<?= site_url('accountant/payments') ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
+    <?php 
+      $isAdmin = isset($isAdmin) && $isAdmin;
+      $backUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+    ?>
+    <a href="<?= $backUrl ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="brand">
       <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
       <div class="brand-text">
@@ -54,7 +58,7 @@
           <button onclick="window.print()" class="btn" style="background:#6b7280;color:white;padding:8px 12px;border-radius:6px;font-size:0.875rem;border:none;cursor:pointer">
             <i class="fa-solid fa-print"></i> Print
           </button>
-          <a href="<?= site_url('accountant/payments') ?>" class="btn" style="background:#0ea5e9;color:white;text-decoration:none;padding:8px 12px;border-radius:6px;font-size:0.875rem">
+          <a href="<?= $backUrl ?>" class="btn" style="background:#0ea5e9;color:white;text-decoration:none;padding:8px 12px;border-radius:6px;font-size:0.875rem">
             <i class="fa-solid fa-list"></i> Back to Payments
           </a>
         </div>
