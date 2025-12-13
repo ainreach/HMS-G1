@@ -308,22 +308,10 @@ class Admin extends BaseController
     public function patients()
     {
         helper(['url']);
-        
-        $patientModel = model('App\\Models\\PatientModel');
-        $roomModel = model('App\\Models\\RoomModel');
-        $bedModel = model('App\\Models\\BedModel');
-        
-        // Get filter parameters
-        $search = $this->request->getGet('search') ?? '';
-        $statusFilter = $this->request->getGet('status') ?? 'all'; // all, admitted, discharged, outpatient
-        $genderFilter = $this->request->getGet('gender') ?? 'all';
-        $dateFrom = $this->request->getGet('date_from') ?? '';
-        $dateTo = $this->request->getGet('date_to') ?? '';
-        $sortBy = $this->request->getGet('sort') ?? 'created_at';
-        $sortOrder = $this->request->getGet('order') ?? 'DESC';
-        $perPage = max(10, min(100, (int)($this->request->getGet('per_page') ?? 25)));
         $page = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $perPage = 20;
         $offset = ($page - 1) * $perPage;
+
         
         // Build query
         $builder = $patientModel->select('patients.*, rooms.room_number, rooms.room_type, beds.bed_number')
@@ -430,24 +418,20 @@ class Admin extends BaseController
                 ->countAllResults(),
         ];
         
+        $patientModel = model('App\\Models\\PatientModel');
+        $total = $patientModel->countAllResults();
+        $patients = $patientModel
+                    ->select('id, patient_id, first_name, last_name, phone, email, created_at')
+                    ->orderBy('created_at', 'DESC')
+                    ->findAll($perPage, $offset
         $data = [
             'patients' => $patients,
-            'stats' => $stats,
             'page' => $page,
             'perPage' => $perPage,
             'total' => $total,
-            'totalPages' => $totalPages,
-            'hasPrev' => $hasPrev,
-            'hasNext' => $hasNext,
-            'search' => $search,
-            'statusFilter' => $statusFilter,
-            'genderFilter' => $genderFilter,
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
-            'sortBy' => $sortBy,
-            'sortOrder' => $sortOrder,
+            'hasPrev' => $page > 1,
+            'hasNext' => ($offset + count($patients)) < $total,
         ];
-        
         return view('admin/patients_list', $data);
     }
 
@@ -482,106 +466,39 @@ class Admin extends BaseController
         }
         
         $req = $this->request;
-        
-        // Validate required fields
-        $first_name = trim((string) $req->getPost('first_name'));
-        $last_name = trim((string) $req->getPost('last_name'));
-        $gender = $req->getPost('gender');
-        $date_of_birth = $req->getPost('date_of_birth');
-        $phone = trim((string) $req->getPost('phone'));
-        $emergency_contact_name = trim((string) $req->getPost('emergency_contact_name'));
-        $emergency_contact_phone = trim((string) $req->getPost('emergency_contact_phone'));
-        
-        if (empty($first_name) || empty($last_name)) {
-            return redirect()->back()->with('error', 'First name and last name are required.')->withInput();
-        }
-        
-        if (empty($gender)) {
-            return redirect()->back()->with('error', 'Gender is required.')->withInput();
-        }
-        
-        if (empty($date_of_birth)) {
-            return redirect()->back()->with('error', 'Date of birth is required.')->withInput();
-        }
-        
-        if (empty($phone)) {
-            return redirect()->back()->with('error', 'Phone number is required.')->withInput();
-        }
-        
-        if (empty($emergency_contact_name) || empty($emergency_contact_phone)) {
-            return redirect()->back()->with('error', 'Emergency contact name and phone are required.')->withInput();
-        }
-        
-        // Build comprehensive patient data
         $data = [
             'patient_id' => 'P-' . date('YmdHis'),
-            'first_name' => $first_name,
-            'middle_name' => trim((string) $req->getPost('middle_name')) ?: null,
-            'last_name' => $last_name,
-            'date_of_birth' => $date_of_birth,
-            'gender' => $gender,
-            'marital_status' => $req->getPost('marital_status') ?: null,
-            'blood_type' => $req->getPost('blood_type') ?: null,
-            'phone' => $phone,
-            'email' => trim((string) $req->getPost('email')) ?: null,
-            'address' => trim((string) $req->getPost('address')) ?: null,
-            'city' => trim((string) $req->getPost('city')) ?: null,
-            'emergency_contact_name' => $emergency_contact_name,
-            'emergency_contact_phone' => $emergency_contact_phone,
-            'emergency_contact_relation' => $req->getPost('emergency_contact_relation') ?: null,
-            'insurance_provider' => trim((string) $req->getPost('insurance_provider')) ?: null,
-            'insurance_number' => trim((string) $req->getPost('insurance_number')) ?: null,
-            'allergies' => trim((string) $req->getPost('allergies')) ?: null,
-            'current_medications' => trim((string) $req->getPost('current_medications')) ?: null,
-            'medical_history' => trim((string) $req->getPost('medical_history')) ?: null,
-            'occupation' => trim((string) $req->getPost('occupation')) ?: null,
-            'employer' => trim((string) $req->getPost('employer')) ?: null,
-            'referred_by' => trim((string) $req->getPost('referred_by')) ?: null,
-            'admission_type' => $req->getPost('admission_type') ?: 'checkup',
+            'first_name' => trim((string)$req->getPost('first_name')),
+            'last_name' => trim((string)$req->getPost('last_name')),
+            'middle_name' => trim((string)$req->getPost('middle_name')),
+            'date_of_birth' => $req->getPost('date_of_birth'),
+            'gender' => $req->getPost('gender'),
+            'blood_type' => $req->getPost('blood_type'),
+            'phone' => trim((string)$req->getPost('phone')),
+            'email' => trim((string)$req->getPost('email')),
+            'address' => trim((string)$req->getPost('address')),
+            'city' => trim((string)$req->getPost('city')),
+            'emergency_contact_name' => trim((string)$req->getPost('emergency_contact_name')),
+            'emergency_contact_phone' => trim((string)$req->getPost('emergency_contact_phone')),
+            'emergency_contact_relation' => trim((string)$req->getPost('emergency_contact_relation')),
+            'insurance_provider' => trim((string)$req->getPost('insurance_provider')),
+            'insurance_number' => trim((string)$req->getPost('insurance_number')),
+            'allergies' => trim((string)$req->getPost('allergies')),
+            'medical_history' => trim((string)$req->getPost('medical_history')),
             'branch_id' => $branchId,
             'is_active' => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
-
-        // Store additional information in medical_history if needed
-        // Combine multiple medical fields into medical_history text
-        $medicalInfo = [];
-        if ($req->getPost('current_medications')) {
-            $medicalInfo['current_medications'] = trim((string) $req->getPost('current_medications'));
-        }
-        if ($req->getPost('family_history')) {
-            $medicalInfo['family_history'] = trim((string) $req->getPost('family_history'));
-        }
-        if ($req->getPost('surgical_history')) {
-            $medicalInfo['surgical_history'] = trim((string) $req->getPost('surgical_history'));
+        
+        if ($data['first_name'] === '' || $data['last_name'] === '' || $data['date_of_birth'] === '') {
+            return redirect()->back()->with('error','First name, last name, and date of birth are required.')->withInput();
         }
         
-        // Append to medical_history if there's additional info
-        if (!empty($medicalInfo)) {
-            $existingHistory = $data['medical_history'] ?? '';
-            $additionalInfo = "\n\nAdditional Information:\n";
-            if (!empty($medicalInfo['current_medications'])) {
-                $additionalInfo .= "Current Medications: " . $medicalInfo['current_medications'] . "\n";
-            }
-            if (!empty($medicalInfo['family_history'])) {
-                $additionalInfo .= "Family History: " . $medicalInfo['family_history'] . "\n";
-            }
-            if (!empty($medicalInfo['surgical_history'])) {
-                $additionalInfo .= "Surgical History: " . $medicalInfo['surgical_history'] . "\n";
-            }
-            $data['medical_history'] = $existingHistory . $additionalInfo;
-        }
-        
-        $patients = new \App\Models\PatientModel();
-        
-        try {
-            $patients->insert($data);
-            $message = 'Patient registered successfully. Patient ID: ' . $data['patient_id'];
-            AuditLogger::log('patient_create', 'patient_id=' . $data['patient_id']);
-            return redirect()->to(site_url('admin/patients'))->with('success', $message);
-        } catch (\Exception $e) {
-            log_message('error', 'Error registering patient: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error registering patient. Please try again.')->withInput();
-        }
+        $patients = model('App\\Models\\PatientModel');
+        $patients->insert($data);
+        AuditLogger::log('patient_create', 'patient_id=' . $data['patient_id']);
+        return redirect()->to(site_url('admin/patients'))->with('success','Patient created successfully.');
     }
 
     public function editPatient($id)
@@ -634,53 +551,11 @@ class Admin extends BaseController
     {
         helper(['url']);
         $id = (int) $id;
-        $patientModel = model('App\Models\PatientModel');
-        $billingModel = model('App\Models\BillingModel');
-        $billingItemModel = model('App\Models\BillingItemModel');
-        $paymentModel = model('App\Models\PaymentModel');
-        
-        $patient = $patientModel->find($id);
+        $patient = model('App\Models\PatientModel')->find($id);
         if (!$patient) {
             return redirect()->to(site_url('admin/patients'))->with('error', 'Patient not found.');
         }
-        
-        // AUTOMATIC BILL GENERATION: Get or create consolidated bill for this patient
-        $consolidatedBill = $billingModel->getConsolidatedBill($id);
-        
-        $billItems = [];
-        $billPayments = [];
-        $totalPaid = 0.00;
-        $balance = 0.00;
-        
-        if ($consolidatedBill) {
-            // Get all items in the bill
-            $billItems = $billingItemModel
-                ->where('billing_id', $consolidatedBill['id'])
-                ->orderBy('created_at', 'ASC')
-                ->findAll();
-            
-            // Get all payments for this bill
-            $billPayments = $paymentModel
-                ->where('billing_id', $consolidatedBill['id'])
-                ->orderBy('paid_at', 'ASC')
-                ->findAll();
-            
-            // Calculate totals
-            foreach ($billPayments as $p) {
-                $totalPaid += (float)($p['amount'] ?? 0);
-            }
-            
-            $balance = (float)($consolidatedBill['balance'] ?? 0);
-        }
-        
-        return view('admin/patient_view', [
-            'patient' => $patient,
-            'consolidatedBill' => $consolidatedBill,
-            'billItems' => $billItems,
-            'billPayments' => $billPayments,
-            'totalPaid' => $totalPaid,
-            'balance' => $balance,
-        ]);
+        return view('admin/patient_view', ['patient' => $patient]);
     }
 
     public function deletePatient($id)
