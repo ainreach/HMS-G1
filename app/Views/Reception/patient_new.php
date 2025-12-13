@@ -356,8 +356,8 @@ $errors = session('errors') ?? [];
             </div>
           </div>
           <div class="col-md-6" id="room_selection_section" style="display: none;">
-            <label class="form-label-custom">Room Assignment</label>
-            <select name="assigned_room_id" class="form-select form-select-custom">
+            <label class="form-label-custom">Room Assignment <span class="text-required">*</span></label>
+            <select name="assigned_room_id" id="room_select" class="form-select form-select-custom" required>
               <option value="">-- Select Room --</option>
               <?php if (!empty($availableRooms)): ?>
                 <?php foreach ($availableRooms as $room): ?>
@@ -372,6 +372,38 @@ $errors = session('errors') ?? [];
               <?php endif; ?>
             </select>
             <div class="text-hint">Room assignment is required for In-Patient admission</div>
+          </div>
+          <div class="col-md-6" id="bed_selection_section" style="display: none;">
+            <label class="form-label-custom">Bed Assignment (Optional)</label>
+            <select name="assigned_bed_id" id="bed_select" class="form-select form-select-custom">
+              <option value="">-- Select Bed (Optional) --</option>
+            </select>
+            <div class="text-hint">Select a specific bed if needed. Leave empty to assign any available bed.</div>
+          </div>
+          <div class="col-md-6" id="attending_physician_section" style="display: none;">
+            <label class="form-label-custom">Attending Physician <span class="text-required">*</span></label>
+            <select name="attending_physician_id" id="attending_physician_select" class="form-select form-select-custom" required>
+              <option value="">-- Select Attending Physician --</option>
+              <?php if (!empty($doctors)): ?>
+                <?php foreach ($doctors as $doctor): ?>
+                  <option value="<?= esc($doctor['id']) ?>" <?= set_select('attending_physician_id', $doctor['id'], old('attending_physician_id') == $doctor['id']) ?>>
+                    <?= esc($doctor['first_name'] . ' ' . $doctor['last_name']) ?> 
+                    <?php if (!empty($doctor['username'])): ?>
+                      (<?= esc($doctor['username']) ?>)
+                    <?php endif; ?>
+                    <?php if (!empty($doctor['specialization'])): ?>
+                      - <?= esc(ucfirst($doctor['specialization'])) ?>
+                    <?php endif; ?>
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
+            <div class="text-hint">Select the attending physician for this in-patient admission.</div>
+          </div>
+          <div class="col-md-6" id="admission_reason_section" style="display: none;">
+            <label class="form-label-custom">Admission Reason <span class="text-required">*</span></label>
+            <textarea name="admission_reason" id="admission_reason_input" class="form-control form-control-custom" rows="2" placeholder="Enter reason for admission" required></textarea>
+            <div class="text-hint">Brief description of why the patient is being admitted.</div>
           </div>
         </div>
 
@@ -436,7 +468,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Toggle room selection based on admission type
   const admissionSelect = document.getElementById('admission_type_select');
   const roomSection = document.getElementById('room_selection_section');
+  const bedSection = document.getElementById('bed_selection_section');
   const consultationSection = document.getElementById('consultation_section');
+  const roomSelect = document.getElementById('room_select');
+  const bedSelect = document.getElementById('bed_select');
   
   function toggleSections() {
       const admissionType = admissionSelect.value;
@@ -445,9 +480,94 @@ document.addEventListener('DOMContentLoaded', function() {
           roomSection.style.display = admissionType === 'admission' ? 'block' : 'none';
       }
       
+      if (bedSection) {
+          bedSection.style.display = admissionType === 'admission' ? 'block' : 'none';
+      }
+      
+      const attendingPhysicianSection = document.getElementById('attending_physician_section');
+      const admissionReasonSection = document.getElementById('admission_reason_section');
+      
+      if (attendingPhysicianSection) {
+          attendingPhysicianSection.style.display = admissionType === 'admission' ? 'block' : 'none';
+      }
+      
+      if (admissionReasonSection) {
+          admissionReasonSection.style.display = admissionType === 'admission' ? 'block' : 'none';
+      }
+      
       if (consultationSection) {
           consultationSection.style.display = admissionType === 'checkup' ? 'block' : 'none';
       }
+      
+      // Reset bed selection when switching admission types
+      if (admissionType !== 'admission' && bedSelect) {
+          bedSelect.innerHTML = '<option value="">-- Select Bed (Optional) --</option>';
+      }
+      
+      // Make room selection required/optional based on admission type
+      if (roomSelect) {
+          roomSelect.required = admissionType === 'admission';
+      }
+      
+      // Make attending physician required/optional based on admission type
+      const attendingPhysicianSelect = document.getElementById('attending_physician_select');
+      if (attendingPhysicianSelect) {
+          attendingPhysicianSelect.required = admissionType === 'admission';
+      }
+      
+      // Make admission reason required/optional based on admission type
+      const admissionReasonInput = document.getElementById('admission_reason_input');
+      if (admissionReasonInput) {
+          admissionReasonInput.required = admissionType === 'admission';
+      }
+  }
+  
+  // Load beds when room is selected
+  if (roomSelect) {
+      roomSelect.addEventListener('change', function() {
+          const roomId = this.value;
+          
+          // Reset bed selection
+          if (bedSelect) {
+              bedSelect.innerHTML = '<option value="">Loading beds...</option>';
+          }
+          
+          if (roomId) {
+              // Fetch beds for selected room
+              fetch('<?= site_url('reception/get-beds-by-room') ?>/' + roomId)
+                  .then(response => response.json())
+                  .then(data => {
+                      if (bedSelect) {
+                          bedSelect.innerHTML = '<option value="">-- Select Bed (Optional) --</option>';
+                          
+                          if (data.success && data.beds && data.beds.length > 0) {
+                              data.beds.forEach(bed => {
+                                  const option = document.createElement('option');
+                                  option.value = bed.id;
+                                  option.textContent = bed.bed_number + ' (' + (bed.bed_type || 'Standard') + ')';
+                                  bedSelect.appendChild(option);
+                              });
+                          } else {
+                              const option = document.createElement('option');
+                              option.value = '';
+                              option.textContent = 'No available beds in this room';
+                              option.disabled = true;
+                              bedSelect.appendChild(option);
+                          }
+                      }
+                  })
+                  .catch(error => {
+                      console.error('Error loading beds:', error);
+                      if (bedSelect) {
+                          bedSelect.innerHTML = '<option value="">-- Select Bed (Optional) --</option>';
+                      }
+                  });
+          } else {
+              if (bedSelect) {
+                  bedSelect.innerHTML = '<option value="">-- Select Bed (Optional) --</option>';
+              }
+          }
+      });
   }
   
   if (admissionSelect) {

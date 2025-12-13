@@ -166,6 +166,139 @@
             </tbody>
           </table>
         </div>
+
+        <!-- CONSOLIDATED BILL - AUTOMATICALLY GENERATED -->
+        <?php if (isset($consolidatedBill) && $consolidatedBill): ?>
+        <div class="section">
+          <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>Consolidated Bill (All Charges)</span>
+            <span style="font-size:0.875rem;font-weight:normal">
+              Bill #: <?= esc($consolidatedBill['invoice_number'] ?? 'N/A') ?>
+            </span>
+          </div>
+          
+          <!-- Bill Items -->
+          <div style="margin-bottom:16px">
+            <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #c9d9e8;border-radius:8px;overflow:hidden">
+              <thead>
+                <tr style="background:#e6f2f9">
+                  <th style="padding:10px;text-align:left;border-bottom:2px solid #c9d9e8">Service/Item</th>
+                  <th style="padding:10px;text-align:left;border-bottom:2px solid #c9d9e8">Date</th>
+                  <th style="padding:10px;text-align:right;border-bottom:2px solid #c9d9e8">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (!empty($billItems)): ?>
+                  <?php foreach ($billItems as $item): ?>
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb">
+                      <strong><?= esc(ucfirst($item['item_type'] ?? '')) ?></strong><br>
+                      <small style="color:#666"><?= esc($item['item_name'] ?? '') ?></small>
+                      <?php if (!empty($item['description'])): ?>
+                        <br><small style="color:#999"><?= esc($item['description']) ?></small>
+                      <?php endif; ?>
+                    </td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;color:#666">
+                      <?= esc(date('M d, Y', strtotime($item['created_at'] ?? 'now'))) ?>
+                    </td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600">
+                      $<?= number_format((float)($item['total_price'] ?? 0), 2) ?>
+                    </td>
+                  </tr>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <tr>
+                    <td colspan="3" style="padding:20px;text-align:center;color:#999">No charges yet</td>
+                  </tr>
+                <?php endif; ?>
+              </tbody>
+              <tfoot style="background:#f8fafc">
+                <tr>
+                  <td colspan="2" style="padding:12px;text-align:right;font-weight:700;border-top:2px solid #c9d9e8">Total Amount:</td>
+                  <td style="padding:12px;text-align:right;font-weight:700;font-size:1.1rem;border-top:2px solid #c9d9e8">
+                    $<?= number_format((float)($consolidatedBill['total_amount'] ?? 0), 2) ?>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Payments -->
+          <?php if (!empty($billPayments)): ?>
+          <div style="margin-bottom:16px">
+            <h4 style="margin:0 0 8px;color:#1e6f9f;font-size:0.9rem">Payments Received:</h4>
+            <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #c9d9e8;border-radius:8px;overflow:hidden">
+              <thead>
+                <tr style="background:#e6f2f9">
+                  <th style="padding:10px;text-align:left;border-bottom:2px solid #c9d9e8">Date</th>
+                  <th style="padding:10px;text-align:left;border-bottom:2px solid #c9d9e8">Method</th>
+                  <th style="padding:10px;text-align:right;border-bottom:2px solid #c9d9e8">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($billPayments as $payment): ?>
+                <tr>
+                  <td style="padding:10px;border-bottom:1px solid #e5e7eb">
+                    <?= esc(date('M d, Y', strtotime($payment['paid_at'] ?? $payment['created_at'] ?? 'now'))) ?>
+                  </td>
+                  <td style="padding:10px;border-bottom:1px solid #e5e7eb">
+                    <?= esc(ucfirst($payment['payment_method'] ?? 'Cash')) ?>
+                  </td>
+                  <td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;color:#16a34a;font-weight:600">
+                    $<?= number_format((float)($payment['amount'] ?? 0), 2) ?>
+                  </td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+              <tfoot style="background:#f0fdf4">
+                <tr>
+                  <td colspan="2" style="padding:12px;text-align:right;font-weight:700;border-top:2px solid #c9d9e8">Total Paid:</td>
+                  <td style="padding:12px;text-align:right;font-weight:700;font-size:1.1rem;color:#16a34a;border-top:2px solid #c9d9e8">
+                    $<?= number_format($totalPaid, 2) ?>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <?php endif; ?>
+
+          <!-- Balance Summary -->
+          <div style="background:<?= $balance > 0 ? '#fef2f2' : '#f0fdf4' ?>;border:2px solid <?= $balance > 0 ? '#ef4444' : '#16a34a' ?>;border-radius:8px;padding:16px;margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:600;font-size:1rem">Total Charges:</span>
+              <span style="font-weight:600;font-size:1rem">$<?= number_format((float)($consolidatedBill['total_amount'] ?? 0), 2) ?></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:600;font-size:1rem">Total Paid:</span>
+              <span style="font-weight:600;font-size:1rem;color:#16a34a">$<?= number_format($totalPaid, 2) ?></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:1.3rem;font-weight:700;border-top:2px solid <?= $balance > 0 ? '#ef4444' : '#16a34a' ?>;padding-top:12px;margin-top:12px">
+              <span>Balance Due:</span>
+              <span style="color:<?= $balance > 0 ? '#dc2626' : '#16a34a' ?>">
+                $<?= number_format($balance, 2) ?>
+              </span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display:flex;gap:12px;margin-top:16px">
+            <a href="<?= site_url('admin/consolidated-bill/' . $patient['id']) ?>" 
+               style="padding:10px 20px;background:#3b82f6;color:white;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:6px">
+              <i class="fa-solid fa-file-invoice"></i> View Full Bill
+            </a>
+            <?php if ($balance > 0): ?>
+            <a href="<?= site_url('admin/payments/new?patient_id=' . $patient['id']) ?>" 
+               style="padding:10px 20px;background:#10b981;color:white;text-decoration:none;border-radius:6px;display:inline-flex;align-items:center;gap:6px">
+              <i class="fa-solid fa-money-bill"></i> Pay Now
+            </a>
+            <?php endif; ?>
+            <button onclick="window.print()" 
+                    style="padding:10px 20px;background:#6b7280;color:white;border:none;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+              <i class="fa-solid fa-print"></i> Print Bill
+            </button>
+          </div>
+        </div>
+        <?php endif; ?>
       <?php else: ?>
         <p class="text-center">Patient data not found.</p>
       <?php endif; ?>

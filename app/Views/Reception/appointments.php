@@ -51,6 +51,7 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
+<<<<<<< HEAD
 <div class="layout">
   <aside class="simple-sidebar" role="navigation" aria-label="Reception navigation">
     <nav class="side-nav">
@@ -86,6 +87,17 @@
       </div>
     </nav>
   </aside>
+=======
+<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Reception navigation"><nav class="side-nav">
+  <a href="<?= site_url('dashboard/receptionist') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
+  <a href="<?= site_url('reception/patients') ?>"><i class="fa-solid fa-users" style="margin-right:8px"></i>Patient Management</a>
+  <a href="<?= site_url('reception/appointments') ?>" class="active" aria-current="page"><i class="fa-solid fa-calendar" style="margin-right:8px"></i>Appointment Management</a>
+  <a href="<?= site_url('reception/rooms') ?>"><i class="fa-solid fa-door-open" style="margin-right:8px"></i>Room Management</a>
+  <a href="<?= site_url('reception/rooms/admit') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Room Admission</a>
+  <a href="<?= site_url('reception/in-patients') ?>"><i class="fa-solid fa-hospital" style="margin-right:8px"></i>In-Patients</a>
+  <a href="<?= site_url('reception/patient-lookup') ?>"><i class="fa-solid fa-magnifying-glass" style="margin-right:8px"></i>Patient Lookup</a>
+</nav></aside>
+>>>>>>> 477d71103649dd21bfaa63da0fa31e258e950254
   <main class="content">
     <section class="panel">
       <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
@@ -95,13 +107,14 @@
       <div class="panel-body" style="overflow:auto">
         <table class="table" style="width:100%;border-collapse:collapse">
           <thead>
-            <tr>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Doctor</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Date</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Time</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Status</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Actions</th>
+            <tr style="background:#f9fafb">
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Appointment #</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Patient</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Doctor</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Date & Time</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Type</th>
+              <th style="text-align:left;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Status</th>
+              <th style="text-align:center;padding:12px;border-bottom:2px solid #e5e7eb;font-weight:600">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -125,27 +138,81 @@
                               : ($rawStatus === 'cancelled' ? '#b91c1c'
                               : '#1e40af');
               ?>
-              <tr>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($patientName) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($doctorLabel) ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
-                  <?= esc($dateLabel) ?>
+              <?php
+                $appointmentNumber = $a['appointment_number'] ?? 'N/A';
+                $typeLabel = ucfirst(str_replace('_', ' ', $a['type'] ?? 'consultation'));
+                $duration = $a['duration'] ?? 30;
+              ?>
+              <tr style="border-bottom:1px solid #f3f4f6" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+                <td style="padding:12px;font-size:0.875rem">
+                  <span style="font-weight:600;color:#3b82f6"><?= esc($appointmentNumber) ?></span>
+                  <br>
+                  <small style="color:#6b7280"><?= esc($duration) ?> min</small>
                 </td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;">
-                  <?= esc($timeLabel) ?>
+                <td style="padding:12px;font-size:0.875rem">
+                  <div style="font-weight:600;color:#111827"><?= esc($patientName) ?></div>
+                  <small style="color:#6b7280"><?= esc($a['patient_code'] ?? '') ?></small>
+                  <?php if (!empty($a['phone'])): ?>
+                    <br><small style="color:#6b7280"><i class="fa-solid fa-phone" style="font-size:0.7rem"></i> <?= esc($a['phone']) ?></small>
+                  <?php endif; ?>
                 </td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6;white-space:nowrap;"><span style="padding:2px 6px;border-radius:4px;font-size:0.75rem;background-color:<?= $statusBg ?>;color:<?= $statusColor ?>"><?= esc($statusLabel) ?></span></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                  <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0)) ?>" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">View</a>
-                  <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/edit') ?>" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;text-decoration:none">Edit</a>
-                  <form action="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/checkin') ?>" method="post" style="display:inline">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb">Check-in</button>
-                  </form>
-                  <form action="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/cancel') ?>" method="post" style="display:inline" onsubmit="return confirm('Cancel this appointment?')">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff0f0;color:#991b1b">Cancel</button>
-                  </form>
+                <td style="padding:12px;font-size:0.875rem">
+                  <div style="font-weight:600;color:#111827"><?= esc($doctorLabel) ?></div>
+                </td>
+                <td style="padding:12px;font-size:0.875rem;white-space:nowrap;">
+                  <div style="font-weight:600;color:#111827"><?= esc($dateLabel) ?></div>
+                  <div style="color:#6b7280"><i class="fa-solid fa-clock" style="font-size:0.7rem"></i> <?= esc($timeLabel) ?></div>
+                </td>
+                <td style="padding:12px;font-size:0.875rem">
+                  <span style="padding:4px 10px;background:#e0f2fe;color:#0369a1;border-radius:6px;font-size:0.75rem;font-weight:500">
+                    <?= esc($typeLabel) ?>
+                  </span>
+                </td>
+                <td style="padding:12px;font-size:0.875rem;white-space:nowrap;">
+                  <span style="padding:6px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;background-color:<?= $statusBg ?>;color:<?= $statusColor ?>">
+                    <?= esc($statusLabel) ?>
+                  </span>
+                </td>
+                <td style="padding:12px;text-align:center">
+                  <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
+                    <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0)) ?>" 
+                       class="btn" 
+                       style="padding:6px 10px;font-size:0.75rem;text-decoration:none;border-radius:4px;background:#3b82f6;color:white"
+                       title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <a href="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/edit') ?>" 
+                       class="btn" 
+                       style="padding:6px 10px;font-size:0.75rem;text-decoration:none;border-radius:4px;background:#f59e0b;color:white"
+                       title="Edit Appointment">
+                      <i class="fa-solid fa-pencil"></i>
+                    </a>
+                    <?php if ($rawStatus === 'scheduled'): ?>
+                      <form action="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/checkin') ?>" method="post" style="display:inline">
+                        <?= csrf_field() ?>
+                        <button type="submit" 
+                                class="btn" 
+                                style="padding:6px 10px;font-size:0.75rem;border-radius:4px;background:#10b981;color:white;border:none;cursor:pointer"
+                                title="Check-in Patient">
+                          <i class="fa-solid fa-check"></i>
+                        </button>
+                      </form>
+                    <?php endif; ?>
+                    <?php if ($rawStatus !== 'cancelled'): ?>
+                      <form action="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/cancel') ?>" 
+                            method="post" 
+                            style="display:inline" 
+                            onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+                        <?= csrf_field() ?>
+                        <button type="submit" 
+                                class="btn" 
+                                style="padding:6px 10px;font-size:0.75rem;border-radius:4px;background:#ef4444;color:white;border:none;cursor:pointer"
+                                title="Cancel Appointment">
+                          <i class="fa-solid fa-times"></i>
+                        </button>
+                      </form>
+                    <?php endif; ?>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; else: ?>
@@ -180,12 +247,43 @@
               <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
             </div>
           </label>
-          <label>Doctor
-            <input type="text" id="doctorSearch" placeholder="Search doctor..." autocomplete="off" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;">
-            <input type="hidden" name="doctor_id" id="doctorIdField" value="<?= esc(old('doctor_id') ?? '') ?>">
-            <div id="doctorSuggestions" style="position:relative;z-index:60;">
-              <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
-            </div>
+          <label>Doctor <span style="color:#dc2626">*</span>
+            <select name="doctor_id" id="doctorIdField" required style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.95rem;background:white;">
+              <option value="">-- Select Doctor --</option>
+              <?php 
+              $userModel = model('App\\Models\\UserModel');
+              $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(100);
+              
+              if (!empty($doctors)) : 
+                // Group doctors by specialization
+                $groupedDoctors = [];
+                foreach ($doctors as $doctor) {
+                  $specialization = $doctor['specialization'] ?? 'General';
+                  if (!isset($groupedDoctors[$specialization])) {
+                    $groupedDoctors[$specialization] = [];
+                  }
+                  $groupedDoctors[$specialization][] = $doctor;
+                }
+                
+                // Sort specializations
+                ksort($groupedDoctors);
+                
+                foreach ($groupedDoctors as $specialization => $docs) : ?>
+                  <optgroup label="<?= esc($specialization) ?>">
+                    <?php foreach ($docs as $doctor) : 
+                      $doctorName = trim(($doctor['first_name'] ?? '') . ' ' . ($doctor['last_name'] ?? ''));
+                      $selected = (old('doctor_id') == $doctor['id']) ? 'selected' : '';
+                    ?>
+                      <option value="<?= esc($doctor['id']) ?>" <?= $selected ?>>
+                        Dr. <?= esc($doctorName) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </optgroup>
+                <?php endforeach; 
+              else: ?>
+                <option value="">No doctors available</option>
+              <?php endif; ?>
+            </select>
           </label>
           <label>Date
             <input type="date" name="appointment_date" value="<?= old('appointment_date') ?>" required>
@@ -274,12 +372,7 @@
       ];
     }, $patients ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
-  const doctorsData = <?= json_encode(array_values(array_map(function($d){
-      return [
-        'id' => (int)($d['id'] ?? 0),
-        'label' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '') . ' (' . ($d['username'] ?? 'doctor') . ')'),
-      ];
-    }, $doctors ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  // Doctor is now a dropdown, no need for autocomplete data
 
   function setupAutocomplete(inputId, hiddenId, containerId, items) {
     const input   = document.getElementById(inputId);
@@ -344,7 +437,7 @@
     });
   }
 
+  // Setup autocomplete for patient search only (doctor is now a dropdown)
   setupAutocomplete('patientSearch', 'patientIdField', 'patientSuggestions', patientsData);
-  setupAutocomplete('doctorSearch', 'doctorIdField', 'doctorSuggestions', doctorsData);
 </script>
 </body></html>

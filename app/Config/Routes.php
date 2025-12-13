@@ -105,6 +105,20 @@ $routes->post('/accountant/lab-test-reject/(:num)', 'Accountant::rejectLabTest/$
 $routes->get('/accountant/patients/billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
 // Alias for patient billing (singular path)
 $routes->get('/accountant/patient-billing/(:num)', 'Accountant::patientBilling/$1', ['filter' => 'role:admin,accountant']);
+// Consolidated billing routes (one bill per patient)
+$routes->get('/accountant/consolidated-bills', 'Accountant::consolidatedBills', ['filter' => 'role:accountant']);
+$routes->get('/accountant/consolidated-bill/(:num)', 'Accountant::viewConsolidatedBill/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/add-charge/(:num)', 'Accountant::addCharge/$1', ['filter' => 'role:accountant']);
+$routes->post('/accountant/add-charge/(:num)', 'Accountant::addCharge/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/remove-charge/(:num)', 'Accountant::removeCharge/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/apply-insurance/(:num)', 'Accountant::applyInsurance/$1', ['filter' => 'role:accountant']);
+$routes->post('/accountant/apply-insurance/(:num)', 'Accountant::applyInsurance/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/accept-payment/(:num)', 'Accountant::acceptPayment/$1', ['filter' => 'role:accountant']);
+$routes->post('/accountant/accept-payment/(:num)', 'Accountant::acceptPayment/$1', ['filter' => 'role:accountant']);
+$routes->get('/accountant/print-bill/(:num)', 'Accountant::printBill/$1', ['filter' => 'role:accountant']);
+// Admin can also access consolidated bills
+$routes->get('/admin/consolidated-bills', 'Accountant::consolidatedBills', ['filter' => 'role:admin']);
+$routes->get('/admin/consolidated-bill/(:num)', 'Accountant::viewConsolidatedBill/$1', ['filter' => 'role:admin']);
 $routes->get('/accountant/patients/discharge/(:num)', 'Accountant::dischargePatient/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/patients/bills', 'Accountant::allPatientBills', ['filter' => 'role:accountant']);
 $routes->get('/accountant/reports', 'Accountant::reports', ['filter' => 'role:accountant']);
@@ -117,6 +131,12 @@ $routes->post('/accountant/invoices/delete/(:num)', 'Accountant::deleteInvoice/$
 $routes->get('/accountant/payments', 'Accountant::payments', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/(:num)', 'Accountant::viewPayment/$1', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/new', 'Accountant::newPayment', ['filter' => 'role:accountant']);
+$routes->get('/admin/payments/new', 'Accountant::newPayment', ['filter' => 'role:admin']);
+$routes->post('/admin/payments', 'Accountant::storePayment', ['filter' => 'role:admin']);
+$routes->get('/admin/payments/(:num)', 'Accountant::viewPayment/$1', ['filter' => 'role:admin']);
+$routes->get('/admin/payments/edit/(:num)', 'Accountant::editPayment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/payments/(:num)', 'Accountant::updatePayment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/payments/delete/(:num)', 'Accountant::deletePayment/$1', ['filter' => 'role:admin']);
 $routes->post('/accountant/payments', 'Accountant::storePayment', ['filter' => 'role:accountant']);
 $routes->post('/accountant/storePayment', 'Accountant::storePayment', ['filter' => 'role:accountant']);
 $routes->get('/accountant/payments/edit/(:num)', 'Accountant::editPayment/$1', ['filter' => 'role:admin,accountant']);
@@ -153,6 +173,7 @@ $routes->post('/reception/appointments', 'Reception::storeAppointment', ['filter
 // Room management routes
 $routes->get('/reception/getAvailableRooms', 'Reception::getAvailableRooms', ['filter' => 'role:receptionist']);
 $routes->get('/reception/getRoomDetails', 'Reception::getRoomDetails', ['filter' => 'role:receptionist']);
+$routes->get('/reception/get-beds-by-room/(:num)', 'Reception::getBedsByRoom/$1', ['filter' => 'role:receptionist']);
 $routes->get('/reception/rooms', 'Reception::rooms', ['filter' => 'role:receptionist']);
 $routes->get('/reception/rooms/admit', 'Reception::roomAdmission', ['filter' => 'role:receptionist']);
 $routes->post('/reception/rooms/admit', 'Reception::admitToRoom', ['filter' => 'role:receptionist']);
@@ -166,6 +187,8 @@ $routes->post('/reception/beds/add', 'Reception::addBed', ['filter' => 'role:rec
 $routes->get('/reception/beds/delete/(:num)', 'Reception::deleteBed/$1', ['filter' => 'role:receptionist']);
 $routes->get('/reception/in-patients', 'Reception::inPatients', ['filter' => 'role:receptionist']);
 $routes->get('/reception/in-patients/view/(:num)', 'Reception::viewInPatient/$1', ['filter' => 'role:receptionist']);
+$routes->get('/reception/in-patients/edit/(:num)', 'Reception::editInPatient/$1', ['filter' => 'role:receptionist']);
+$routes->post('/reception/in-patients/update/(:num)', 'Reception::updateInPatient/$1', ['filter' => 'role:receptionist']);
 
 // Admin Room Management Routes
 $routes->get('/admin/rooms', 'Admin::rooms', ['filter' => 'role:admin']);

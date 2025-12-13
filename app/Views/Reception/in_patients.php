@@ -71,7 +71,7 @@
   <a href="<?= site_url('reception/in-patients') ?>" class="active">In-Patients</a>
   <a href="<?= site_url('reception/patient-lookup') ?>">Patient Lookup</a>
 </nav></aside>
-  <main class="content">
+  <main class="content" style="max-width:100%;width:100%">
     <?php if (session()->getFlashdata('success')): ?>
       <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
     <?php endif; ?>
@@ -80,10 +80,37 @@
     <?php endif; ?>
 
     <section class="panel">
-      <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">
-        <h2 style="margin:0;font-size:1.1rem">In-Patients List</h2>
-        <span style="color:#6b7280;font-size:0.875rem"><?= count($inPatients) ?> patient(s) admitted</span>
+      <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 style="margin:0;font-size:1.1rem">In-Patients List</h2>
+          <span style="color:#6b7280;font-size:0.875rem"><?= count($inPatients) ?> patient(s) admitted</span>
+        </div>
       </div>
+      
+      <!-- Search Bar -->
+      <div class="panel-body" style="padding:16px;border-bottom:1px solid #e5e7eb;background:#f9fafb">
+        <form method="get" action="<?= site_url('reception/in-patients') ?>" style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1;position:relative">
+            <input type="text" 
+                   name="search" 
+                   value="<?= esc($search ?? '') ?>" 
+                   placeholder="Search by name, patient ID, phone, room, bed, or doctor..." 
+                   style="width:100%;padding:10px 16px 10px 40px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.95rem;transition:all 0.2s"
+                   onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.1)'"
+                   onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+            <i class="fa-solid fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none"></i>
+          </div>
+          <button type="submit" style="padding:10px 20px;background:#3b82f6;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.95rem;display:flex;align-items:center;gap:6px;white-space:nowrap">
+            <i class="fa-solid fa-search"></i> Search
+          </button>
+          <?php if (!empty($search)): ?>
+          <a href="<?= site_url('reception/in-patients') ?>" style="padding:10px 20px;background:#6b7280;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:6px;white-space:nowrap">
+            <i class="fa-solid fa-times"></i> Clear
+          </a>
+          <?php endif; ?>
+        </form>
+      </div>
+      
       <div class="panel-body" style="overflow:auto;padding:0">
         <table class="table inpatient-table" style="width:100%;border-collapse:collapse">
           <thead>
@@ -141,9 +168,14 @@
                 </td>
                 <td><?= esc($admissionDate) ?></td>
                 <td>
-                  <a href="<?= site_url('reception/in-patients/view/' . $patient['id']) ?>" class="btn-view">
-                    <i class="fa-solid fa-eye"></i> View Details
-                  </a>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <a href="<?= site_url('reception/in-patients/view/' . $patient['id']) ?>" class="btn-view">
+                      <i class="fa-solid fa-eye"></i> View Details
+                    </a>
+                    <a href="<?= site_url('reception/in-patients/edit/' . $patient['id']) ?>" style="background:#f59e0b;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:0.875rem;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+                      <i class="fa-solid fa-edit"></i> Edit
+                    </a>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; else: ?>

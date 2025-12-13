@@ -11,7 +11,11 @@
 <body>
 <header class="dash-topbar" role="banner">
   <div class="topbar-inner">
-    <a href="<?= site_url('accountant/payments') ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
+    <?php 
+      $isAdmin = isset($isAdmin) && $isAdmin;
+      $backUrl = $isAdmin ? site_url('admin/payments') : site_url('accountant/payments');
+    ?>
+    <a href="<?= $backUrl ?>" class="menu-btn" aria-label="Back to Payments"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="brand">
       <img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
       <div class="brand-text">
@@ -35,7 +39,7 @@
       <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
       <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
       <a href="<?= site_url('accountant/invoices') ?>"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>Invoices</a>
-      <a href="<?= site_url('accountant/payments') ?>" class="active" aria-current="page"><i class="fa-solid fa-sack-dollar" style="margin-right:8px"></i>Payments</a>
+      <a href="<?= $backUrl ?>" class="active" aria-current="page"><i class="fa-solid fa-sack-dollar" style="margin-right:8px"></i>Payments</a>
       <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
       <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
     </nav>
@@ -55,7 +59,10 @@
         <h2 style="margin:0;font-size:1.1rem">Edit Payment Record</h2>
       </div>
       <div class="panel-body">
-        <form method="post" action="<?= site_url('accountant/payments/' . $payment['id']) ?>" style="max-width:800px;">
+        <?php 
+          $formAction = $isAdmin ? site_url('admin/payments/' . $payment['id']) : site_url('accountant/payments/' . $payment['id']);
+        ?>
+        <form method="post" action="<?= $formAction ?>" style="max-width:800px;">
           <?= csrf_field() ?>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
@@ -91,7 +98,7 @@
           </div>
 
           <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid #e5e7eb;">
-            <a href="<?= site_url('accountant/payments') ?>" class="btn" style="padding:10px 20px;background:#6b7280;color:white;text-decoration:none;border-radius:6px;font-weight:500;">
+            <a href="<?= $backUrl ?>" class="btn" style="padding:10px 20px;background:#6b7280;color:white;text-decoration:none;border-radius:6px;font-weight:500;">
               Cancel
             </a>
             <button type="submit" class="btn" style="padding:10px 20px;background:#10b981;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;">

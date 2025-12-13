@@ -451,6 +451,45 @@ class Pharmacy extends BaseController
                 'status' => 'dispensed',
             ]);
             
+            // AUTOMATIC BILLING: Add medication charge to patient's consolidated bill
+            $billingModel = model('App\\Models\\BillingModel');
+            $billingItemModel = model('App\\Models\\BillingItemModel');
+            
+            $patientId = $prescription['patient_id'];
+            $medicinePrice = (float)($medicine['price'] ?? 0);
+            $totalPrice = $medicinePrice * $quantity;
+            
+            if ($totalPrice > 0) {
+                // Get or create active bill for this patient
+                $activeBill = $billingModel->getOrCreateActiveBill($patientId, 1, session('user_id'));
+                $billingId = $activeBill['id'];
+                
+                // Check if this medication from this prescription is already billed (avoid duplicate charges)
+                $existingMedication = $billingItemModel
+                    ->where('billing_id', $billingId)
+                    ->where('item_type', 'medication')
+                    ->where('item_name', $medicine['name'] ?? 'Medicine')
+                    ->where('description LIKE', '%Prescription ID: ' . $prescriptionId . '%')
+                    ->first();
+                
+                if (!$existingMedication) {
+                    // Add medication item to the bill
+                    $billingItemData = [
+                        'billing_id' => $billingId,
+                        'item_type' => 'medication',
+                        'item_name' => $medicine['name'] ?? 'Medicine',
+                        'description' => 'Prescription ID: ' . $prescriptionId . ' - Quantity: ' . $quantity . ($notes ? ' - ' . $notes : ''),
+                        'quantity' => $quantity,
+                        'unit_price' => $medicinePrice,
+                        'total_price' => $totalPrice,
+                    ];
+                    $billingItemModel->insert($billingItemData);
+                    
+                    // Recalculate bill totals
+                    $billingModel->recalculateBill($billingId);
+                }
+            }
+            
             $db->transCommit();
             
             return redirect()->to(site_url('pharmacy/prescriptions'))->with('success', 'Medicine dispensed successfully from prescription.');

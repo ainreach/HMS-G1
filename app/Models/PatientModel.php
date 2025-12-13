@@ -36,8 +36,12 @@ class PatientModel extends Model
         'branch_id',
         'admission_type',
         'assigned_room_id',
+        'assigned_bed_id',
         'admission_date',
         'discharge_date',
+        'admission_reason',
+        'admission_notes',
+        'attending_physician_id',
         'is_active',
     ];
 
