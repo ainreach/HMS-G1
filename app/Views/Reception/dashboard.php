@@ -51,7 +51,7 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<<<<<<< HEAD
+
 <div class="layout">
   <aside class="simple-sidebar" role="navigation" aria-label="Reception navigation">
     <nav class="side-nav">
@@ -146,7 +146,7 @@
       <section class="panel">
         <div class="panel-head">
           <h2 style="margin:0;font-size:1.1rem">Recent Patient Registrations</h2>
-=======
+
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Reception navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/receptionist') ?>" class="active" aria-current="page"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
   <a href="<?= site_url('reception/patients') ?>"><i class="fa-solid fa-users" style="margin-right:8px"></i>Patient Management</a>
@@ -169,7 +169,7 @@
           <div style="width:48px;height:48px;background:#dbeafe;border-radius:12px;display:flex;align-items:center;justify-content:center">
             <i class="fa-solid fa-user-check" style="font-size:24px;color:#3b82f6"></i>
           </div>
->>>>>>> 477d71103649dd21bfaa63da0fa31e258e950254
+
         </div>
       </div>
       

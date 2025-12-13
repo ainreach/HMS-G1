@@ -51,7 +51,7 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<<<<<<< HEAD
+
 <div class="layout">
   <aside class="simple-sidebar" role="navigation" aria-label="Reception navigation">
     <nav class="side-nav">
@@ -94,7 +94,7 @@
         <div>
           <a class="btn" href="<?= site_url('reception/patients/new') ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-user-plus"></i> Register Patient</a>
           <a class="btn" href="<?= site_url('reception/patient-lookup') ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none"><i class="fa-solid fa-magnifying-glass"></i> Lookup</a>
-=======
+
 <div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Reception navigation"><nav class="side-nav">
   <a href="<?= site_url('dashboard/receptionist') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
   <a href="<?= site_url('reception/patients') ?>" class="active" aria-current="page"><i class="fa-solid fa-users" style="margin-right:8px"></i>Patient Management</a>
