@@ -330,14 +330,14 @@ class Admin extends BaseController
             ->join('rooms', 'rooms.id = patients.assigned_room_id', 'left')
             ->join('beds', 'beds.id = patients.assigned_bed_id', 'left');
         
-        // Apply search filter
+        // Apply search filter (prefix match on each field)
         if (!empty($search)) {
             $builder->groupStart()
-                ->like('patients.first_name', $search)
-                ->orLike('patients.last_name', $search)
-                ->orLike('patients.patient_id', $search)
-                ->orLike('patients.phone', $search)
-                ->orLike('patients.email', $search)
+                ->like('patients.first_name', $search, 'after')
+                ->orLike('patients.last_name', $search, 'after')
+                ->orLike('patients.patient_id', $search, 'after')
+                ->orLike('patients.phone', $search, 'after')
+                ->orLike('patients.email', $search, 'after')
                 ->groupEnd();
         }
         
@@ -1013,8 +1013,10 @@ class Admin extends BaseController
         $patientModel = model('App\\Models\\PatientModel');
         $userModel = model('App\\Models\\UserModel');
         
-        $total = $medicalRecordModel->countAllResults();
+        // Include soft-deleted records so admins can see and restore them
+        $total = $medicalRecordModel->withDeleted()->countAllResults();
         $records = $medicalRecordModel
+                    ->withDeleted()
                     ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
                     ->join('patients', 'patients.id = medical_records.patient_id')
                     ->join('users', 'users.id = medical_records.doctor_id')
@@ -1030,6 +1032,112 @@ class Admin extends BaseController
             'hasNext' => ($offset + count($records)) < $total,
         ];
         return view('admin/medical_records_list', $data);
+    }
+
+    public function editMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(100);
+
+        return view('admin/medical_record_edit', [
+            'record' => $record,
+            'patients' => $patients,
+        ]);
+    }
+
+    public function updateMedicalRecord($id)
+    {
+        helper(['url', 'form']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        $normalizeJson = function ($raw) {
+            if ($raw === null) {
+                return null;
+            }
+            $raw = trim((string) $raw);
+            if ($raw === '') {
+                return null;
+            }
+
+            json_decode($raw);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $raw;
+            }
+
+            return json_encode(['text' => $raw], JSON_UNESCAPED_UNICODE);
+        };
+
+        $vitalSignsInput = $this->request->getPost('vital_signs');
+        $medicationsInput = $this->request->getPost('medications_prescribed');
+
+        $data = [
+            'patient_id' => (int) $this->request->getPost('patient_id'),
+            'visit_date' => $this->request->getPost('visit_date') ?: date('Y-m-d H:i:s'),
+            'chief_complaint' => $this->request->getPost('chief_complaint') ?: null,
+            'history_present_illness' => $this->request->getPost('history_present_illness') ?: null,
+            'physical_examination' => $this->request->getPost('physical_examination') ?: null,
+            'vital_signs' => $normalizeJson($vitalSignsInput),
+            'diagnosis' => $this->request->getPost('diagnosis') ?: null,
+            'treatment_plan' => $this->request->getPost('treatment_plan') ?: null,
+            'medications_prescribed' => $normalizeJson($medicationsInput),
+            'follow_up_instructions' => $this->request->getPost('follow_up_instructions') ?: null,
+            'next_visit_date' => $this->request->getPost('next_visit_date') ?: null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $medicalRecordModel->update($id, $data);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record updated successfully.');
+    }
+
+    public function deleteMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        // Soft delete the record
+        $medicalRecordModel->delete($id);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record deleted. You can restore it from the list.');
+    }
+
+    public function restoreMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        // Need withDeleted() to find soft-deleted rows
+        $record = $medicalRecordModel->withDeleted()->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        if (empty($record['deleted_at'])) {
+            return redirect()->to(site_url('admin/medical-records'))->with('info', 'Medical record is already active.');
+        }
+
+        // Allow updating deleted_at even though it is not in allowedFields
+        $medicalRecordModel->protect(false)->update($id, ['deleted_at' => null]);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record restored.');
     }
 
     // Get medical record details as JSON (for modal display)

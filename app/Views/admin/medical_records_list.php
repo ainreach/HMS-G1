@@ -33,17 +33,35 @@
         <tbody>
           <?php if (!empty($records)): ?>
             <?php foreach ($records as $record): ?>
-              <tr>
+              <tr<?= !empty($record['deleted_at']) ? ' style="opacity:0.6;background:#f9fafb;"' : '' ?>>
                 <td><?= esc($record['record_number'] ?? 'N/A') ?></td>
                 <td><?= esc(($record['patient_first_name'] ?? '') . ' ' . ($record['patient_last_name'] ?? '')) ?></td>
-                <td>Dr. <?= esc(($record['doctor_first_name'] ?? '') . ' ' . ($record['doctor_last_name'] ?? '')) ?></td>
+                <td>Dr. <?= esc($record['doctor_first_name'] ?? '') ?></td>
                 <td><?= date('M j, Y', strtotime($record['visit_date'])) ?></td>
                 <td><?= esc(substr($record['chief_complaint'] ?? '', 0, 50)) ?><?= strlen($record['chief_complaint'] ?? '') > 50 ? '...' : '' ?></td>
                 <td><?= esc(substr($record['diagnosis'] ?? '', 0, 50)) ?><?= strlen($record['diagnosis'] ?? '') > 50 ? '...' : '' ?></td>
-                <td>
+                <td style="display:flex;gap:4px;flex-wrap:wrap">
                   <button type="button" class="btn btn-secondary view-record-btn" data-record-id="<?= $record['id'] ?>" style="padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer;">
                     <i class="fas fa-eye"></i> View
                   </button>
+                  <a href="<?= site_url('admin/medical-records/' . $record['id'] . '/edit') ?>" class="btn btn-secondary" style="padding:0.25rem 0.5rem;font-size:0.75rem;text-decoration:none;">
+                    <i class="fas fa-edit"></i> Edit
+                  </a>
+                  <?php if (empty($record['deleted_at'])): ?>
+                    <form method="post" action="<?= site_url('admin/medical-records/' . $record['id'] . '/delete') ?>" style="display:inline" onsubmit="return confirm('Delete this medical record? You can restore it later from this list.');">
+                      <?= csrf_field() ?>
+                      <button type="submit" class="btn btn-danger" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  <?php else: ?>
+                    <form method="post" action="<?= site_url('admin/medical-records/' . $record['id'] . '/restore') ?>" style="display:inline" onsubmit="return confirm('Restore this medical record?');">
+                      <?= csrf_field() ?>
+                      <button type="submit" class="btn" style="padding:0.25rem 0.5rem;font-size:0.75rem;background:#16a34a;color:white;border:none;">
+                        <i class="fas fa-undo"></i> Restore
+                      </button>
+                    </form>
+                  <?php endif; ?>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -108,12 +126,24 @@
       <?php endif; ?>
       <form method="post" action="<?= site_url('doctor/records') ?>" id="modalRecordForm">
         <?= csrf_field() ?>
+        <input type="hidden" name="redirect_to" value="<?= site_url('admin/medical-records') ?>">
         <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-          <label style="display:block;margin-bottom:4px;font-weight:600;">Patient ID
-            <input type="number" name="patient_id" value="<?= old('patient_id') ?>" required style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+          <label style="display:block;margin-bottom:4px;font-weight:600;">Patient (by name or room)
+            <div style="position:relative;">
+              <input 
+                type="text" 
+                id="patientSearchInput" 
+                placeholder="Search by name, room number, ID, or phone..." 
+                autocomplete="off"
+                style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+              <input type="hidden" name="patient_id" id="patientIdInput" value="<?= old('patient_id') ?>" required>
+              <div id="patientSearchResults" style="position:absolute;z-index:40;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-radius:0 0 6px 6px;max-height:220px;overflow-y:auto;display:none;"></div>
+            </div>
           </label>
-          <label style="display:block;margin-bottom:4px;font-weight:600;">Appointment ID
-            <input type="number" name="appointment_id" value="<?= old('appointment_id') ?>" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+          <label style="display:block;margin-bottom:4px;font-weight:600;">Appointment
+            <select name="appointment_id" id="appointmentSelect" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
+              <option value="">No appointment / walk-in</option>
+            </select>
           </label>
           <label style="display:block;margin-bottom:4px;font-weight:600;">Visit Date/Time
             <input type="datetime-local" name="visit_date" value="<?= old('visit_date') ?>" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;">
@@ -183,9 +213,148 @@ document.getElementById('newRecordModal').addEventListener('click', function(e) 
 
 // Handle form submission
 document.getElementById('modalRecordForm').addEventListener('submit', function(e) {
-  // Form will submit normally to the server
-  // Modal will close after successful submission or redirect
+  // Ensure a patient is selected before submitting
+  var patientIdInput = document.getElementById('patientIdInput');
+  if (!patientIdInput || !patientIdInput.value) {
+    e.preventDefault();
+    alert('Please select a patient from the list first.');
+    var patientSearchInput = document.getElementById('patientSearchInput');
+    if (patientSearchInput) {
+      patientSearchInput.focus();
+    }
+  }
 });
+
+// Patient search with dropdown suggestions
+(function() {
+  var searchInput = document.getElementById('patientSearchInput');
+  var resultsBox = document.getElementById('patientSearchResults');
+  var hiddenIdInput = document.getElementById('patientIdInput');
+  var appointmentSelect = document.getElementById('appointmentSelect');
+
+  if (!searchInput || !resultsBox || !hiddenIdInput) return;
+
+  var searchTimer;
+
+  function clearResults() {
+    resultsBox.style.display = 'none';
+    resultsBox.innerHTML = '';
+  }
+
+  function renderResults(patients) {
+    if (!patients || patients.length === 0) {
+      clearResults();
+      return;
+    }
+
+    var html = '';
+    patients.forEach(function(patient) {
+      var fullName = ((patient.first_name || '') + ' ' + (patient.last_name || '')).trim();
+      var room = patient.room_number ? ('Room ' + patient.room_number) : '';
+      var code = patient.patient_id || ('#' + patient.id);
+      var phone = patient.phone || '';
+      html += '<button type="button" class="patient-option" data-id="' + patient.id + '" style="width:100%;text-align:left;padding:8px 10px;border:none;border-bottom:1px solid var(--border);background:white;cursor:pointer;display:block;">'
+           +   '<div style="font-weight:600;color:#111827;">' + fullName + (room ? ' • <span style="color:#2563eb;font-weight:500;">' + room + '</span>' : '') + '</div>'
+           +   '<div style="font-size:0.8rem;color:#6b7280;">' + code + (phone ? ' • ' + phone : '') + '</div>'
+           + '</button>';
+    });
+
+    resultsBox.innerHTML = html;
+    resultsBox.style.display = 'block';
+
+    Array.prototype.forEach.call(resultsBox.querySelectorAll('.patient-option'), function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-id');
+        var label = this.textContent.trim();
+        hiddenIdInput.value = id;
+        searchInput.value = label;
+        clearResults();
+
+        // Load appointments for this patient into the dropdown
+        if (appointmentSelect) {
+          loadAppointmentsForPatient(id);
+        }
+      });
+    });
+  }
+
+  function runSearch(query) {
+    if (!query || query.length < 1) {
+      clearResults();
+      hiddenIdInput.value = '';
+      return;
+    }
+
+    var url = '<?= site_url('doctor/patients/search') ?>?q=' + encodeURIComponent(query);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(function(r) { return r.json(); })
+      .then(function(patients) { renderResults(patients); })
+      .catch(function() { clearResults(); });
+  }
+
+  function loadAppointmentsForPatient(patientId) {
+    if (!appointmentSelect) return;
+
+    if (!patientId) {
+      appointmentSelect.innerHTML = '<option value="">No appointment / walk-in</option>';
+      return;
+    }
+
+    appointmentSelect.innerHTML = '<option value="">Loading appointments...</option>';
+
+    var url = '<?= site_url('doctor/appointments/patient') ?>/' + encodeURIComponent(patientId);
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(function(r) { return r.json(); })
+      .then(function(appointments) {
+        var options = '<option value="">No appointment / walk-in</option>';
+
+        if (appointments && appointments.length) {
+          appointments.forEach(function(appt) {
+            var id = appt.id;
+            var date = appt.appointment_date || '';
+            var time = appt.appointment_time || '';
+            var status = appt.status || '';
+            var label = 'Appt #' + id;
+            if (date || time) {
+              label += ' - ' + [date, time].filter(Boolean).join(' ');
+            }
+            if (status) {
+              label += ' (' + status + ')';
+            }
+            options += '<option value="' + id + '\">' + label + '</option>';
+          });
+        }
+
+        appointmentSelect.innerHTML = options;
+      })
+      .catch(function() {
+        appointmentSelect.innerHTML = '<option value="">No appointment / walk-in</option>';
+      });
+  }
+
+  searchInput.addEventListener('input', function() {
+    var query = this.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function() {
+      runSearch(query);
+    }, 250);
+  });
+
+  searchInput.addEventListener('focus', function() {
+    var query = this.value.trim();
+    if (query.length > 0) {
+      runSearch(query);
+    }
+  });
+
+  // Hide results when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!resultsBox.contains(e.target) && e.target !== searchInput) {
+      clearResults();
+    }
+  });
+})();
 
 // View Record Modal functionality
 const viewRecordModal = document.getElementById('viewRecordModal');
