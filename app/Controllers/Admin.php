@@ -312,11 +312,19 @@ class Admin extends BaseController
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
         $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $roomModel = model('App\\Models\\RoomModel');
+        
         $total = $patientModel->countAllResults();
         $patients = $patientModel
                     ->select('id, patient_id, first_name, last_name, phone, email, created_at')
                     ->orderBy('created_at', 'DESC')
                     ->findAll($perPage, $offset);
+        
+        // Get doctors and rooms for the modal form
+        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->findAll();
+        $availableRooms = $roomModel->where('status', 'available')->findAll();
+        
         $data = [
             'patients' => $patients,
             'page' => $page,
@@ -324,6 +332,8 @@ class Admin extends BaseController
             'total' => $total,
             'hasPrev' => $page > 1,
             'hasNext' => ($offset + count($patients)) < $total,
+            'doctors' => $doctors,
+            'availableRooms' => $availableRooms,
         ];
         return view('admin/patients_list', $data);
     }
@@ -331,7 +341,16 @@ class Admin extends BaseController
     public function newPatient()
     {
         helper(['url','form']);
-        return view('admin/patient_new');
+        $userModel = model('App\Models\UserModel');
+        $roomModel = model('App\Models\RoomModel');
+        
+        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->findAll();
+        $availableRooms = $roomModel->where('status', 'available')->findAll();
+        
+        return view('admin/patient_new', [
+            'doctors' => $doctors,
+            'availableRooms' => $availableRooms
+        ]);
     }
 
     public function storePatient()
@@ -366,6 +385,7 @@ class Admin extends BaseController
             'middle_name' => trim((string)$req->getPost('middle_name')),
             'date_of_birth' => $req->getPost('date_of_birth'),
             'gender' => $req->getPost('gender'),
+            'marital_status' => $req->getPost('marital_status') ?: null,
             'blood_type' => $req->getPost('blood_type'),
             'phone' => trim((string)$req->getPost('phone')),
             'email' => trim((string)$req->getPost('email')),
@@ -378,6 +398,9 @@ class Admin extends BaseController
             'insurance_number' => trim((string)$req->getPost('insurance_number')),
             'allergies' => trim((string)$req->getPost('allergies')),
             'medical_history' => trim((string)$req->getPost('medical_history')),
+            'admission_type' => $req->getPost('admission_type') ?: null,
+            'assigned_room_id' => $req->getPost('assigned_room_id') ? (int)$req->getPost('assigned_room_id') : null,
+            'admission_date' => $req->getPost('admission_type') === 'admission' ? date('Y-m-d') : null,
             'branch_id' => $branchId,
             'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
@@ -390,6 +413,42 @@ class Admin extends BaseController
         
         $patients = model('App\\Models\\PatientModel');
         $patients->insert($data);
+        $patientId = $patients->getInsertID();
+        
+        // Handle room assignment if admission type is 'admission'
+        if ($data['admission_type'] === 'admission' && $data['assigned_room_id']) {
+            $roomModel = model('App\\Models\\RoomModel');
+            $room = $roomModel->find($data['assigned_room_id']);
+            if ($room) {
+                $newOccupancy = $room['current_occupancy'] + 1;
+                $roomModel->update($data['assigned_room_id'], [
+                    'current_occupancy' => $newOccupancy,
+                    'status' => $newOccupancy >= $room['capacity'] ? 'occupied' : 'available'
+                ]);
+            }
+        }
+        
+        // Handle appointment if admission type is 'checkup' and doctor is assigned
+        if ($data['admission_type'] === 'checkup' && $req->getPost('doctor_id')) {
+            $appointmentModel = model('App\\Models\\AppointmentModel');
+            $appointmentDate = $req->getPost('appointment_date');
+            if ($appointmentDate) {
+                $appointmentData = [
+                    'appointment_number' => 'A-' . date('YmdHis'),
+                    'patient_id' => $patientId,
+                    'doctor_id' => (int)$req->getPost('doctor_id'),
+                    'branch_id' => $branchId,
+                    'appointment_date' => date('Y-m-d', strtotime($appointmentDate)),
+                    'appointment_time' => date('H:i:s', strtotime($appointmentDate)),
+                    'duration' => 30,
+                    'type' => 'consultation',
+                    'status' => 'scheduled',
+                    'created_by' => session('user_id') ?: 0,
+                ];
+                $appointmentModel->insert($appointmentData);
+            }
+        }
+        
         AuditLogger::log('patient_create', 'patient_id=' . $data['patient_id']);
         return redirect()->to(site_url('admin/patients'))->with('success','Patient created successfully.');
     }

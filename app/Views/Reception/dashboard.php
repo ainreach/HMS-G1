@@ -5,6 +5,40 @@
   <base href="<?= rtrim(base_url(), '/') ?>/">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .nav-section { margin-bottom: 1.5rem; }
+    .nav-section-title { 
+      font-size: 0.75rem; 
+      font-weight: 600; 
+      color: #6b7280; 
+      text-transform: uppercase; 
+      letter-spacing: 0.05em; 
+      margin: 0 0 0.5rem 0; 
+      padding: 0 1rem; 
+    }
+    .side-nav a { 
+      display: flex; 
+      align-items: center; 
+      padding: 0.75rem 1rem; 
+      color: #6b7280; 
+      text-decoration: none; 
+      transition: all 0.2s; 
+    }
+    .side-nav a:hover { 
+      background-color: #f3f4f6; 
+      color: #111827; 
+    }
+    .side-nav a.active { 
+      background-color: #dbeafe; 
+      color: #1e40af; 
+      font-weight: 500; 
+    }
+    .side-nav a i { 
+      margin-right: 0.5rem; 
+      width: 1rem; 
+      text-align: center; 
+    }
+  </style>
 </head><body>
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
     <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
@@ -17,13 +51,41 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Reception navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/receptionist') ?>">Overview</a>
-  <a href="<?= site_url('reception/patients') ?>" data-feature="ehr">Patient Management</a>
-  <a href="<?= site_url('reception/appointments') ?>" data-feature="scheduling">Appointment Management</a>
-  <a href="<?= site_url('reception/rooms') ?>" class="active" aria-current="page">Room Management</a>
-  <a href="<?= site_url('reception/patient-lookup') ?>" data-feature="ehr">Patient Lookup</a>
-</nav></aside>
+<div class="layout">
+  <aside class="simple-sidebar" role="navigation" aria-label="Reception navigation">
+    <nav class="side-nav">
+      <a href="<?= site_url('dashboard/receptionist') ?>" class="<?= (current_url() == site_url('dashboard/receptionist')) ? 'active' : '' ?>" aria-current="page">
+        <i class="fas fa-tachometer-alt"></i> Overview
+      </a>
+      
+      <!-- Patient Management -->
+      <div class="nav-section">
+        <h4 class="nav-section-title">Patient Management</h4>
+        <a href="<?= site_url('reception/patients') ?>" class="<?= (strpos(current_url(), 'reception/patients') !== false && strpos(current_url(), 'patient-lookup') === false) ? 'active' : '' ?>">
+          <i class="fas fa-user-injured"></i> Patients
+        </a>
+        <a href="<?= site_url('reception/patient-lookup') ?>" class="<?= (strpos(current_url(), 'reception/patient-lookup') !== false) ? 'active' : '' ?>">
+          <i class="fas fa-search"></i> Patient Lookup
+        </a>
+      </div>
+      
+      <!-- Appointment Management -->
+      <div class="nav-section">
+        <h4 class="nav-section-title">Appointment Management</h4>
+        <a href="<?= site_url('reception/appointments') ?>" class="<?= (strpos(current_url(), 'reception/appointments') !== false) ? 'active' : '' ?>">
+          <i class="fas fa-calendar-check"></i> Appointments
+        </a>
+      </div>
+      
+      <!-- Room Management -->
+      <div class="nav-section">
+        <h4 class="nav-section-title">Room Management</h4>
+        <a href="<?= site_url('reception/rooms') ?>" class="<?= (strpos(current_url(), 'reception/rooms') !== false || strpos(current_url(), 'reception/in-patients') !== false) ? 'active' : '' ?>">
+          <i class="fas fa-bed"></i> Rooms
+        </a>
+      </div>
+    </nav>
+  </aside>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Check-ins Today</span><i class="fa-solid fa-user-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($checkinsToday ?? 0) ?></div></article>

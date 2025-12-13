@@ -1,3 +1,7 @@
+<?php
+helper('form');
+$errors = session('errors') ?? [];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,23 +10,169 @@
   <title>Add New Patient - Admin Dashboard</title>
   <base href="<?= rtrim(base_url(), '/') ?>/">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    .panel { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; overflow: hidden; }
-    .panel-head { padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb; }
-    .panel-body { padding: 1.25rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .btn { display: inline-flex; align-items: center; padding: 0.75rem 1.5rem; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s; border: none; cursor: pointer; }
-    .btn:hover { background-color: #2563eb; }
-    .btn-secondary { background-color: #6b7280; }
-    .btn-secondary:hover { background-color: #4b5563; }
-    .btn i { margin-right: 0.5rem; }
-    .alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
-    .alert-error { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    :root {
+      --primary-blue: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1e40af;
+      --text-dark: #1f2937;
+      --text-gray: #6b7280;
+      --bg-light: #f8fafc;
+      --border-color: #e5e7eb;
+      --focus-ring: rgba(37, 99, 235, 0.3);
+    }
+
+    body {
+      background: var(--bg-light);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    .registration-wrapper {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .page-header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-title-main {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0;
+    }
+
+    .form-container {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .form-content {
+      padding: 24px;
+    }
+
+    .section-header {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-dark);
+      margin: 20px 0 12px;
+      padding: 10px 14px;
+      background: var(--bg-light);
+      border-left: 4px solid var(--primary-blue);
+      border-radius: 8px;
+    }
+
+    .section-header:first-child {
+      margin-top: 0;
+    }
+
+    .form-label-custom {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .form-control-custom,
+    .form-select-custom {
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      background: #fff;
+    }
+
+    .form-control-custom:focus,
+    .form-select-custom:focus {
+      border-color: var(--primary-blue);
+      outline: none;
+      box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+
+    .invalid-feedback-custom {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.875rem;
+      color: #dc2626;
+    }
+
+    .btn-primary-custom {
+      background: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: #fff;
+      padding: 11px 24px;
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary-custom:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary-custom {
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      color: var(--text-dark);
+      padding: 11px 24px;
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary-custom:hover {
+      background: var(--bg-light);
+      border-color: #cbd5e1;
+    }
+
+    .alert-custom {
+      border-radius: 12px;
+      border: 0;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+
+    .text-required {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .text-hint {
+      font-size: 0.875rem;
+      color: var(--text-gray);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .registration-wrapper {
+        margin: 16px auto;
+        padding: 0 12px;
+      }
+      .form-content {
+        padding: 16px;
+      }
+      .page-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
@@ -69,141 +219,288 @@
   </aside>
   
   <main class="content">
-    <?php if(session()->getFlashdata('error')): ?>
-      <div class="alert alert-error"><?= session()->getFlashdata('error') ?></div>
-    <?php endif; ?>
+    <div class="registration-wrapper">
+      <div class="page-header-section">
+        <h1 class="page-title-main">
+          <i class="fas fa-user-plus me-2"></i>Add New Patient
+        </h1>
+        <a href="<?= site_url('admin/patients') ?>" class="btn btn-secondary-custom">
+          <i class="fas fa-arrow-left me-2"></i>Back to Patients
+        </a>
+      </div>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2 style="margin:0;font-size:1.1rem">Patient Information</h2>
+      <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-custom">
+          <i class="fas fa-exclamation-circle me-2"></i><?= esc(session()->getFlashdata('error')) ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-custom">
+          <i class="fas fa-check-circle me-2"></i><?= esc(session()->getFlashdata('success')) ?>
+        </div>
+      <?php endif; ?>
+
+      <div class="form-container">
+        <div class="form-content">
+          <form method="post" action="<?= site_url('admin/patients') ?>">
+            <?= csrf_field() ?>
+
+            <!-- Personal Information Section -->
+            <h5 class="section-header">
+              <i class="fas fa-id-card me-2"></i>Personal Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label-custom">
+                  First Name <span class="text-required">*</span>
+                </label>
+                <input type="text" name="first_name" 
+                       class="form-control form-control-custom <?= isset($errors['first_name']) ? 'is-invalid' : '' ?>" 
+                       value="<?= set_value('first_name', old('first_name')) ?>" required>
+                <?php if (isset($errors['first_name'])): ?>
+                  <div class="invalid-feedback-custom"><?= esc($errors['first_name']) ?></div>
+                <?php endif; ?>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Middle Name</label>
+                <input type="text" name="middle_name" 
+                       class="form-control form-control-custom <?= isset($errors['middle_name']) ? 'is-invalid' : '' ?>" 
+                       value="<?= set_value('middle_name', old('middle_name')) ?>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">
+                  Last Name <span class="text-required">*</span>
+                </label>
+                <input type="text" name="last_name" 
+                       class="form-control form-control-custom <?= isset($errors['last_name']) ? 'is-invalid' : '' ?>" 
+                       value="<?= set_value('last_name', old('last_name')) ?>" required>
+                <?php if (isset($errors['last_name'])): ?>
+                  <div class="invalid-feedback-custom"><?= esc($errors['last_name']) ?></div>
+                <?php endif; ?>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">
+                  Gender <span class="text-required">*</span>
+                </label>
+                <select name="gender" 
+                        class="form-select form-select-custom <?= isset($errors['gender']) ? 'is-invalid' : '' ?>" required>
+                  <option value="">-- Select Gender --</option>
+                  <option value="male" <?= set_select('gender', 'male', old('gender') == 'male') ?>>Male</option>
+                  <option value="female" <?= set_select('gender', 'female', old('gender') == 'female') ?>>Female</option>
+                  <option value="other" <?= set_select('gender', 'other', old('gender') == 'other') ?>>Other</option>
+                </select>
+                <?php if (isset($errors['gender'])): ?>
+                  <div class="invalid-feedback-custom"><?= esc($errors['gender']) ?></div>
+                <?php endif; ?>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Marital Status</label>
+                <select name="marital_status" class="form-select form-select-custom">
+                  <option value="">-- Select Status --</option>
+                  <option value="single" <?= set_select('marital_status', 'single', old('marital_status') == 'single') ?>>Single</option>
+                  <option value="married" <?= set_select('marital_status', 'married', old('marital_status') == 'married') ?>>Married</option>
+                  <option value="divorced" <?= set_select('marital_status', 'divorced', old('marital_status') == 'divorced') ?>>Divorced</option>
+                  <option value="widowed" <?= set_select('marital_status', 'widowed', old('marital_status') == 'widowed') ?>>Widowed</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Date of Birth</label>
+                <input type="date" name="date_of_birth" 
+                       class="form-control form-control-custom" 
+                       value="<?= set_value('date_of_birth', old('date_of_birth')) ?>" 
+                       id="dob_input">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Phone Number</label>
+                <input type="text" name="phone" 
+                       class="form-control form-control-custom" 
+                       value="<?= set_value('phone', old('phone')) ?>" 
+                       placeholder="09XX-XXX-XXXX">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Email Address</label>
+                <input type="email" name="email" 
+                       class="form-control form-control-custom" 
+                       value="<?= set_value('email', old('email')) ?>" 
+                       placeholder="patient@example.com">
+              </div>
+              <div class="col-md-12">
+                <label class="form-label-custom">Complete Address</label>
+                <input type="text" name="address" 
+                       class="form-control form-control-custom" 
+                       value="<?= set_value('address', old('address')) ?>" 
+                       placeholder="Street, City, Province">
+              </div>
+            </div>
+
+            <!-- Emergency Contact Section -->
+            <h5 class="section-header">
+              <i class="fas fa-address-book me-2"></i>Emergency Contact
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label-custom">Full Name</label>
+                <input type="text" name="emergency_contact_name" class="form-control form-control-custom" value="<?= set_value('emergency_contact_name', old('emergency_contact_name')) ?>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Phone Number</label>
+                <input type="text" name="emergency_contact_phone" class="form-control form-control-custom" value="<?= set_value('emergency_contact_phone', old('emergency_contact_phone')) ?>">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-custom">Relation</label>
+                <input type="text" name="emergency_contact_relation" class="form-control form-control-custom" value="<?= set_value('emergency_contact_relation', old('emergency_contact_relation')) ?>">
+              </div>
+            </div>
+
+            <!-- Medical History Section -->
+            <h5 class="section-header">
+                <i class="fas fa-notes-medical me-2"></i>Medical History
+            </h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label-custom">Blood Type</label>
+                    <select name="blood_type" class="form-select form-select-custom">
+                        <option value="">-- Select Blood Type --</option>
+                        <option value="A+" <?= set_select('blood_type', 'A+', old('blood_type') == 'A+') ?>>A+</option>
+                        <option value="A-" <?= set_select('blood_type', 'A-', old('blood_type') == 'A-') ?>>A-</option>
+                        <option value="B+" <?= set_select('blood_type', 'B+', old('blood_type') == 'B+') ?>>B+</option>
+                        <option value="B-" <?= set_select('blood_type', 'B-', old('blood_type') == 'B-') ?>>B-</option>
+                        <option value="AB+" <?= set_select('blood_type', 'AB+', old('blood_type') == 'AB+') ?>>AB+</option>
+                        <option value="AB-" <?= set_select('blood_type', 'AB-', old('blood_type') == 'AB-') ?>>AB-</option>
+                        <option value="O+" <?= set_select('blood_type', 'O+', old('blood_type') == 'O+') ?>>O+</option>
+                        <option value="O-" <?= set_select('blood_type', 'O-', old('blood_type') == 'O-') ?>>O-</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label-custom">Known Allergies</label>
+                    <input type="text" name="allergies" class="form-control form-control-custom" value="<?= set_value('allergies', old('allergies')) ?>" placeholder="e.g., Peanuts, Penicillin">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label-custom">Past Medical History</label>
+                    <textarea name="medical_history" class="form-control form-control-custom" rows="3" placeholder="Describe any significant past illnesses, surgeries, or conditions."><?= set_value('medical_history', old('medical_history')) ?></textarea>
+                </div>
+            </div>
+
+            <!-- Admission Information Section -->
+            <h5 class="section-header">
+              <i class="fas fa-hospital me-2"></i>Admission Information
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label-custom">Admission Type</label>
+                <select name="admission_type" id="admission_type_select" class="form-select form-select-custom">
+                  <option value="checkup" <?= set_select('admission_type', 'checkup', old('admission_type') == 'checkup') ?>>Out-Patient (Check-up)</option>
+                  <option value="admission" <?= set_select('admission_type', 'admission', old('admission_type') == 'admission') ?>>In-Patient (Admission)</option>
+                </select>
+                <div class="text-hint">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Select admission type. In-Patient requires room assignment.
+                </div>
+              </div>
+              <div class="col-md-6" id="room_selection_section" style="display: none;">
+                <label class="form-label-custom">Room Assignment</label>
+                <select name="assigned_room_id" class="form-select form-select-custom">
+                  <option value="">-- Select Room --</option>
+                  <?php if (!empty($availableRooms)): ?>
+                    <?php foreach ($availableRooms as $room): ?>
+                      <option value="<?= esc($room['id']) ?>">
+                        <?= esc($room['room_number']) ?> - 
+                        <?= esc($room['room_type'] ?? 'Standard') ?> 
+                        (₱<?= number_format($room['rate_per_day'] ?? 0, 2) ?>/day)
+                      </option>
+                    <?php endforeach; ?>
+                  <?php else: ?>
+                    <option value="" disabled>No available rooms</option>
+                  <?php endif; ?>
+                </select>
+                <div class="text-hint">Room assignment is required for In-Patient admission</div>
+              </div>
+            </div>
+
+            <!-- Insurance Information Section -->
+            <h5 class="section-header">
+              <i class="fas fa-shield-alt me-2"></i>Insurance Information (Optional)
+            </h5>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label-custom">Insurance Provider</label>
+                <input type="text" name="insurance_provider" class="form-control form-control-custom" value="<?= set_value('insurance_provider', old('insurance_provider')) ?>" placeholder="e.g., PhilHealth, Maxicare">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-custom">Policy Number</label>
+                <input type="text" name="insurance_number" class="form-control form-control-custom" value="<?= set_value('insurance_number', old('insurance_number')) ?>" placeholder="Enter policy or ID number">
+              </div>
+            </div>
+
+            <!-- Consultation Information Section (for Out-Patients) -->
+            <div id="consultation_section">
+                <h5 class="section-header">
+                  <i class="fas fa-stethoscope me-2"></i>Consultation Information
+                </h5>
+                <div class="row g-3 mb-4">
+                  <div class="col-md-6">
+                    <label class="form-label-custom">Assign Doctor</label>
+                    <select name="doctor_id" class="form-select form-select-custom">
+                      <option value="">-- Select Doctor --</option>
+                      <?php if (!empty($doctors)): ?>
+                        <?php foreach ($doctors as $doctor): ?>
+                          <option value="<?= esc($doctor['id']) ?>" <?= set_select('doctor_id', $doctor['id'], old('doctor_id') == $doctor['id']) ?>>
+                            <?= esc($doctor['first_name'] . ' ' . $doctor['last_name']) ?> (<?= esc(ucfirst($doctor['specialization'] ?? 'General')) ?>)
+                          </option>
+                        <?php endforeach; ?>
+                      <?php endif; ?>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label-custom">Appointment Date</label>
+                    <input type="datetime-local" name="appointment_date" class="form-control form-control-custom" value="<?= set_value('appointment_date', old('appointment_date')) ?>">
+                  </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-3 mt-4 pt-3 border-top">
+              <button type="submit" class="btn btn-primary-custom">
+                <i class="fas fa-save me-2"></i>Create Patient
+              </button>
+              <a href="<?= site_url('admin/patients') ?>" class="btn btn-secondary-custom">
+                <i class="fas fa-times me-2"></i>Cancel
+              </a>
+            </div>
+          </form>
+        </div>
       </div>
-      <div class="panel-body">
-        <form method="POST" action="<?= site_url('admin/patients') ?>">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="first_name">First Name *</label>
-              <input type="text" id="first_name" name="first_name" value="<?= old('first_name') ?>" required>
-            </div>
-            <div class="form-group">
-              <label for="last_name">Last Name *</label>
-              <input type="text" id="last_name" name="last_name" value="<?= old('last_name') ?>" required>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="middle_name">Middle Name</label>
-            <input type="text" id="middle_name" name="middle_name" value="<?= old('middle_name') ?>">
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="date_of_birth">Date of Birth *</label>
-              <input type="date" id="date_of_birth" name="date_of_birth" value="<?= old('date_of_birth') ?>" required>
-            </div>
-            <div class="form-group">
-              <label for="gender">Gender *</label>
-              <select id="gender" name="gender" required>
-                <option value="">Select Gender</option>
-                <option value="male" <?= old('gender') == 'male' ? 'selected' : '' ?>>Male</option>
-                <option value="female" <?= old('gender') == 'female' ? 'selected' : '' ?>>Female</option>
-                <option value="other" <?= old('gender') == 'other' ? 'selected' : '' ?>>Other</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="blood_type">Blood Type</label>
-              <select id="blood_type" name="blood_type">
-                <option value="">Select Blood Type</option>
-                <option value="A+" <?= old('blood_type') == 'A+' ? 'selected' : '' ?>>A+</option>
-                <option value="A-" <?= old('blood_type') == 'A-' ? 'selected' : '' ?>>A-</option>
-                <option value="B+" <?= old('blood_type') == 'B+' ? 'selected' : '' ?>>B+</option>
-                <option value="B-" <?= old('blood_type') == 'B-' ? 'selected' : '' ?>>B-</option>
-                <option value="AB+" <?= old('blood_type') == 'AB+' ? 'selected' : '' ?>>AB+</option>
-                <option value="AB-" <?= old('blood_type') == 'AB-' ? 'selected' : '' ?>>AB-</option>
-                <option value="O+" <?= old('blood_type') == 'O+' ? 'selected' : '' ?>>O+</option>
-                <option value="O-" <?= old('blood_type') == 'O-' ? 'selected' : '' ?>>O-</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" name="phone" value="<?= old('phone') ?>">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" value="<?= old('email') ?>">
-          </div>
-          
-          <div class="form-group">
-            <label for="address">Address</label>
-            <textarea id="address" name="address" rows="3"><?= old('address') ?></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label for="city">City</label>
-            <input type="text" id="city" name="city" value="<?= old('city') ?>">
-          </div>
-          
-          <h3 style="margin: 2rem 0 1rem 0; color: #374151; font-size: 1.1rem;">Emergency Contact</h3>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="emergency_contact_name">Emergency Contact Name</label>
-              <input type="text" id="emergency_contact_name" name="emergency_contact_name" value="<?= old('emergency_contact_name') ?>">
-            </div>
-            <div class="form-group">
-              <label for="emergency_contact_phone">Emergency Contact Phone</label>
-              <input type="tel" id="emergency_contact_phone" name="emergency_contact_phone" value="<?= old('emergency_contact_phone') ?>">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="emergency_contact_relation">Relationship</label>
-            <input type="text" id="emergency_contact_relation" name="emergency_contact_relation" value="<?= old('emergency_contact_relation') ?>" placeholder="e.g., Spouse, Parent, Sibling">
-          </div>
-          
-          <h3 style="margin: 2rem 0 1rem 0; color: #374151; font-size: 1.1rem;">Insurance Information</h3>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label for="insurance_provider">Insurance Provider</label>
-              <input type="text" id="insurance_provider" name="insurance_provider" value="<?= old('insurance_provider') ?>">
-            </div>
-            <div class="form-group">
-              <label for="insurance_number">Insurance Number</label>
-              <input type="text" id="insurance_number" name="insurance_number" value="<?= old('insurance_number') ?>">
-            </div>
-          </div>
-          
-          <h3 style="margin: 2rem 0 1rem 0; color: #374151; font-size: 1.1rem;">Medical Information</h3>
-          
-          <div class="form-group">
-            <label for="allergies">Allergies</label>
-            <textarea id="allergies" name="allergies" rows="3" placeholder="List any known allergies"><?= old('allergies') ?></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label for="medical_history">Medical History</label>
-            <textarea id="medical_history" name="medical_history" rows="3" placeholder="Previous medical conditions, surgeries, etc."><?= old('medical_history') ?></textarea>
-          </div>
-          
-          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-            <button type="submit" class="btn">
-              <i class="fas fa-save"></i> Create Patient
-            </button>
-            <a href="<?= site_url('admin/patients') ?>" class="btn btn-secondary">
-              <i class="fas fa-times"></i> Cancel
-            </a>
-          </div>
-        </form>
-      </div>
-    </section>
+    </div>
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle room selection based on admission type
+  const admissionSelect = document.getElementById('admission_type_select');
+  const roomSection = document.getElementById('room_selection_section');
+  const consultationSection = document.getElementById('consultation_section');
+  
+  function toggleSections() {
+      const admissionType = admissionSelect.value;
+      
+      if (roomSection) {
+          roomSection.style.display = admissionType === 'admission' ? 'block' : 'none';
+      }
+      
+      if (consultationSection) {
+          consultationSection.style.display = admissionType === 'checkup' ? 'block' : 'none';
+      }
+  }
+  
+  if (admissionSelect) {
+      admissionSelect.addEventListener('change', toggleSections);
+      toggleSections(); // Initial check on page load
+  }
+});
+</script>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
 </body>
 </html>

@@ -812,16 +812,19 @@ class Reception extends BaseController
         helper('url');
         $searchTerm = $this->request->getGet('q');
         $patientModel = model('App\\Models\\PatientModel');
+        $roomModel = model('App\\Models\\RoomModel');
         
         $patients = $patientModel
-            ->where('is_active', 1)
+            ->select('patients.*, rooms.room_number')
+            ->join('rooms', 'rooms.id = patients.assigned_room_id', 'left')
+            ->where('patients.is_active', 1)
             ->groupStart()
-                ->like('first_name', $searchTerm)
-                ->orLike('last_name', $searchTerm)
-                ->orLike('patient_id', $searchTerm)
-                ->orLike('phone', $searchTerm)
+                ->like('patients.first_name', $searchTerm)
+                ->orLike('patients.last_name', $searchTerm)
+                ->orLike('patients.patient_id', $searchTerm)
+                ->orLike('patients.phone', $searchTerm)
             ->groupEnd()
-            ->orderBy('last_name', 'ASC')
+            ->orderBy('patients.last_name', 'ASC')
             ->findAll(20);
 
         return $this->response->setJSON($patients);
