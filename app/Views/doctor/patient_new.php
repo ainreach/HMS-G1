@@ -71,6 +71,7 @@
           <label>Blood Type
             <select name="blood_type">
               <option value="">Select blood type</option>
+              <option value="unknown" <?= old('blood_type')==='unknown' ? 'selected' : '' ?>>Unknown / Not sure</option>
               <?php $bloodTypes = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
               foreach ($bloodTypes as $bt): ?>
                 <option value="<?= $bt ?>" <?= old('blood_type')===$bt ? 'selected' : '' ?>><?= $bt ?></option>

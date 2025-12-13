@@ -64,10 +64,10 @@ class PatientModel extends Model
         return $this->where('is_active', 1)
                     ->where('branch_id', $branchId)
                     ->groupStart()
-                        ->like('first_name', $searchTerm)
-                        ->orLike('last_name', $searchTerm)
-                        ->orLike('patient_id', $searchTerm)
-                        ->orLike('phone', $searchTerm)
+                        ->like('first_name', $searchTerm, 'after')
+                        ->orLike('last_name', $searchTerm, 'after')
+                        ->orLike('patient_id', $searchTerm, 'after')
+                        ->orLike('phone', $searchTerm, 'after')
                     ->groupEnd()
                     ->orderBy('last_name', 'ASC')
                     ->findAll();
@@ -277,7 +277,7 @@ class PatientModel extends Model
         'gender' => 'permit_empty|in_list[male,female,other]',
         'phone' => 'permit_empty|max_length[20]',
         'email' => 'permit_empty|valid_email|max_length[100]',
-        'blood_type' => 'permit_empty|in_list[A+,A-,B+,B-,AB+,AB-,O+,O-]',
+        'blood_type' => 'permit_empty|in_list[A+,A-,B+,B-,AB+,AB-,O+,O-,unknown]',
         'branch_id' => 'required|integer',
         'admission_type' => 'permit_empty|in_list[checkup,admission]',
     ];

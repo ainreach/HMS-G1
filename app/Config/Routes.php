@@ -160,6 +160,7 @@ $routes->post('/reception/patients', 'Reception::storePatient', ['filter' => 'ro
 $routes->get('/reception/patients', 'Reception::patients', ['filter' => 'role:receptionist']);
 $routes->get('/reception/patients/view/(:num)', 'Reception::viewPatient/$1', ['filter' => 'role:receptionist']);
 $routes->get('/reception/patients/search', 'Reception::searchPatients', ['filter' => 'role:receptionist']);
+$routes->get('/reception/patients/all', 'Reception::allPatients', ['filter' => 'role:receptionist']);
 $routes->get('/reception/patient-lookup', 'Reception::patientLookup', ['filter' => 'role:receptionist']);
 $routes->get('/reception/appointments', 'Reception::appointments', ['filter' => 'role:receptionist']);
 $routes->get('/reception/appointments/(:num)', 'Reception::viewAppointment/$1', ['filter' => 'role:receptionist']);
