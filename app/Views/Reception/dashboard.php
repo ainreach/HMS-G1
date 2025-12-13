@@ -24,6 +24,60 @@
   <a href="<?= site_url('reception/rooms') ?>" class="active" aria-current="page">Room Management</a>
   <a href="<?= site_url('reception/patient-lookup') ?>" data-feature="ehr">Patient Lookup</a>
 </nav></aside>
+
+  <main class="content" style="padding:20px">
+    
+    <!-- Statistics Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px">
+      <div class="panel" style="border-left:4px solid #3b82f6">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 12px 20px">
+          <div>
+            <p style="margin:0;color:#6b7280;font-size:0.875rem;font-weight:500">Check-ins Today</p>
+            <h3 style="margin:8px 0 0 0;font-size:1.75rem;font-weight:700;color:#111827"><?= number_format($checkinsToday ?? 0) ?></h3>
+          </div>
+          <div style="width:48px;height:48px;background:#dbeafe;border-radius:12px;display:flex;align-items:center;justify-content:center">
+            <i class="fa-solid fa-user-check" style="font-size:24px;color:#3b82f6"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel" style="border-left:4px solid #0ea5e9">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 12px 20px">
+          <div>
+            <p style="margin:0;color:#6b7280;font-size:0.875rem;font-weight:500">Upcoming Appointments</p>
+            <h3 style="margin:8px 0 0 0;font-size:1.75rem;font-weight:700;color:#111827"><?= number_format($upcomingAppts ?? 0) ?></h3>
+          </div>
+          <div style="width:48px;height:48px;background:#e0f2fe;border-radius:12px;display:flex;align-items:center;justify-content:center">
+            <i class="fa-solid fa-calendar" style="font-size:24px;color:#0ea5e9"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel" style="border-left:4px solid #10b981">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 12px 20px">
+          <div>
+            <p style="margin:0;color:#6b7280;font-size:0.875rem;font-weight:500">Total Patients</p>
+            <h3 style="margin:8px 0 0 0;font-size:1.75rem;font-weight:700;color:#111827"><?= number_format($totalPatients ?? 0) ?></h3>
+          </div>
+          <div style="width:48px;height:48px;background:#d1fae5;border-radius:12px;display:flex;align-items:center;justify-content:center">
+            <i class="fa-solid fa-users" style="font-size:24px;color:#10b981"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel" style="border-left:4px solid #f59e0b">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 12px 20px">
+          <div>
+            <p style="margin:0;color:#6b7280;font-size:0.875rem;font-weight:500">New Patients Today</p>
+            <h3 style="margin:8px 0 0 0;font-size:1.75rem;font-weight:700;color:#111827"><?= number_format($newPatientsToday ?? 0) ?></h3>
+          </div>
+          <div style="width:48px;height:48px;background:#fef3c7;border-radius:12px;display:flex;align-items:center;justify-content:center">
+            <i class="fa-solid fa-user-plus" style="font-size:24px;color:#f59e0b"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Check-ins Today</span><i class="fa-solid fa-user-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($checkinsToday ?? 0) ?></div></article>
@@ -31,6 +85,7 @@
       <article class="kpi-card kpi-success"><div class="kpi-head"><span>Total Patients</span><i class="fa-solid fa-users" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($totalPatients ?? 0) ?></div></article>
       <article class="kpi-card kpi-warning"><div class="kpi-head"><span>New Today</span><i class="fa-solid fa-user-plus" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($newPatientsToday ?? 0) ?></div></article>
     </section>
+
 
     <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>

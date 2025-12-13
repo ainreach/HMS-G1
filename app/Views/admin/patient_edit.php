@@ -53,6 +53,7 @@
           <select id="blood_type" name="blood_type" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;">
             <?php $bt = old('blood_type', $patient['blood_type'] ?? ''); ?>
             <option value="">Select Blood Type</option>
+            <option value="unknown" <?= $bt === 'unknown' ? 'selected' : '' ?>>Unknown / Not sure</option>
             <?php foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $type): ?>
               <option value="<?= $type ?>" <?= $bt === $type ? 'selected' : '' ?>><?= $type ?></option>
             <?php endforeach; ?>

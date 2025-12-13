@@ -816,13 +816,27 @@ class Reception extends BaseController
         $patients = $patientModel
             ->where('is_active', 1)
             ->groupStart()
-                ->like('first_name', $searchTerm)
-                ->orLike('last_name', $searchTerm)
-                ->orLike('patient_id', $searchTerm)
-                ->orLike('phone', $searchTerm)
+                ->like('first_name', $searchTerm, 'after')
+                ->orLike('last_name', $searchTerm, 'after')
+                ->orLike('patient_id', $searchTerm, 'after')
+                ->orLike('phone', $searchTerm, 'after')
             ->groupEnd()
             ->orderBy('last_name', 'ASC')
             ->findAll(20);
+
+        return $this->response->setJSON($patients);
+    }
+
+    public function allPatients()
+    {
+        helper('url');
+
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->findAll();
 
         return $this->response->setJSON($patients);
     }
