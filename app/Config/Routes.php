@@ -62,6 +62,10 @@ $routes->get('/admin/staff-schedules/year-events', 'Admin::staffScheduleYearEven
 // Medical Records Management Routes
 $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'role:admin']);
 $routes->get('/admin/medical-records/(:num)', 'Admin::getMedicalRecord/$1', ['filter' => 'role:admin']);
+$routes->get('/admin/medical-records/(:num)/edit', 'Admin::editMedicalRecord/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/medical-records/(:num)', 'Admin::updateMedicalRecord/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/medical-records/(:num)/delete', 'Admin::deleteMedicalRecord/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/medical-records/(:num)/restore', 'Admin::restoreMedicalRecord/$1', ['filter' => 'role:admin']);
 
 // Financial Management Routes
 $routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin,accountant']);
@@ -212,6 +216,7 @@ $routes->get('/doctor/records/(:num)', 'Doctor::viewRecord/$1', ['filter' => 'ro
 $routes->get('/doctor/records/(:num)/edit', 'Doctor::editRecord/$1', ['filter' => 'role:doctor']);
 $routes->post('/doctor/records/(:num)', 'Doctor::updateRecord/$1', ['filter' => 'role:doctor']);
 $routes->post('/doctor/records/(:num)/delete', 'Doctor::deleteRecord/$1', ['filter' => 'role:doctor']);
+$routes->get('/doctor/appointments/patient/(:num)', 'Doctor::appointmentsByPatient/$1', ['filter' => 'role:doctor,admin']);
 $routes->get('/doctor/lab-requests/new', 'Doctor::newLabRequest', ['filter' => 'role:doctor']);
 $routes->post('/doctor/lab-requests', 'Doctor::storeLabRequest', ['filter' => 'role:doctor']);
 $routes->get('/doctor/lab-results', 'Doctor::labResults', ['filter' => 'role:doctor']);

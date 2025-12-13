@@ -311,12 +311,119 @@ class Admin extends BaseController
         $page = max(1, (int) ($this->request->getGet('page') ?? 1));
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
+
+        
+        // Build query
+        $builder = $patientModel->select('patients.*, rooms.room_number, rooms.room_type, beds.bed_number')
+            ->join('rooms', 'rooms.id = patients.assigned_room_id', 'left')
+            ->join('beds', 'beds.id = patients.assigned_bed_id', 'left');
+        
+        // Apply search filter (prefix match on each field)
+        if (!empty($search)) {
+            $builder->groupStart()
+                ->like('patients.first_name', $search, 'after')
+                ->orLike('patients.last_name', $search, 'after')
+                ->orLike('patients.patient_id', $search, 'after')
+                ->orLike('patients.phone', $search, 'after')
+                ->orLike('patients.email', $search, 'after')
+                ->groupEnd();
+        }
+        
+        // Apply status filter
+        if ($statusFilter === 'admitted') {
+            $builder->where('patients.admission_type', 'admission')
+                ->where('patients.assigned_room_id IS NOT NULL', null, false)
+                ->where('(patients.discharge_date IS NULL OR patients.discharge_date = "")', null, false);
+        } elseif ($statusFilter === 'discharged') {
+            $builder->where('patients.discharge_date IS NOT NULL', null, false)
+                ->where('patients.discharge_date !=', '');
+        } elseif ($statusFilter === 'outpatient') {
+            $builder->where('(patients.admission_type IS NULL OR patients.admission_type = "checkup" OR patients.admission_type = "")', null, false)
+                ->where('(patients.assigned_room_id IS NULL OR patients.assigned_room_id = "")', null, false);
+        }
+        
+        // Apply gender filter
+        if ($genderFilter !== 'all') {
+            $builder->where('patients.gender', $genderFilter);
+        }
+        
+        // Apply date range filter
+        if (!empty($dateFrom)) {
+            $builder->where('DATE(patients.created_at) >=', $dateFrom);
+        }
+        if (!empty($dateTo)) {
+            $builder->where('DATE(patients.created_at) <=', $dateTo);
+        }
+        
+        // Get total count for pagination
+        $total = $builder->countAllResults(false);
+        
+        // Apply sorting
+        $validSortColumns = ['created_at', 'first_name', 'last_name', 'patient_id', 'admission_date', 'discharge_date'];
+        $sortBy = in_array($sortBy, $validSortColumns) ? $sortBy : 'created_at';
+        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+        $builder->orderBy('patients.' . $sortBy, $sortOrder);
+        
+        // Apply pagination
+        $patients = $builder->findAll($perPage, $offset);
+        
+        // Enhance patient data with status and room info
+        foreach ($patients as &$patient) {
+            // Determine patient status
+            $patient['status'] = 'outpatient';
+            $patient['status_label'] = 'Out-Patient';
+            $patient['status_color'] = '#6b7280';
+            
+            if (!empty($patient['discharge_date'])) {
+                $patient['status'] = 'discharged';
+                $patient['status_label'] = 'Discharged';
+                $patient['status_color'] = '#16a34a';
+            } elseif (!empty($patient['assigned_room_id']) && $patient['admission_type'] === 'admission') {
+                $patient['status'] = 'admitted';
+                $patient['status_label'] = 'Admitted';
+                $patient['status_color'] = '#3b82f6';
+                
+                // Check for critical condition (simplified - can be enhanced with medical records)
+                // For now, we'll mark as critical if they have recent urgent lab tests or medical records
+            }
+            
+            // Format room info
+            if (!empty($patient['room_number'])) {
+                $patient['room_display'] = $patient['room_number'];
+                if (!empty($patient['bed_number'])) {
+                    $patient['room_display'] .= ' - Bed ' . $patient['bed_number'];
+                }
+            } else {
+                $patient['room_display'] = 'N/A';
+            }
+        }
+        
+        // Calculate pagination
+        $totalPages = ceil($total / $perPage);
+        $hasPrev = $page > 1;
+        $hasNext = $page < $totalPages;
+        
+        // Get statistics
+        $stats = [
+            'total' => $patientModel->countAllResults(),
+            'admitted' => $patientModel->where('admission_type', 'admission')
+                ->where('assigned_room_id IS NOT NULL', null, false)
+                ->where('(discharge_date IS NULL OR discharge_date = "")', null, false)
+                ->countAllResults(),
+            'discharged' => $patientModel->where('discharge_date IS NOT NULL', null, false)
+                ->where('discharge_date !=', '')
+                ->countAllResults(),
+            'outpatient' => $patientModel->where('(admission_type IS NULL OR admission_type = "checkup" OR admission_type = "")', null, false)
+                ->where('(assigned_room_id IS NULL OR assigned_room_id = "")', null, false)
+                ->countAllResults(),
+        ];
+        
         $patientModel = model('App\\Models\\PatientModel');
         $total = $patientModel->countAllResults();
         $patients = $patientModel
                     ->select('id, patient_id, first_name, last_name, phone, email, created_at')
                     ->orderBy('created_at', 'DESC')
-                    ->findAll($perPage, $offset);
+                    ->findAll($perPage, $offset
         $data = [
             'patients' => $patients,
             'page' => $page,
@@ -781,8 +888,10 @@ class Admin extends BaseController
         $patientModel = model('App\\Models\\PatientModel');
         $userModel = model('App\\Models\\UserModel');
         
-        $total = $medicalRecordModel->countAllResults();
+        // Include soft-deleted records so admins can see and restore them
+        $total = $medicalRecordModel->withDeleted()->countAllResults();
         $records = $medicalRecordModel
+                    ->withDeleted()
                     ->select('medical_records.*, patients.first_name as patient_first_name, patients.last_name as patient_last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
                     ->join('patients', 'patients.id = medical_records.patient_id')
                     ->join('users', 'users.id = medical_records.doctor_id')
@@ -798,6 +907,112 @@ class Admin extends BaseController
             'hasNext' => ($offset + count($records)) < $total,
         ];
         return view('admin/medical_records_list', $data);
+    }
+
+    public function editMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $patientModel = model('App\\Models\\PatientModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(100);
+
+        return view('admin/medical_record_edit', [
+            'record' => $record,
+            'patients' => $patients,
+        ]);
+    }
+
+    public function updateMedicalRecord($id)
+    {
+        helper(['url', 'form']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        $normalizeJson = function ($raw) {
+            if ($raw === null) {
+                return null;
+            }
+            $raw = trim((string) $raw);
+            if ($raw === '') {
+                return null;
+            }
+
+            json_decode($raw);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $raw;
+            }
+
+            return json_encode(['text' => $raw], JSON_UNESCAPED_UNICODE);
+        };
+
+        $vitalSignsInput = $this->request->getPost('vital_signs');
+        $medicationsInput = $this->request->getPost('medications_prescribed');
+
+        $data = [
+            'patient_id' => (int) $this->request->getPost('patient_id'),
+            'visit_date' => $this->request->getPost('visit_date') ?: date('Y-m-d H:i:s'),
+            'chief_complaint' => $this->request->getPost('chief_complaint') ?: null,
+            'history_present_illness' => $this->request->getPost('history_present_illness') ?: null,
+            'physical_examination' => $this->request->getPost('physical_examination') ?: null,
+            'vital_signs' => $normalizeJson($vitalSignsInput),
+            'diagnosis' => $this->request->getPost('diagnosis') ?: null,
+            'treatment_plan' => $this->request->getPost('treatment_plan') ?: null,
+            'medications_prescribed' => $normalizeJson($medicationsInput),
+            'follow_up_instructions' => $this->request->getPost('follow_up_instructions') ?: null,
+            'next_visit_date' => $this->request->getPost('next_visit_date') ?: null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $medicalRecordModel->update($id, $data);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record updated successfully.');
+    }
+
+    public function deleteMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        $record = $medicalRecordModel->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        // Soft delete the record
+        $medicalRecordModel->delete($id);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record deleted. You can restore it from the list.');
+    }
+
+    public function restoreMedicalRecord($id)
+    {
+        helper(['url']);
+        $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+
+        // Need withDeleted() to find soft-deleted rows
+        $record = $medicalRecordModel->withDeleted()->find($id);
+        if (!$record) {
+            return redirect()->to(site_url('admin/medical-records'))->with('error', 'Medical record not found.');
+        }
+
+        if (empty($record['deleted_at'])) {
+            return redirect()->to(site_url('admin/medical-records'))->with('info', 'Medical record is already active.');
+        }
+
+        // Allow updating deleted_at even though it is not in allowedFields
+        $medicalRecordModel->protect(false)->update($id, ['deleted_at' => null]);
+
+        return redirect()->to(site_url('admin/medical-records'))->with('success', 'Medical record restored.');
     }
 
     // Get medical record details as JSON (for modal display)

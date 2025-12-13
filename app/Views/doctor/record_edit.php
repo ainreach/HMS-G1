@@ -53,6 +53,9 @@
 
         <form method="post" action="<?= site_url('doctor/records/' . $record['id']) ?>" style="max-width:900px;">
           <?= csrf_field() ?>
+          <?php if (!empty($redirect_to)): ?>
+            <input type="hidden" name="redirect_to" value="<?= esc($redirect_to) ?>">
+          <?php endif; ?>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div>

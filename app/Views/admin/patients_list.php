@@ -256,5 +256,42 @@
       closePatientModal();
     }
   });
+
+
+  // Keyboard navigation for table rows
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'A' && e.key === 'Enter') {
+      e.target.click();
+    }
+  });
+
+  // Submit filter form from search box only on Enter key
+  (function () {
+    var form = document.getElementById('filterForm');
+    if (!form) return;
+
+    var searchInput = form.querySelector('input[name="search"]');
+    if (!searchInput) return;
+
+    // Allow manual search via Enter key without auto-submitting on each character
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        form.submit();
+      }
+    });
+
+    // Optional: when the search is cleared, submit once to reset filters
+    var clearTimer;
+    searchInput.addEventListener('input', function () {
+      if (this.value.trim().length === 0) {
+        clearTimeout(clearTimer);
+        clearTimer = setTimeout(function () {
+          form.submit();
+        }, 300);
+      }
+    });
+  })();
+
 </script>
 <?= $this->endSection() ?>

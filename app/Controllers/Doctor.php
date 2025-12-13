@@ -25,6 +25,7 @@ class Doctor extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         $patientModel = model('App\\Models\\PatientModel');
         $userModel = model('App\\Models\\UserModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
         $scheduleModel = model('App\\Models\\StaffScheduleModel');
 
         $today = date('Y-m-d');
@@ -97,28 +98,79 @@ class Doctor extends BaseController
         $patientId = (int) $this->request->getPost('patient_id');
         $doctorId  = session('user_id') ?: (int) $this->request->getPost('doctor_id');
         $visitDate = $this->request->getPost('visit_date') ?: date('Y-m-d H:i:s');
+        $redirectTo = $this->request->getPost('redirect_to');
+        $appointmentIdRaw = $this->request->getPost('appointment_id');
+        $appointmentId = $appointmentIdRaw !== null && $appointmentIdRaw !== '' ? (int) $appointmentIdRaw : null;
         if (!$patientId) {
             return redirect()->back()->with('error', 'Patient is required.')->withInput();
         }
+
+        // Validate that the referenced patient and doctor actually exist to avoid foreign key errors
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+
+        if (!$patientModel->find($patientId)) {
+            return redirect()->back()->with('error', 'Selected patient does not exist or was removed. Please choose a valid patient.')->withInput();
+        }
+
+        if (!$doctorId || !$userModel->find((int) $doctorId)) {
+            return redirect()->back()->with('error', 'Your doctor account could not be verified. Please sign in again and try saving the record.')->withInput();
+        }
+
+        // Optional appointment: if provided, ensure it exists, otherwise show a friendly error
+        if ($appointmentId !== null && !$appointmentModel->find($appointmentId)) {
+            return redirect()->back()->with('error', 'Selected appointment does not exist or was removed. Please clear the Appointment ID field or choose a valid appointment.')->withInput();
+        }
+
+        // Normalize JSON fields so they always pass the database JSON constraint
+        $normalizeJson = function ($raw) {
+            if ($raw === null) {
+                return null;
+            }
+            $raw = trim((string) $raw);
+            if ($raw === '') {
+                return null;
+            }
+
+            // If it's already valid JSON, keep it as-is
+            json_decode($raw);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $raw;
+            }
+
+            // Otherwise wrap the text inside a JSON object so it is always valid
+            return json_encode(['text' => $raw], JSON_UNESCAPED_UNICODE);
+        };
+
+        $vitalSignsInput = $this->request->getPost('vital_signs');
+        $medicationsInput = $this->request->getPost('medications_prescribed');
+
         $data = [
             'record_number' => 'MR-' . date('YmdHis'),
             'patient_id' => $patientId,
-            'appointment_id' => $this->request->getPost('appointment_id') ?: null,
+            'appointment_id' => $appointmentId,
             'doctor_id' => (int) $doctorId,
             'visit_date' => $visitDate,
             'chief_complaint' => $this->request->getPost('chief_complaint') ?: null,
             'history_present_illness' => $this->request->getPost('history_present_illness') ?: null,
             'physical_examination' => $this->request->getPost('physical_examination') ?: null,
-            'vital_signs' => $this->request->getPost('vital_signs') ?: null,
+            'vital_signs' => $normalizeJson($vitalSignsInput),
             'diagnosis' => $this->request->getPost('diagnosis') ?: null,
             'treatment_plan' => $this->request->getPost('treatment_plan') ?: null,
-            'medications_prescribed' => $this->request->getPost('medications_prescribed') ?: null,
+            'medications_prescribed' => $normalizeJson($medicationsInput),
             'follow_up_instructions' => $this->request->getPost('follow_up_instructions') ?: null,
             'next_visit_date' => $this->request->getPost('next_visit_date') ?: null,
             'branch_id' => 1,
         ];
         $model = new \App\Models\MedicalRecordModel();
         $model->insert($data);
+
+        // If a specific redirect target was provided (e.g. from admin modal), use it
+        if ($redirectTo) {
+            return redirect()->to($redirectTo)->with('success', 'Medical record saved.');
+        }
+
         return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Medical record saved.');
     }
 
@@ -371,6 +423,7 @@ class Doctor extends BaseController
         return view('doctor/record_edit', [
             'record' => $record,
             'patients' => $patients,
+            'redirect_to' => $this->request->getGet('redirect_to'),
         ]);
     }
 
@@ -378,6 +431,7 @@ class Doctor extends BaseController
     {
         helper(['url', 'form']);
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $redirectTo = $this->request->getPost('redirect_to');
         
         $record = $medicalRecordModel->find($id);
         if (!$record) {
@@ -400,6 +454,11 @@ class Doctor extends BaseController
         ];
 
         $medicalRecordModel->update($id, $data);
+
+        if ($redirectTo) {
+            return redirect()->to($redirectTo)->with('success', 'Medical record updated successfully.');
+        }
+
         return redirect()->to(site_url('doctor/records/' . $id))->with('success', 'Medical record updated successfully.');
     }
 
@@ -434,6 +493,26 @@ class Doctor extends BaseController
             ->findAll(50);
 
         return view('doctor/prescriptions', ['prescriptions' => $prescriptions]);
+    }
+
+    // Fetch appointments for a specific patient (for use in dropdowns)
+    public function appointmentsByPatient($patientId)
+    {
+        helper('url');
+        $patientId = (int) $patientId;
+
+        if ($patientId <= 0) {
+            return $this->response->setJSON([]);
+        }
+
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+
+        $appointments = $appointmentModel
+            ->where('patient_id', $patientId)
+            ->orderBy('appointment_date', 'DESC')
+            ->findAll(20);
+
+        return $this->response->setJSON($appointments);
     }
 
     // Show complete schedule of consultations
@@ -635,15 +714,18 @@ class Doctor extends BaseController
         helper('url');
         $searchTerm = $this->request->getGet('q');
         $patientModel = model('App\\Models\\PatientModel');
-        
+
         $patients = $patientModel
-            ->where('is_active', 1)
+            ->select('patients.*, rooms.room_number')
+            ->join('rooms', 'rooms.id = patients.assigned_room_id', 'left')
+            ->where('patients.is_active', 1)
             ->groupStart()
-                ->like('first_name', $searchTerm)
-                ->orLike('last_name', $searchTerm)
-                ->orLike('patient_id', $searchTerm)
+                ->like('patients.first_name', $searchTerm)
+                ->orLike('patients.last_name', $searchTerm)
+                ->orLike('patients.patient_id', $searchTerm)
+                ->orLike('rooms.room_number', $searchTerm)
             ->groupEnd()
-            ->orderBy('last_name', 'ASC')
+            ->orderBy('patients.last_name', 'ASC')
             ->findAll(20);
 
         return $this->response->setJSON($patients);
