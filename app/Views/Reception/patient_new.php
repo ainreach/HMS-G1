@@ -319,6 +319,7 @@ $errors = session('errors') ?? [];
                 <label class="form-label-custom">Blood Type</label>
                 <select name="blood_type" class="form-select form-select-custom">
                     <option value="">-- Select Blood Type --</option>
+                    <option value="unknown" <?= set_select('blood_type', 'unknown', old('blood_type') == 'unknown') ?>>Unknown / Not sure</option>
                     <option value="A+" <?= set_select('blood_type', 'A+', old('blood_type') == 'A+') ?>>A+</option>
                     <option value="A-" <?= set_select('blood_type', 'A-', old('blood_type') == 'A-') ?>>A-</option>
                     <option value="B+" <?= set_select('blood_type', 'B+', old('blood_type') == 'B+') ?>>B+</option>

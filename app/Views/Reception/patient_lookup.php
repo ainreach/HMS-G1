@@ -305,21 +305,51 @@ const searchInput = document.getElementById('q');
 const resultsDiv = document.getElementById('results');
 const searchStats = document.getElementById('searchStats');
 
+function loadAllPatients() {
+  const url = '<?= site_url('reception/patients/all') ?>';
+
+  resultsDiv.innerHTML = `
+    <div class="loading">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block"></i>
+      <p>Loading patients...</p>
+    </div>
+  `;
+
+  fetch(url, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+    .then(r => r.json())
+    .then(patients => {
+      displayResults(patients);
+      updateStats(patients);
+    })
+    .catch(error => {
+      console.error('Load all patients error:', error);
+      resultsDiv.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-exclamation-triangle" style="color:#dc2626"></i>
+          <h3 style="margin:0 0 8px;color:#dc2626">Unable to load patients</h3>
+          <p style="margin:0;color:#6b7280">Please try refreshing the page or using the search box.</p>
+        </div>
+      `;
+      searchStats.style.display = 'none';
+    });
+}
+
+// Load all patients on initial page load
+window.addEventListener('DOMContentLoaded', function() {
+  loadAllPatients();
+});
+
 // Real-time search with debounce
 searchInput.addEventListener('input', function() {
   const query = this.value.trim();
   
   clearTimeout(searchTimeout);
   
-  if (query.length < 2) {
-    resultsDiv.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-search"></i>
-        <h3 style="margin:0 0 8px;color:#374151">Search for a patient</h3>
-        <p style="margin:0;color:#6b7280">Enter at least 2 characters to search</p>
-      </div>
-    `;
-    searchStats.style.display = 'none';
+  if (query.length === 0) {
+    // If input is cleared, reload full patient list
+    loadAllPatients();
     return;
   }
   

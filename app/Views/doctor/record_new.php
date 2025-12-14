@@ -236,232 +236,26 @@
       <?= esc(session()->getFlashdata('success')) ?>
     </div>
   <?php endif; ?>
-
-  <form method="post" action="<?= site_url('doctor/records') ?>" id="medicalRecordForm" class="medical-form">
+  <form method="post" action="<?= site_url('doctor/records') ?>" id="doctorRecordForm">
     <?= csrf_field() ?>
-    
-    <!-- Patient Information Section -->
-    <?php if (!empty($patient)): ?>
-    <div class="form-section">
-      <div class="patient-info-card">
-        <h4><i class="fa-solid fa-user" style="margin-right:8px"></i>Patient Information</h4>
-        <div class="patient-info-grid">
-          <div class="info-item">
-            <label>Patient ID</label>
-            <span><?= esc($patient['patient_id'] ?? 'N/A') ?></span>
-          </div>
-          <div class="info-item">
-            <label>Name</label>
-            <span><?= esc(trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''))) ?></span>
-          </div>
-          <div class="info-item">
-            <label>Date of Birth</label>
-            <span><?= !empty($patient['date_of_birth']) ? date('M d, Y', strtotime($patient['date_of_birth'])) : 'N/A' ?></span>
-          </div>
-          <div class="info-item">
-            <label>Gender</label>
-            <span><?= esc(strtoupper($patient['gender'] ?? 'N/A')) ?></span>
-          </div>
-          <div class="info-item">
-            <label>Contact</label>
-            <span><?= esc($patient['phone'] ?? 'N/A') ?></span>
-          </div>
+    <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <label>Patient (by name or room)
+        <div style="position:relative">
+          <input 
+            type="text" 
+            id="doctorPatientSearchInput" 
+            placeholder="Search by name, room number, ID, or phone..." 
+            autocomplete="off">
+          <input type="hidden" name="patient_id" id="doctorPatientIdInput" value="<?= old('patient_id', $patient_id ?? '') ?>" required>
+          <div id="doctorPatientSearchResults" style="position:absolute;z-index:40;top:100%;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:0 0 6px 6px;max-height:220px;overflow-y:auto;display:none;"></div>
         </div>
-      </div>
-    </div>
-    <?php endif; ?>
-
-    <!-- Basic Information Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-file-medical"></i>
-        <h3>Basic Information</h3>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Patient ID <span class="required">*</span></label>
-          <input type="number" name="patient_id" value="<?= old('patient_id', $patient_id ?? '') ?>" required readonly style="background:#f3f4f6">
-        </div>
-        <div class="form-group">
-          <label>Appointment ID</label>
-          <input type="number" name="appointment_id" value="<?= old('appointment_id', $appointment_id ?? '') ?>" placeholder="Optional">
-        </div>
-        <div class="form-group">
-          <label>Visit Date/Time <span class="required">*</span></label>
-          <input type="datetime-local" name="visit_date" value="<?= old('visit_date', date('Y-m-d\TH:i')) ?>" required>
-        </div>
-      </div>
-    </div>
-
-    <!-- Clinical Information Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-stethoscope"></i>
-        <h3>Clinical Information</h3>
-      </div>
-      
-      <div class="form-group">
-        <label>Chief Complaint <span class="required">*</span></label>
-        <textarea name="chief_complaint" rows="3" placeholder="Enter the patient's primary reason for visit..." required><?= old('chief_complaint') ?></textarea>
-        <div class="help-text">Main reason why the patient is seeking medical attention</div>
-      </div>
-      
-      <div class="form-group">
-        <label>History of Present Illness</label>
-        <textarea name="history_present_illness" rows="4" placeholder="Describe the onset, duration, severity, and progression of symptoms..."><?= old('history_present_illness') ?></textarea>
-        <div class="help-text">Detailed history related to the chief complaint</div>
-      </div>
-      
-      <div class="form-group">
-        <label>Physical Examination</label>
-        <textarea name="physical_examination" rows="4" placeholder="Document findings from physical examination..."><?= old('physical_examination') ?></textarea>
-        <div class="help-text">Record all relevant physical examination findings</div>
-      </div>
-    </div>
-
-    <!-- Vital Signs Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-heartbeat"></i>
-        <h3>Vital Signs</h3>
-      </div>
-      
-      <div class="vital-signs-grid">
-        <div class="form-group">
-          <label>Blood Pressure</label>
-          <input type="text" name="vital_bp" value="<?= old('vital_bp') ?>" placeholder="e.g., 120/80">
-        </div>
-        <div class="form-group">
-          <label>Temperature (°C)</label>
-          <input type="text" name="vital_temp" value="<?= old('vital_temp') ?>" placeholder="e.g., 36.6">
-        </div>
-        <div class="form-group">
-          <label>Pulse Rate (bpm)</label>
-          <input type="number" name="vital_pulse" value="<?= old('vital_pulse') ?>" placeholder="e.g., 72">
-        </div>
-        <div class="form-group">
-          <label>Respiratory Rate</label>
-          <input type="number" name="vital_respiratory" value="<?= old('vital_respiratory') ?>" placeholder="e.g., 16">
-        </div>
-        <div class="form-group">
-          <label>Oxygen Saturation (%)</label>
-          <input type="number" name="vital_spo2" value="<?= old('vital_spo2') ?>" placeholder="e.g., 98" min="0" max="100">
-        </div>
-        <div class="form-group">
-          <label>Weight (kg)</label>
-          <input type="number" step="0.1" name="vital_weight" value="<?= old('vital_weight') ?>" placeholder="e.g., 70.5">
-        </div>
-        <div class="form-group">
-          <label>Height (cm)</label>
-          <input type="number" step="0.1" name="vital_height" value="<?= old('vital_height') ?>" placeholder="e.g., 170">
-        </div>
-        <div class="form-group">
-          <label>BMI</label>
-          <input type="text" name="vital_bmi" value="<?= old('vital_bmi') ?>" placeholder="Auto-calculated" readonly style="background:#f3f4f6">
-        </div>
-      </div>
-      
-      <input type="hidden" name="vital_signs" id="vital_signs_json">
-    </div>
-
-    <!-- Diagnosis Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-diagnoses"></i>
-        <h3>Diagnosis & Treatment</h3>
-      </div>
-      
-      <div class="form-group">
-        <label>Diagnosis <span class="required">*</span></label>
-        <textarea name="diagnosis" rows="3" placeholder="Enter primary and secondary diagnoses..." required><?= old('diagnosis') ?></textarea>
-        <div class="help-text">Primary diagnosis and any secondary diagnoses</div>
-      </div>
-      
-      <div class="form-group">
-        <label>Treatment Plan</label>
-        <textarea name="treatment_plan" rows="4" placeholder="Describe the treatment plan, procedures, and interventions..."><?= old('treatment_plan') ?></textarea>
-        <div class="help-text">Detailed treatment strategy and plan of care</div>
-      </div>
-    </div>
-
-    <!-- Medications Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-pills"></i>
-        <h3>Medications Prescribed</h3>
-      </div>
-      
-      <div id="medications-container">
-        <div class="medication-item" data-index="0">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Medication Name</label>
-              <select name="medications[0][drug]" class="med-drug" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.875rem;background:white;">
-                <option value="">-- Select Medicine --</option>
-                <?php if (!empty($medicines)): ?>
-                  <?php foreach ($medicines as $medicine): ?>
-                    <?php 
-                    $medicineName = $medicine['item_name'] ?? $medicine['name'] ?? '';
-                    $medicineStock = $medicine['quantity'] ?? $medicine['stock'] ?? 0;
-                    ?>
-                    <option value="<?= esc($medicineName) ?>" data-stock="<?= esc($medicineStock) ?>">
-                      <?= esc($medicineName) ?>
-                      <?php if ($medicineStock < 10): ?>
-                        <span style="color: #ef4444;">(Low Stock: <?= $medicineStock ?>)</span>
-                      <?php elseif ($medicineStock < 20): ?>
-                        <span style="color: #f59e0b;">(Stock: <?= $medicineStock ?>)</span>
-                      <?php else: ?>
-                        <span style="color: #10b981;">(Stock: <?= $medicineStock ?>)</span>
-                      <?php endif; ?>
-                    </option>
-                  <?php endforeach; ?>
-                <?php else: ?>
-                  <option value="" disabled>No medicines available in pharmacy</option>
-                <?php endif; ?>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Dosage</label>
-              <input type="text" name="medications[0][dose]" placeholder="e.g., 500mg" class="med-dose">
-            </div>
-            <div class="form-group">
-              <label>Frequency</label>
-              <input type="text" name="medications[0][frequency]" placeholder="e.g., 3x daily" class="med-frequency">
-            </div>
-            <div class="form-group">
-              <label>Duration</label>
-              <input type="text" name="medications[0][duration]" placeholder="e.g., 7 days" class="med-duration">
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <button type="button" class="btn-add-medication" onclick="addMedication()">
-        <i class="fa-solid fa-plus"></i> Add Medication
-      </button>
-      
-      <input type="hidden" name="medications_prescribed" id="medications_json">
-    </div>
-
-    <!-- Follow-up Section -->
-    <div class="form-section">
-      <div class="section-header">
-        <i class="fa-solid fa-calendar-check"></i>
-        <h3>Follow-up</h3>
-      </div>
-      
-      <div class="form-group">
-        <label>Follow-up Instructions</label>
-        <textarea name="follow_up_instructions" rows="3" placeholder="Enter follow-up care instructions for the patient..."><?= old('follow_up_instructions') ?></textarea>
-        <div class="help-text">Instructions for patient regarding follow-up care, lifestyle changes, or monitoring</div>
-      </div>
-      
-      <div class="form-group">
-        <label>Next Visit Date</label>
-        <input type="date" name="next_visit_date" value="<?= old('next_visit_date') ?>" min="<?= date('Y-m-d') ?>">
-        <div class="help-text">Schedule the next appointment or follow-up visit</div>
-      </div>
+      </label>
+      <label>Appointment ID
+        <input type="number" name="appointment_id" value="<?= old('appointment_id') ?>">
+      </label>
+      <label>Visit Date/Time
+        <input type="datetime-local" name="visit_date" value="<?= old('visit_date') ?>">
+      </label>
     </div>
 
     <!-- Form Actions -->
@@ -475,130 +269,96 @@
     </div>
   </form>
 </main>
-
 <script>
-  let medicationIndex = 1;
-  
-  // Medicines data from PHP
-  const medicinesData = <?= json_encode(array_map(function($m) {
-    return [
-      'name' => $m['item_name'] ?? $m['name'] ?? '',
-      'stock' => $m['quantity'] ?? $m['stock'] ?? 0
-    ];
-  }, $medicines ?? [])) ?>;
+  (function() {
+    var form = document.getElementById('doctorRecordForm');
+    var searchInput = document.getElementById('doctorPatientSearchInput');
+    var resultsBox = document.getElementById('doctorPatientSearchResults');
+    var hiddenIdInput = document.getElementById('doctorPatientIdInput');
 
-  function addMedication() {
-    const container = document.getElementById('medications-container');
-    const newItem = document.createElement('div');
-    newItem.className = 'medication-item';
-    newItem.setAttribute('data-index', medicationIndex);
-    
-    // Build medicines dropdown options
-    let medicinesOptions = '<option value="">-- Select Medicine --</option>';
-    medicinesData.forEach(medicine => {
-      if (medicine.name) {
-        const stock = medicine.stock || 0;
-        const stockColor = (stock < 10) ? '#ef4444' : ((stock < 20) ? '#f59e0b' : '#10b981');
-        const stockLabel = (stock < 10) ? 'Low Stock' : 'Stock';
-        medicinesOptions += `<option value="${escapeHtml(medicine.name)}" data-stock="${stock}">${escapeHtml(medicine.name)} <span style="color: ${stockColor};">(${stockLabel}: ${stock})</span></option>`;
-      }
-    });
-    
-    newItem.innerHTML = `
-      <div class="medication-header">
-        <strong>Medication #${medicationIndex + 1}</strong>
-        <button type="button" class="btn-remove" onclick="removeMedication(this)">
-          <i class="fa-solid fa-trash"></i> Remove
-        </button>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Medication Name</label>
-          <select name="medications[${medicationIndex}][drug]" class="med-drug" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.875rem;background:white;">
-            ${medicinesOptions}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Dosage</label>
-          <input type="text" name="medications[${medicationIndex}][dose]" placeholder="e.g., 500mg" class="med-dose">
-        </div>
-        <div class="form-group">
-          <label>Frequency</label>
-          <input type="text" name="medications[${medicationIndex}][frequency]" placeholder="e.g., 3x daily" class="med-frequency">
-        </div>
-        <div class="form-group">
-          <label>Duration</label>
-          <input type="text" name="medications[${medicationIndex}][duration]" placeholder="e.g., 7 days" class="med-duration">
-        </div>
-      </div>
-    `;
-    container.appendChild(newItem);
-    medicationIndex++;
-  }
-  
-  function escapeHtml(text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-  }
+    if (!form || !searchInput || !resultsBox || !hiddenIdInput) return;
 
-  function removeMedication(btn) {
-    btn.closest('.medication-item').remove();
-  }
+    var searchTimer;
 
-  // Calculate BMI
-  function calculateBMI() {
-    const weight = parseFloat(document.querySelector('input[name="vital_weight"]')?.value) || 0;
-    const height = parseFloat(document.querySelector('input[name="vital_height"]')?.value) || 0;
-    if (weight > 0 && height > 0) {
-      const heightInMeters = height / 100;
-      const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-      document.querySelector('input[name="vital_bmi"]').value = bmi;
+    function clearResults() {
+      resultsBox.style.display = 'none';
+      resultsBox.innerHTML = '';
     }
-  }
 
-  document.querySelector('input[name="vital_weight"]')?.addEventListener('input', calculateBMI);
-  document.querySelector('input[name="vital_height"]')?.addEventListener('input', calculateBMI);
+    function renderResults(patients) {
+      if (!patients || patients.length === 0) {
+        clearResults();
+        return;
+      }
 
-  // Convert form data to JSON before submit
-  document.getElementById('medicalRecordForm').addEventListener('submit', function(e) {
-    // Convert vital signs to JSON
-    const vitalSigns = {
-      bp: document.querySelector('input[name="vital_bp"]')?.value || '',
-      temp: document.querySelector('input[name="vital_temp"]')?.value || '',
-      pulse: document.querySelector('input[name="vital_pulse"]')?.value || '',
-      respiratory: document.querySelector('input[name="vital_respiratory"]')?.value || '',
-      spo2: document.querySelector('input[name="vital_spo2"]')?.value || '',
-      weight: document.querySelector('input[name="vital_weight"]')?.value || '',
-      height: document.querySelector('input[name="vital_height"]')?.value || '',
-      bmi: document.querySelector('input[name="vital_bmi"]')?.value || ''
-    };
-    document.getElementById('vital_signs_json').value = JSON.stringify(vitalSigns);
+      var html = '';
+      patients.forEach(function(patient) {
+        var fullName = ((patient.first_name || '') + ' ' + (patient.last_name || '')).trim();
+        var room = patient.room_number ? ('Room ' + patient.room_number) : '';
+        var code = patient.patient_id || ('#' + patient.id);
+        var phone = patient.phone || '';
+        html += '<button type="button" class="patient-option" data-id="' + patient.id + '" style="width:100%;text-align:left;padding:8px 10px;border:none;border-bottom:1px solid #e5e7eb;background:white;cursor:pointer;display:block;">'
+             +   '<div style="font-weight:600;color:#111827;">' + fullName + (room ? ' • <span style="color:#2563eb;font-weight:500;">' + room + '</span>' : '') + '</div>'
+             +   '<div style="font-size:0.8rem;color:#6b7280;">' + code + (phone ? ' • ' + phone : '') + '</div>'
+             + '</button>';
+      });
 
-    // Convert medications to JSON
-    const medications = [];
-    document.querySelectorAll('.medication-item').forEach(item => {
-      const drug = item.querySelector('.med-drug')?.value;
-      const dose = item.querySelector('.med-dose')?.value;
-      const frequency = item.querySelector('.med-frequency')?.value;
-      const duration = item.querySelector('.med-duration')?.value;
-      
-      if (drug || dose || frequency || duration) {
-        medications.push({
-          drug: drug || '',
-          dose: dose || '',
-          frequency: frequency || '',
-          duration: duration || ''
+      resultsBox.innerHTML = html;
+      resultsBox.style.display = 'block';
+
+      Array.prototype.forEach.call(resultsBox.querySelectorAll('.patient-option'), function(btn) {
+        btn.addEventListener('click', function() {
+          var id = this.getAttribute('data-id');
+          var label = this.textContent.trim();
+          hiddenIdInput.value = id;
+          searchInput.value = label;
+          clearResults();
         });
+      });
+    }
+
+    function runSearch(query) {
+      if (!query || query.length < 1) {
+        clearResults();
+        hiddenIdInput.value = '';
+        return;
+      }
+
+      var url = '<?= site_url('doctor/patients/search') ?>?q=' + encodeURIComponent(query);
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+        .then(function(r) { return r.json(); })
+        .then(function(patients) { renderResults(patients); })
+        .catch(function() { clearResults(); });
+    }
+
+    searchInput.addEventListener('input', function() {
+      var query = this.value.trim();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() {
+        runSearch(query);
+      }, 250);
+    });
+
+    searchInput.addEventListener('focus', function() {
+      var query = this.value.trim();
+      if (query.length > 0) {
+        runSearch(query);
       }
     });
-    document.getElementById('medications_json').value = JSON.stringify(medications);
-  });
+
+    document.addEventListener('click', function(e) {
+      if (!resultsBox.contains(e.target) && e.target !== searchInput) {
+        clearResults();
+      }
+    });
+
+    form.addEventListener('submit', function(e) {
+      if (!hiddenIdInput.value) {
+        e.preventDefault();
+        alert('Please select a patient from the list first.');
+        searchInput.focus();
+      }
+    });
+  })();
 </script>
-</body>
-</html>
+</body></html>

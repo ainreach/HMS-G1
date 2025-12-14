@@ -25,6 +25,7 @@ class Doctor extends BaseController
         $labTestModel = model('App\\Models\\LabTestModel');
         $patientModel = model('App\\Models\\PatientModel');
         $userModel = model('App\\Models\\UserModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
         $scheduleModel = model('App\\Models\\StaffScheduleModel');
 
         $today = date('Y-m-d');
@@ -330,66 +331,81 @@ class Doctor extends BaseController
         $patientId = (int) $this->request->getPost('patient_id');
         $doctorId  = session('user_id') ?: (int) $this->request->getPost('doctor_id');
         $visitDate = $this->request->getPost('visit_date') ?: date('Y-m-d H:i:s');
-        
+        $redirectTo = $this->request->getPost('redirect_to');
+        $appointmentIdRaw = $this->request->getPost('appointment_id');
+        $appointmentId = $appointmentIdRaw !== null && $appointmentIdRaw !== '' ? (int) $appointmentIdRaw : null;
         if (!$patientId) {
             return redirect()->back()->with('error', 'Patient is required.')->withInput();
         }
-        
-        // Process vital signs - get from JSON or individual fields
-        $vitalSignsJson = $this->request->getPost('vital_signs');
-        if (empty($vitalSignsJson)) {
-            // Build from individual fields if JSON not provided
-            $vitalSigns = [];
-            if ($this->request->getPost('vital_bp')) $vitalSigns['bp'] = $this->request->getPost('vital_bp');
-            if ($this->request->getPost('vital_temp')) $vitalSigns['temp'] = $this->request->getPost('vital_temp');
-            if ($this->request->getPost('vital_pulse')) $vitalSigns['pulse'] = $this->request->getPost('vital_pulse');
-            if ($this->request->getPost('vital_respiratory')) $vitalSigns['respiratory'] = $this->request->getPost('vital_respiratory');
-            if ($this->request->getPost('vital_spo2')) $vitalSigns['spo2'] = $this->request->getPost('vital_spo2');
-            if ($this->request->getPost('vital_weight')) $vitalSigns['weight'] = $this->request->getPost('vital_weight');
-            if ($this->request->getPost('vital_height')) $vitalSigns['height'] = $this->request->getPost('vital_height');
-            if ($this->request->getPost('vital_bmi')) $vitalSigns['bmi'] = $this->request->getPost('vital_bmi');
-            $vitalSignsJson = !empty($vitalSigns) ? json_encode($vitalSigns) : null;
+
+        // Validate that the referenced patient and doctor actually exist to avoid foreign key errors
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+
+        if (!$patientModel->find($patientId)) {
+            return redirect()->back()->with('error', 'Selected patient does not exist or was removed. Please choose a valid patient.')->withInput();
         }
-        
-        // Process medications - get from JSON or array
-        $medicationsJson = $this->request->getPost('medications_prescribed');
-        if (empty($medicationsJson)) {
-            $medications = $this->request->getPost('medications');
-            if (!empty($medications) && is_array($medications)) {
-                // Filter out empty medications
-                $medications = array_filter($medications, function($med) {
-                    return !empty($med['drug']) || !empty($med['dose']) || !empty($med['frequency']) || !empty($med['duration']);
-                });
-                $medicationsJson = !empty($medications) ? json_encode(array_values($medications)) : null;
+
+        if (!$doctorId || !$userModel->find((int) $doctorId)) {
+            return redirect()->back()->with('error', 'Your doctor account could not be verified. Please sign in again and try saving the record.')->withInput();
+        }
+
+        // Optional appointment: if provided, ensure it exists, otherwise show a friendly error
+        if ($appointmentId !== null && !$appointmentModel->find($appointmentId)) {
+            return redirect()->back()->with('error', 'Selected appointment does not exist or was removed. Please clear the Appointment ID field or choose a valid appointment.')->withInput();
+        }
+
+        // Normalize JSON fields so they always pass the database JSON constraint
+        $normalizeJson = function ($raw) {
+            if ($raw === null) {
+                return null;
             }
-        }
-        
+            $raw = trim((string) $raw);
+            if ($raw === '') {
+                return null;
+            }
+
+            // If it's already valid JSON, keep it as-is
+            json_decode($raw);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $raw;
+            }
+
+            // Otherwise wrap the text inside a JSON object so it is always valid
+            return json_encode(['text' => $raw], JSON_UNESCAPED_UNICODE);
+        };
+
+        $vitalSignsInput = $this->request->getPost('vital_signs');
+        $medicationsInput = $this->request->getPost('medications_prescribed');
+
         $data = [
             'record_number' => 'MR-' . date('YmdHis'),
             'patient_id' => $patientId,
-            'appointment_id' => $this->request->getPost('appointment_id') ?: null,
+            'appointment_id' => $appointmentId,
             'doctor_id' => (int) $doctorId,
             'visit_date' => $visitDate,
-            'chief_complaint' => trim($this->request->getPost('chief_complaint')) ?: null,
-            'history_present_illness' => trim($this->request->getPost('history_present_illness')) ?: null,
-            'physical_examination' => trim($this->request->getPost('physical_examination')) ?: null,
-            'vital_signs' => $vitalSignsJson,
-            'diagnosis' => trim($this->request->getPost('diagnosis')) ?: null,
-            'treatment_plan' => trim($this->request->getPost('treatment_plan')) ?: null,
-            'medications_prescribed' => $medicationsJson,
-            'follow_up_instructions' => trim($this->request->getPost('follow_up_instructions')) ?: null,
+            'chief_complaint' => $this->request->getPost('chief_complaint') ?: null,
+            'history_present_illness' => $this->request->getPost('history_present_illness') ?: null,
+            'physical_examination' => $this->request->getPost('physical_examination') ?: null,
+            'vital_signs' => $normalizeJson($vitalSignsInput),
+            'diagnosis' => $this->request->getPost('diagnosis') ?: null,
+            'treatment_plan' => $this->request->getPost('treatment_plan') ?: null,
+            'medications_prescribed' => $normalizeJson($medicationsInput),
+            'follow_up_instructions' => $this->request->getPost('follow_up_instructions') ?: null,
             'next_visit_date' => $this->request->getPost('next_visit_date') ?: null,
             'branch_id' => 1,
         ];
         
         $model = new \App\Models\MedicalRecordModel();
-        
-        if (!$model->insert($data)) {
-            $errors = $model->errors();
-            return redirect()->back()->with('error', 'Failed to save medical record: ' . implode(', ', $errors))->withInput();
+        $model->insert($data);
+
+        // If a specific redirect target was provided (e.g. from admin modal), use it
+        if ($redirectTo) {
+            return redirect()->to($redirectTo)->with('success', 'Medical record saved.');
         }
-        
-        return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Medical record saved successfully.');
+
+        return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Medical record saved.');
     }
 
     public function newLabRequest()
@@ -641,6 +657,7 @@ class Doctor extends BaseController
         return view('doctor/record_edit', [
             'record' => $record,
             'patients' => $patients,
+            'redirect_to' => $this->request->getGet('redirect_to'),
         ]);
     }
 
@@ -648,6 +665,7 @@ class Doctor extends BaseController
     {
         helper(['url', 'form']);
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $redirectTo = $this->request->getPost('redirect_to');
         
         $record = $medicalRecordModel->find($id);
         if (!$record) {
@@ -670,6 +688,11 @@ class Doctor extends BaseController
         ];
 
         $medicalRecordModel->update($id, $data);
+
+        if ($redirectTo) {
+            return redirect()->to($redirectTo)->with('success', 'Medical record updated successfully.');
+        }
+
         return redirect()->to(site_url('doctor/records/' . $id))->with('success', 'Medical record updated successfully.');
     }
 
@@ -706,252 +729,24 @@ class Doctor extends BaseController
         return view('doctor/prescriptions', ['prescriptions' => $prescriptions]);
     }
 
-    public function vaccinations()
+    // Fetch appointments for a specific patient (for use in dropdowns)
+    public function appointmentsByPatient($patientId)
     {
         helper('url');
-        $patientModel = model('App\\Models\\PatientModel');
-        $userModel = model('App\\Models\\UserModel');
-        $doctorId = session('user_id') ?: 1;
+        $patientId = (int) $patientId;
 
-        // Get doctor info
-        $doctor = $userModel->find($doctorId);
-        $doctorSpecialization = $doctor['specialization'] ?? 'Pediatrician';
-        $doctorDepartment = null;
-        if (!empty($doctor['department_id'])) {
-            $departmentModel = model('App\Models\DepartmentModel');
-            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        if ($patientId <= 0) {
+            return $this->response->setJSON([]);
         }
 
-        // Get pediatric patients (age < 18) assigned to this doctor
-        $pediatricPatients = $patientModel
-            ->where('attending_physician_id', $doctorId)
-            ->where('is_active', 1)
-            ->findAll();
+        $appointmentModel = model('App\\Models\\AppointmentModel');
 
-        // Filter by age (pediatric patients)
-        $vaccinationPatients = [];
-        foreach ($pediatricPatients as $patient) {
-            if (!empty($patient['date_of_birth'])) {
-                $birthDate = new \DateTime($patient['date_of_birth']);
-                $today = new \DateTime();
-                $age = $today->diff($birthDate)->y;
-                if ($age < 18) {
-                    $vaccinationPatients[] = $patient;
-                }
-            }
-        }
+        $appointments = $appointmentModel
+            ->where('patient_id', $patientId)
+            ->orderBy('appointment_date', 'DESC')
+            ->findAll(20);
 
-        return view('doctor/vaccinations', [
-            'patients' => $vaccinationPatients,
-            'doctorSpecialization' => $doctorSpecialization,
-            'doctorDepartment' => $doctorDepartment
-        ]);
-    }
-
-    public function scheduleSurgery()
-    {
-        helper('url');
-        $patientModel = model('App\\Models\\PatientModel');
-        $userModel = model('App\\Models\\UserModel');
-        $surgeryModel = model('App\\Models\\SurgeryModel');
-        $doctorId = session('user_id') ?: 1;
-
-        // Get doctor info
-        $doctor = $userModel->find($doctorId);
-        $doctorSpecialization = $doctor['specialization'] ?? 'Surgeon';
-        $doctorDepartment = null;
-        if (!empty($doctor['department_id'])) {
-            $departmentModel = model('App\Models\DepartmentModel');
-            $doctorDepartment = $departmentModel->find($doctor['department_id']);
-        }
-
-        // Get patients assigned to this doctor
-        $patients = $patientModel
-            ->where('attending_physician_id', $doctorId)
-            ->where('is_active', 1)
-            ->orderBy('first_name', 'ASC')
-            ->findAll();
-
-        // Get scheduled surgeries for this doctor
-        $surgeries = $surgeryModel->getSurgeriesWithDetails($doctorId, null, 50);
-
-        return view('doctor/surgery_schedule', [
-            'patients' => $patients,
-            'surgeries' => $surgeries,
-            'doctorId' => $doctorId,
-            'doctorSpecialization' => $doctorSpecialization,
-            'doctorDepartment' => $doctorDepartment
-        ]);
-    }
-
-    public function storeSurgery()
-    {
-        helper('url');
-        $req = $this->request;
-        $surgeryModel = model('App\\Models\\SurgeryModel');
-        $doctorId = session('user_id') ?: 1;
-        
-        $patientId = (int) $req->getPost('patient_id');
-        $surgeryType = trim((string) $req->getPost('surgery_type'));
-        $surgeryDate = trim((string) $req->getPost('surgery_date'));
-        $surgeryTime = trim((string) $req->getPost('surgery_time'));
-        $notes = trim((string) $req->getPost('notes'));
-
-        if (empty($patientId) || empty($surgeryType) || empty($surgeryDate)) {
-            return redirect()->back()->with('error', 'Patient, surgery type, and date are required.')->withInput();
-        }
-
-        // Generate surgery number
-        $surgeryNumber = $surgeryModel->generateSurgeryNumber();
-
-        // Prepare data
-        $data = [
-            'surgery_number' => $surgeryNumber,
-            'patient_id' => $patientId,
-            'doctor_id' => $doctorId,
-            'surgery_type' => $surgeryType,
-            'surgery_date' => $surgeryDate,
-            'surgery_time' => $surgeryTime ?: null,
-            'status' => 'scheduled',
-            'notes' => $notes ?: null,
-        ];
-
-        // Save surgery
-        if ($surgeryModel->insert($data)) {
-            return redirect()->to(site_url('doctor/surgeries/schedule'))->with('success', 'Surgery scheduled successfully.');
-        } else {
-            $errors = $surgeryModel->errors();
-            return redirect()->back()->with('error', 'Failed to schedule surgery: ' . implode(', ', $errors))->withInput();
-        }
-    }
-
-    public function newPrenatal()
-    {
-        helper('url');
-        $patientModel = model('App\\Models\\PatientModel');
-        $userModel = model('App\\Models\\UserModel');
-        $prenatalModel = model('App\\Models\\PrenatalCheckupModel');
-        $doctorId = session('user_id') ?: 1;
-
-        // Get doctor info
-        $doctor = $userModel->find($doctorId);
-        $doctorSpecialization = $doctor['specialization'] ?? 'OB-GYN';
-        $doctorDepartment = null;
-        if (!empty($doctor['department_id'])) {
-            $departmentModel = model('App\Models\DepartmentModel');
-            $doctorDepartment = $departmentModel->find($doctor['department_id']);
-        }
-
-        // Get female patients assigned to this doctor (for prenatal care)
-        $patients = $patientModel
-            ->where('attending_physician_id', $doctorId)
-            ->where('is_active', 1)
-            ->where('gender', 'female')
-            ->orderBy('first_name', 'ASC')
-            ->findAll();
-
-        // Get prenatal checkups for this doctor
-        $checkups = $prenatalModel->getCheckupsWithDetails($doctorId, null, 50);
-
-        return view('doctor/prenatal_new', [
-            'patients' => $patients,
-            'checkups' => $checkups,
-            'doctorId' => $doctorId,
-            'doctorSpecialization' => $doctorSpecialization,
-            'doctorDepartment' => $doctorDepartment
-        ]);
-    }
-
-    public function storePrenatal()
-    {
-        helper('url');
-        $req = $this->request;
-        $prenatalModel = model('App\\Models\\PrenatalCheckupModel');
-        $doctorId = session('user_id') ?: 1;
-        
-        $patientId = (int) $req->getPost('patient_id');
-        $checkupDate = trim((string) $req->getPost('checkup_date'));
-        $gestationalAge = trim((string) $req->getPost('gestational_age'));
-        $bloodPressure = trim((string) $req->getPost('blood_pressure'));
-        $weight = trim((string) $req->getPost('weight'));
-        $fetalHeartRate = trim((string) $req->getPost('fetal_heart_rate'));
-        $notes = trim((string) $req->getPost('notes'));
-
-        if (empty($patientId) || empty($checkupDate)) {
-            return redirect()->back()->with('error', 'Patient and checkup date are required.')->withInput();
-        }
-
-        // Generate checkup number
-        $checkupNumber = $prenatalModel->generateCheckupNumber();
-
-        // Prepare data
-        $data = [
-            'checkup_number' => $checkupNumber,
-            'patient_id' => $patientId,
-            'doctor_id' => $doctorId,
-            'checkup_date' => $checkupDate,
-            'gestational_age' => !empty($gestationalAge) ? (float)$gestationalAge : null,
-            'blood_pressure' => $bloodPressure ?: null,
-            'weight' => !empty($weight) ? (float)$weight : null,
-            'fetal_heart_rate' => !empty($fetalHeartRate) ? (int)$fetalHeartRate : null,
-            'notes' => $notes ?: null,
-        ];
-
-        // Save prenatal checkup
-        if ($prenatalModel->insert($data)) {
-            return redirect()->to(site_url('doctor/prenatal/new'))->with('success', 'Prenatal checkup recorded successfully.');
-        } else {
-            $errors = $prenatalModel->errors();
-            return redirect()->back()->with('error', 'Failed to record prenatal checkup: ' . implode(', ', $errors))->withInput();
-        }
-    }
-
-    public function neurologyImaging()
-    {
-        helper('url');
-        $labTestModel = model('App\\Models\\LabTestModel');
-        $patientModel = model('App\\Models\\PatientModel');
-        $userModel = model('App\\Models\\UserModel');
-        $doctorId = session('user_id') ?: 1;
-
-        // Get doctor info
-        $doctor = $userModel->find($doctorId);
-        $doctorSpecialization = $doctor['specialization'] ?? 'Neurologist';
-        $doctorDepartment = null;
-        if (!empty($doctor['department_id'])) {
-            $departmentModel = model('App\Models\DepartmentModel');
-            $doctorDepartment = $departmentModel->find($doctor['department_id']);
-        }
-
-        // Get neurological imaging tests (CT, MRI, EEG, etc.)
-        $imagingTests = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
-            ->join('patients', 'patients.id = lab_tests.patient_id')
-            ->where('lab_tests.doctor_id', $doctorId)
-            ->groupStart()
-                ->like('lab_tests.test_name', 'CT', 'both')
-                ->orLike('lab_tests.test_name', 'MRI', 'both')
-                ->orLike('lab_tests.test_name', 'EEG', 'both')
-                ->orLike('lab_tests.test_name', 'PET', 'both')
-                ->orLike('lab_tests.test_name', 'SPECT', 'both')
-            ->groupEnd()
-            ->orderBy('lab_tests.requested_date', 'DESC')
-            ->findAll(50);
-
-        // Get patients assigned to this doctor
-        $patients = $patientModel
-            ->where('attending_physician_id', $doctorId)
-            ->where('is_active', 1)
-            ->orderBy('first_name', 'ASC')
-            ->findAll();
-
-        return view('doctor/neurology_imaging', [
-            'imagingTests' => $imagingTests,
-            'patients' => $patients,
-            'doctorId' => $doctorId,
-            'doctorSpecialization' => $doctorSpecialization,
-            'doctorDepartment' => $doctorDepartment
-        ]);
+        return $this->response->setJSON($appointments);
     }
 
     // Show complete schedule of consultations
@@ -1224,15 +1019,18 @@ class Doctor extends BaseController
         helper('url');
         $searchTerm = $this->request->getGet('q');
         $patientModel = model('App\\Models\\PatientModel');
-        
+
         $patients = $patientModel
-            ->where('is_active', 1)
+            ->select('patients.*, rooms.room_number')
+            ->join('rooms', 'rooms.id = patients.assigned_room_id', 'left')
+            ->where('patients.is_active', 1)
             ->groupStart()
-                ->like('first_name', $searchTerm)
-                ->orLike('last_name', $searchTerm)
-                ->orLike('patient_id', $searchTerm)
+                ->like('patients.first_name', $searchTerm)
+                ->orLike('patients.last_name', $searchTerm)
+                ->orLike('patients.patient_id', $searchTerm)
+                ->orLike('rooms.room_number', $searchTerm)
             ->groupEnd()
-            ->orderBy('last_name', 'ASC')
+            ->orderBy('patients.last_name', 'ASC')
             ->findAll(20);
 
         return $this->response->setJSON($patients);
