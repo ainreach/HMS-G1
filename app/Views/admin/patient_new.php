@@ -375,10 +375,16 @@ $errors = session('errors') ?? [];
         <div class="row g-3 mb-4">
           <div class="col-md-4">
             <label class="form-label-custom">Insurance Provider</label>
-            <input type="text" name="insurance_provider" 
-                   class="form-control form-control-custom" 
-                   value="<?= set_value('insurance_provider', old('insurance_provider')) ?>" 
-                   placeholder="e.g., PhilHealth, HMO Name">
+            <select name="insurance_provider" class="form-select form-select-custom">
+              <option value="">-- Select Insurance Provider --</option>
+              <option value="PhilHealth" <?= set_select('insurance_provider', 'PhilHealth', old('insurance_provider') == 'PhilHealth') ?>>PhilHealth</option>
+              <option value="Maxicare" <?= set_select('insurance_provider', 'Maxicare', old('insurance_provider') == 'Maxicare') ?>>Maxicare</option>
+              <option value="Medicard" <?= set_select('insurance_provider', 'Medicard', old('insurance_provider') == 'Medicard') ?>>Medicard</option>
+              <option value="Intellicare" <?= set_select('insurance_provider', 'Intellicare', old('insurance_provider') == 'Intellicare') ?>>Intellicare</option>
+              <option value="Pacific Cross" <?= set_select('insurance_provider', 'Pacific Cross', old('insurance_provider') == 'Pacific Cross') ?>>Pacific Cross</option>
+              <option value="Generali" <?= set_select('insurance_provider', 'Generali', old('insurance_provider') == 'Generali') ?>>Generali</option>
+              <option value="Other" <?= set_select('insurance_provider', 'Other', old('insurance_provider') == 'Other') ?>>Other / Not Listed</option>
+            </select>
           </div>
           <div class="col-md-4">
             <label class="form-label-custom">Insurance/Policy Number</label>

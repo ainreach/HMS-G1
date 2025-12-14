@@ -190,6 +190,17 @@ $routes->get('/reception/in-patients/view/(:num)', 'Reception::viewInPatient/$1'
 $routes->get('/reception/in-patients/edit/(:num)', 'Reception::editInPatient/$1', ['filter' => 'role:receptionist']);
 $routes->post('/reception/in-patients/update/(:num)', 'Reception::updateInPatient/$1', ['filter' => 'role:receptionist']);
 
+// Admin Department Management Routes
+$routes->get('/admin/departments', 'Admin::departments', ['filter' => 'role:admin']);
+$routes->get('/admin/departments/new', 'Admin::newDepartment', ['filter' => 'role:admin']);
+$routes->post('/admin/departments', 'Admin::storeDepartment', ['filter' => 'role:admin']);
+$routes->get('/admin/departments/edit/(:num)', 'Admin::editDepartment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/departments/(:num)', 'Admin::updateDepartment/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/departments/delete/(:num)', 'Admin::deleteDepartment/$1', ['filter' => 'role:admin']);
+
+// Admin Fix Doctor Credentials
+$routes->get('/admin/fix-doctor-credentials', 'Admin::fixDoctorCredentials', ['filter' => 'role:admin']);
+
 // Admin Room Management Routes
 $routes->get('/admin/rooms', 'Admin::rooms', ['filter' => 'role:admin']);
 $routes->get('/admin/rooms/new', 'Admin::newRoom', ['filter' => 'role:admin']);
@@ -242,6 +253,16 @@ $routes->post('/doctor/discharge-patient/(:num)', 'Doctor::processDischarge/$1',
 // Doctor schedule management
 $routes->get('/doctor/schedule', 'Doctor::schedule', ['filter' => 'role:doctor']);
 $routes->post('/doctor/schedule', 'Doctor::storeSchedule', ['filter' => 'role:doctor']);
+// Doctor vaccinations (for pediatricians)
+$routes->get('/doctor/vaccinations', 'Doctor::vaccinations', ['filter' => 'role:doctor']);
+// Doctor surgeries (for surgeons)
+$routes->get('/doctor/surgeries/schedule', 'Doctor::scheduleSurgery', ['filter' => 'role:doctor']);
+$routes->post('/doctor/surgeries', 'Doctor::storeSurgery', ['filter' => 'role:doctor']);
+// Doctor prenatal (for OB-GYN)
+$routes->get('/doctor/prenatal/new', 'Doctor::newPrenatal', ['filter' => 'role:doctor']);
+$routes->post('/doctor/prenatal', 'Doctor::storePrenatal', ['filter' => 'role:doctor']);
+// Doctor neurology imaging (for neurologists)
+$routes->get('/doctor/neurology/imaging', 'Doctor::neurologyImaging', ['filter' => 'role:doctor']);
 
 // Nurse functional routes
 // Dashboard

@@ -168,23 +168,75 @@ class Admin extends BaseController
             'first_name'  => trim((string)$req->getPost('first_name')),
             'last_name'   => trim((string)$req->getPost('last_name')),
             'role'        => trim((string)$req->getPost('role')),
+            'is_active'   => 1, // Default to active
         ];
         $password = (string)$req->getPost('password');
-        if ($data['username']==='' || $password==='' || $data['role']==='') {
-            return redirect()->back()->with('error','Username, password, and role are required.')->withInput();
+        
+        // Validate required fields
+        if (empty($data['employee_id']) || empty($data['username']) || empty($password) || empty($data['role'])) {
+            return redirect()->back()->with('error','Employee ID, username, password, and role are required.')->withInput();
         }
+        
+        // Validate email if provided
+        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->with('error','Invalid email format.')->withInput();
+        }
+        
         $users = model('App\\Models\\UserModel');
-        // Basic uniqueness check on username
+        
+        // Check for duplicate employee_id
+        if (!empty($data['employee_id'])) {
+            $exists = $users->where('employee_id', $data['employee_id'])->first();
+            if ($exists) {
+                return redirect()->back()->with('error','Employee ID already exists.')->withInput();
+            }
+        }
+        
+        // Check for duplicate username
         $exists = $users->where('username', $data['username'])->first();
         if ($exists) {
             return redirect()->back()->with('error','Username already exists.')->withInput();
         }
+        
+        // Check for duplicate email if provided
+        if (!empty($data['email'])) {
+            $exists = $users->where('email', $data['email'])->first();
+            if ($exists) {
+                return redirect()->back()->with('error','Email already exists.')->withInput();
+            }
+        }
+        
+        // Get or create default branch
+        $branchModel = model('App\\Models\\BranchModel');
+        $existingBranch = $branchModel->first();
+        if (!$existingBranch) {
+            $branchData = [
+                'name' => 'Main Branch',
+                'code' => 'MAIN',
+                'address' => '123 Hospital Street',
+                'phone' => '123-456-7890',
+                'email' => 'main@hospital.com',
+                'is_main' => 1,
+                'is_active' => 1,
+            ];
+            $branchModel->save($branchData);
+            $data['branch_id'] = $branchModel->getInsertID();
+        } else {
+            $data['branch_id'] = $existingBranch['id'];
+        }
+        
         $data['password'] = password_hash($password, PASSWORD_DEFAULT);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['updated_at'] = date('Y-m-d H:i:s');
+        
+        try {
         $users->insert($data);
         AuditLogger::log('user_create', 'username=' . $data['username'] . ' role=' . $data['role']);
-        return redirect()->to(site_url('dashboard/admin'))->with('success','User created successfully.');
+            return redirect()->to(site_url('admin/users'))->with('success','User created successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error creating user: ' . $e->getMessage());
+            return redirect()->back()->with('error','Error creating user. Please try again.')->withInput();
+        }
     }
 
     public function assignRole()
@@ -236,20 +288,195 @@ class Admin extends BaseController
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
         $userModel = model('App\\Models\\UserModel');
+        
+        // Auto-fix doctors without username or password
+        $this->autoFixDoctorCredentials($userModel);
+        
+        // Get total count before applying joins (more accurate)
         $total = $userModel->countAllResults();
+        
+        // Build query with joins
         $users = $userModel
-                    ->select('id,username,role,created_at')
-                    ->orderBy('created_at','DESC')
+                    ->select('users.id,users.employee_id,users.username,users.role,users.first_name,users.last_name,users.specialization,users.created_at,departments.name as department_name,departments.code as department_code')
+                    ->join('departments', 'departments.id = users.department_id', 'left')
+                    ->orderBy('users.created_at','DESC')
                     ->findAll($perPage, $offset);
+        
+        // Note: username is already in the select statement above
+        
+        // Calculate pagination
+        $totalPages = ceil($total / $perPage);
+        $hasPrev = $page > 1;
+        $hasNext = $page < $totalPages && ($offset + count($users)) < $total;
+        
         $data = [
             'users' => $users,
             'page' => $page,
             'perPage' => $perPage,
             'total' => $total,
-            'hasPrev' => $page > 1,
-            'hasNext' => ($offset + count($users)) < $total,
+            'totalPages' => $totalPages,
+            'hasPrev' => $hasPrev,
+            'hasNext' => $hasNext,
         ];
         return view('admin/users_list', $data);
+    }
+    
+    /**
+     * Auto-fix doctors without username or password
+     */
+    private function autoFixDoctorCredentials($userModel)
+    {
+        // Get all doctors first
+        $allDoctors = $userModel
+            ->where('role', 'doctor')
+            ->findAll();
+        
+        if (empty($allDoctors)) {
+            return;
+        }
+        
+        // Filter doctors that need fixing
+        $doctorsToFix = [];
+        foreach ($allDoctors as $doctor) {
+            $needsUsername = empty($doctor['username']) || trim($doctor['username']) === '';
+            $needsPassword = empty($doctor['password']) || trim($doctor['password']) === '';
+            
+            if ($needsUsername || $needsPassword) {
+                $doctorsToFix[] = $doctor;
+            }
+        }
+        
+        if (empty($doctorsToFix)) {
+            return;
+        }
+        
+        $defaultPassword = password_hash('password', PASSWORD_DEFAULT);
+        $fixed = 0;
+        
+        foreach ($doctorsToFix as $doctor) {
+            $updateData = [];
+            
+            // Generate username if missing
+            if (empty($doctor['username']) || trim($doctor['username']) === '') {
+                $firstName = strtolower(trim($doctor['first_name'] ?? ''));
+                $lastName = strtolower(trim($doctor['last_name'] ?? ''));
+                
+                if (empty($firstName) && empty($lastName)) {
+                    // Fallback to employee_id if no name
+                    $updateData['username'] = 'doc_' . strtolower(str_replace('-', '_', $doctor['employee_id'] ?? 'user' . $doctor['id']));
+                } else {
+                    // Create username from first_name + last_name
+                    $baseUsername = $firstName . '_' . $lastName;
+                    $baseUsername = preg_replace('/[^a-z0-9_]/', '', $baseUsername);
+                    
+                    if (empty($baseUsername)) {
+                        $baseUsername = 'doc_' . strtolower(str_replace('-', '_', $doctor['employee_id'] ?? 'user' . $doctor['id']));
+                    }
+                    
+                    // Check if username exists, add number if needed
+                    $username = $baseUsername;
+                    $counter = 1;
+                    $existingUser = $userModel->where('username', $username)->where('id !=', $doctor['id'])->first();
+                    while ($existingUser) {
+                        $username = $baseUsername . $counter;
+                        $counter++;
+                        $existingUser = $userModel->where('username', $username)->where('id !=', $doctor['id'])->first();
+                    }
+                    
+                    $updateData['username'] = $username;
+                }
+            }
+            
+            // Set default password if missing
+            if (empty($doctor['password']) || trim($doctor['password']) === '') {
+                $updateData['password'] = $defaultPassword;
+            }
+            
+            // Update if there's something to fix
+            if (!empty($updateData)) {
+                $updateData['updated_at'] = date('Y-m-d H:i:s');
+                try {
+                    $userModel->update($doctor['id'], $updateData);
+                    $fixed++;
+                } catch (\Exception $e) {
+                    log_message('error', 'Failed to update doctor credentials: ' . $e->getMessage());
+                }
+            }
+        }
+        
+        if ($fixed > 0) {
+            log_message('info', "Auto-fixed credentials for {$fixed} doctor(s)");
+        }
+    }
+    
+    /**
+     * Manual fix route - force update all doctor credentials
+     */
+    public function fixDoctorCredentials()
+    {
+        helper(['url']);
+        $userModel = model('App\\Models\\UserModel');
+        
+        // Get ALL doctors and force update their credentials
+        $allDoctors = $userModel->where('role', 'doctor')->findAll();
+        
+        if (empty($allDoctors)) {
+            return redirect()->to(site_url('admin/users'))->with('error', 'No doctors found.');
+        }
+        
+        $defaultPassword = password_hash('password', PASSWORD_DEFAULT);
+        $fixed = 0;
+        
+        foreach ($allDoctors as $doctor) {
+            $updateData = [];
+            
+            // Always ensure username is set
+            if (empty($doctor['username']) || trim($doctor['username']) === '') {
+                $firstName = strtolower(trim($doctor['first_name'] ?? ''));
+                $lastName = strtolower(trim($doctor['last_name'] ?? ''));
+                
+                if (empty($firstName) && empty($lastName)) {
+                    $updateData['username'] = 'doc_' . strtolower(str_replace('-', '_', $doctor['employee_id'] ?? 'user' . $doctor['id']));
+                } else {
+                    $baseUsername = $firstName . '_' . $lastName;
+                    $baseUsername = preg_replace('/[^a-z0-9_]/', '', $baseUsername);
+                    
+                    if (empty($baseUsername)) {
+                        $baseUsername = 'doc_' . strtolower(str_replace('-', '_', $doctor['employee_id'] ?? 'user' . $doctor['id']));
+                    }
+                    
+                    $username = $baseUsername;
+                    $counter = 1;
+                    $existingUser = $userModel->where('username', $username)->where('id !=', $doctor['id'])->first();
+                    while ($existingUser) {
+                        $username = $baseUsername . $counter;
+                        $counter++;
+                        $existingUser = $userModel->where('username', $username)->where('id !=', $doctor['id'])->first();
+                    }
+                    
+                    $updateData['username'] = $username;
+                }
+            }
+            
+            // ALWAYS set password to default (force update)
+            $updateData['password'] = $defaultPassword;
+            
+            // Update
+            $updateData['updated_at'] = date('Y-m-d H:i:s');
+            try {
+                $userModel->update($doctor['id'], $updateData);
+                $fixed++;
+            } catch (\Exception $e) {
+                log_message('error', 'Failed to update doctor credentials: ' . $e->getMessage());
+            }
+        }
+        
+        if ($fixed > 0) {
+            log_message('info', "Force-updated credentials for {$fixed} doctor(s)");
+            return redirect()->to(site_url('admin/users'))->with('success', "Successfully updated credentials for {$fixed} doctor(s). All passwords are now set to 'password'.");
+        } else {
+            return redirect()->to(site_url('admin/users'))->with('error', 'No doctors were updated.');
+        }
     }
 
     public function editUser($id)
@@ -267,7 +494,15 @@ class Admin extends BaseController
         if (!$user) {
             return redirect()->to(site_url('admin/users'))->with('error','User not found.');
         }
-        return view('admin/user_edit', ['user' => $user]);
+        
+        // Get departments for doctor assignment
+        $departmentModel = model('App\\Models\\DepartmentModel');
+        $departments = $departmentModel->where('is_active', 1)->orderBy('name', 'ASC')->findAll();
+        
+        return view('admin/user_edit', [
+            'user' => $user,
+            'departments' => $departments,
+        ]);
     }
 
     public function updateUser($id)
@@ -282,25 +517,77 @@ class Admin extends BaseController
         }
         
         $req = $this->request;
+        
+        // Validate required fields
+        $username = trim((string)$req->getPost('username'));
+        if (empty($username)) {
+            return redirect()->back()->with('error','Username is required.')->withInput();
+        }
+        
         $data = [
             'employee_id' => trim((string)$req->getPost('employee_id')),
+            'username'    => $username,
             'email'       => trim((string)$req->getPost('email')),
             'first_name'  => trim((string)$req->getPost('first_name')),
             'last_name'   => trim((string)$req->getPost('last_name')),
-            'role'        => trim((string)$req->getPost('role')),
+            'is_active'   => 1, // Keep user active
+            'specialization' => trim((string)$req->getPost('specialization')) ?: null,
             'updated_at'  => date('Y-m-d H:i:s'),
         ];
-        $password = (string)$req->getPost('password');
-        if ($password !== '') {
-            $data['password'] = password_hash($password, PASSWORD_DEFAULT);
+        
+        // Add department_id only if role is doctor
+        $role = trim((string)$req->getPost('role'));
+        if ($role === 'doctor') {
+            $departmentId = $req->getPost('department_id') ? (int)$req->getPost('department_id') : null;
+            $data['department_id'] = $departmentId;
+        } else {
+            // Clear department if not a doctor
+            $data['department_id'] = null;
         }
+        
         $users = model('App\\Models\\UserModel');
-        if (!$users->find($id)) {
+        $existingUser = $users->find($id);
+        if (!$existingUser) {
             return redirect()->to(site_url('admin/users'))->with('error','User not found.');
         }
+        
+        // Check for duplicate employee_id (if changed)
+        if (!empty($data['employee_id']) && $data['employee_id'] !== ($existingUser['employee_id'] ?? '')) {
+            $exists = $users->where('employee_id', $data['employee_id'])->where('id !=', $id)->first();
+            if ($exists) {
+                return redirect()->back()->with('error','Employee ID already exists.')->withInput();
+            }
+        }
+        
+        // Check for duplicate username (if changed)
+        if (!empty($data['username']) && $data['username'] !== ($existingUser['username'] ?? '')) {
+            $exists = $users->where('username', $data['username'])->where('id !=', $id)->first();
+            if ($exists) {
+                return redirect()->back()->with('error','Username already exists.')->withInput();
+            }
+        }
+        
+        // Check for duplicate email (if changed)
+        if (!empty($data['email']) && $data['email'] !== ($existingUser['email'] ?? '')) {
+            $exists = $users->where('email', $data['email'])->where('id !=', $id)->first();
+            if ($exists) {
+                return redirect()->back()->with('error','Email already exists.')->withInput();
+            }
+        }
+        
+        // Validate email format if provided
+        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->with('error','Invalid email format.')->withInput();
+        }
+        
+        try {
         $users->update($id, $data);
         AuditLogger::log('user_update', 'user_id=' . $id);
-        return redirect()->to(site_url('admin/users'))->with('success','User updated.');
+            return redirect()->to(site_url('admin/users'))->with('success','User updated successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error updating user: ' . $e->getMessage());
+            return redirect()->back()->with('error','Error updating user. Please try again.')->withInput();
+        }
     }
 
 
@@ -1912,5 +2199,170 @@ class Admin extends BaseController
         ];
         
         return view('admin/audit_logs', $data);
+    }
+
+    public function departments()
+    {
+        helper('url');
+        $departmentModel = model('App\Models\DepartmentModel');
+        
+        // Get all departments with stats (doctor counts, head doctor info)
+        $departments = $departmentModel->getDepartmentsWithStats();
+        
+        return view('admin/departments', [
+            'departments' => $departments
+        ]);
+    }
+    
+    public function newDepartment()
+    {
+        helper(['url', 'form']);
+        $userModel = model('App\Models\UserModel');
+        
+        // Get all doctors for head doctor selection
+        $doctors = $userModel
+            ->where('role', 'doctor')
+            ->where('is_active', 1)
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+        
+        return view('admin/department_form', [
+            'department' => null,
+            'doctors' => $doctors,
+            'formAction' => site_url('admin/departments'),
+        ]);
+    }
+    
+    public function storeDepartment()
+    {
+        helper(['url', 'form']);
+        $departmentModel = model('App\Models\DepartmentModel');
+        
+        $data = [
+            'name' => trim((string)$this->request->getPost('name')),
+            'code' => trim((string)$this->request->getPost('code')),
+            'description' => trim((string)$this->request->getPost('description')) ?: null,
+            'head_doctor_id' => $this->request->getPost('head_doctor_id') ? (int)$this->request->getPost('head_doctor_id') : null,
+            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+        
+        // Validate required fields
+        if (empty($data['name']) || empty($data['code'])) {
+            return redirect()->back()->with('error', 'Name and code are required.')->withInput();
+        }
+        
+        // Check for duplicate code
+        $existing = $departmentModel->where('code', $data['code'])->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'Department code already exists.')->withInput();
+        }
+        
+        try {
+            $departmentModel->insert($data);
+            AuditLogger::log('department_create', 'name=' . $data['name'] . ' code=' . $data['code']);
+            return redirect()->to(site_url('admin/departments'))->with('success', 'Department created successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error creating department: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error creating department. Please try again.')->withInput();
+        }
+    }
+    
+    public function editDepartment($id)
+    {
+        helper(['url', 'form']);
+        $departmentModel = model('App\Models\DepartmentModel');
+        $userModel = model('App\Models\UserModel');
+        
+        $department = $departmentModel->find($id);
+        if (!$department) {
+            return redirect()->to(site_url('admin/departments'))->with('error', 'Department not found.');
+        }
+        
+        // Get all doctors for head doctor selection
+        $doctors = $userModel
+            ->where('role', 'doctor')
+            ->where('is_active', 1)
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+        
+        // Get doctors in this department
+        $departmentDoctors = $departmentModel->getDoctorsInDepartment($id);
+        
+        return view('admin/department_form', [
+            'department' => $department,
+            'doctors' => $doctors,
+            'departmentDoctors' => $departmentDoctors,
+            'formAction' => site_url('admin/departments/' . $id),
+        ]);
+    }
+    
+    public function updateDepartment($id)
+    {
+        helper(['url', 'form']);
+        $departmentModel = model('App\Models\DepartmentModel');
+        
+        $department = $departmentModel->find($id);
+        if (!$department) {
+            return redirect()->to(site_url('admin/departments'))->with('error', 'Department not found.');
+        }
+        
+        $data = [
+            'name' => trim((string)$this->request->getPost('name')),
+            'code' => trim((string)$this->request->getPost('code')),
+            'description' => trim((string)$this->request->getPost('description')) ?: null,
+            'head_doctor_id' => $this->request->getPost('head_doctor_id') ? (int)$this->request->getPost('head_doctor_id') : null,
+            'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+        ];
+        
+        // Validate required fields
+        if (empty($data['name']) || empty($data['code'])) {
+            return redirect()->back()->with('error', 'Name and code are required.')->withInput();
+            }
+            
+        // Check for duplicate code (excluding current department)
+        $existing = $departmentModel->where('code', $data['code'])->where('id !=', $id)->first();
+        if ($existing) {
+            return redirect()->back()->with('error', 'Department code already exists.')->withInput();
+        }
+        
+        try {
+            $departmentModel->update($id, $data);
+            AuditLogger::log('department_update', 'department_id=' . $id . ' name=' . $data['name']);
+            return redirect()->to(site_url('admin/departments'))->with('success', 'Department updated successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error updating department: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error updating department. Please try again.')->withInput();
+        }
+    }
+    
+    public function deleteDepartment($id)
+    {
+        helper('url');
+        $departmentModel = model('App\Models\DepartmentModel');
+        $userModel = model('App\Models\UserModel');
+        
+        $department = $departmentModel->find($id);
+        if (!$department) {
+            return redirect()->to(site_url('admin/departments'))->with('error', 'Department not found.');
+        }
+        
+        // Check if department has doctors assigned
+        $doctorCount = $userModel
+            ->where('department_id', $id)
+            ->where('role', 'doctor')
+            ->countAllResults();
+        
+        if ($doctorCount > 0) {
+            return redirect()->to(site_url('admin/departments'))->with('error', 'Cannot delete department. There are ' . $doctorCount . ' doctor(s) assigned to this department. Please reassign them first.');
+        }
+        
+        try {
+            $departmentModel->delete($id);
+            AuditLogger::log('department_delete', 'department_id=' . $id);
+            return redirect()->to(site_url('admin/departments'))->with('success', 'Department deleted successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Error deleting department: ' . $e->getMessage());
+            return redirect()->to(site_url('admin/departments'))->with('error', 'Error deleting department. Please try again.');
+        }
     }
 }

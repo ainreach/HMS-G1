@@ -377,23 +377,26 @@
                                         'without_specimen' => '📋 Without Specimen (No Physical Specimen Needed)'
                                     ];
                                     
+                                    $hasTests = false;
+                                    
                                     if (!empty($labTests ?? [])):
                                         foreach ($labTests as $category => $testTypes):
                                             if (is_array($testTypes)):
                                                 foreach ($testTypes as $testType => $tests):
-                                                    if (is_array($tests)):
+                                                    if (is_array($tests) && !empty($tests)):
+                                                        $hasTests = true;
                                                         $categoryLabel = $categoryLabels[$category] ?? ucfirst(str_replace('_', ' ', $category));
                                                         ?>
-                                                        <optgroup label="<?= esc($categoryLabel) ?>">
+                                                        <optgroup label="<?= esc($categoryLabel) ?> - <?= esc($testType) ?>">
                                                             <?php foreach ($tests as $test): ?>
-                                                                <?php if (is_array($test)): ?>
+                                                                <?php if (is_array($test) && !empty($test['test_name'])): ?>
                                                                     <option value="<?= esc($test['test_name']) ?>" 
-                                                                        data-test-type="<?= esc($test['test_type']) ?>"
+                                                                        data-test-type="<?= esc($test['test_type'] ?? '') ?>"
                                                                         data-specimen-category="<?= esc($test['specimen_category'] ?? 'with_specimen') ?>"
                                                                         data-description="<?= esc($test['description'] ?? '') ?>"
                                                                         data-normal-range="<?= esc($test['normal_range'] ?? '') ?>"
                                                                         data-price="<?= esc($test['price'] ?? '0.00') ?>">
-                                                                        <?= esc($test['test_name']) ?> (<?= esc($test['test_type']) ?>) - ₱<?= number_format($test['price'] ?? 0, 2) ?>
+                                                                        <?= esc($test['test_name']) ?> (<?= esc($test['test_type'] ?? 'Other') ?>) - ₱<?= number_format((float)($test['price'] ?? 0), 2) ?>
                                                                     </option>
                                                                 <?php endif; ?>
                                                             <?php endforeach; ?>
@@ -403,9 +406,11 @@
                                                 endforeach;
                                             endif;
                                         endforeach;
-                                    else:
+                                    endif;
+                                    
+                                    if (!$hasTests):
                                     ?>
-                                        <option value="" disabled>No lab tests available</option>
+                                        <option value="" disabled>No lab tests available. Please contact administrator to add lab tests.</option>
                                     <?php endif; ?>
                                 </select>
                             </div>

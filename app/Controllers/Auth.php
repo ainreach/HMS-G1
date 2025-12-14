@@ -45,8 +45,22 @@ class Auth extends BaseController
         $users = new UserModel();
         $user = $users->where('username', $username)->first();
 
-        if (!$user || !password_verify($password, $user['password'])) {
-            return redirect()->to("/login/{$role}")->with('error', 'Invalid credentials.');
+        if (!$user) {
+            return redirect()->to("/login/{$role}")->with('error', 'Invalid username. Please check your credentials.');
+        }
+
+        // Check if user has a password set
+        if (empty($user['password']) || $user['password'] === null) {
+            return redirect()->to("/login/{$role}")->with('error', 'Password not set. Please contact administrator to set your password.');
+        }
+
+        // Check if user is active
+        if (isset($user['is_active']) && $user['is_active'] == 0) {
+            return redirect()->to("/login/{$role}")->with('error', 'Your account is inactive. Please contact administrator.');
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            return redirect()->to("/login/{$role}")->with('error', 'Invalid password. Please try again.');
         }
 
         // Check if user has the correct role
@@ -91,12 +105,27 @@ class Auth extends BaseController
         $users = new UserModel();
         $user = $users->where('username', $username)->first();
 
-        if (!$user || !password_verify($password, $user['password'])) {
-            return redirect()->to('/login')->with('error', 'Invalid credentials.');
+        if (!$user) {
+            return redirect()->to('/login')->with('error', 'Invalid username. Please check your credentials.');
+        }
+
+        // Check if user has a password set
+        if (empty($user['password']) || $user['password'] === null) {
+            return redirect()->to('/login')->with('error', 'Password not set. Please contact administrator to set your password.');
+        }
+
+        // Check if user is active
+        if (isset($user['is_active']) && $user['is_active'] == 0) {
+            return redirect()->to('/login')->with('error', 'Your account is inactive. Please contact administrator.');
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            return redirect()->to('/login')->with('error', 'Invalid password. Please try again.');
         }
 
         // Save session
         $session = session();
+        $session->set('isLoggedIn', true);
         $session->set('role', $user['role']);
         $session->set('username', $user['username']);
         if (isset($user['id'])) {

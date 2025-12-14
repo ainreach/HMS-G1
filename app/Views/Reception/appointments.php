@@ -179,24 +179,51 @@
             <select name="doctor_id" id="doctorIdField" required style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.95rem;background:white;">
               <option value="">-- Select Doctor --</option>
               <?php 
-              $userModel = model('App\\Models\\UserModel');
-              $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(100);
-              
               if (!empty($doctors)) : 
-                // Group doctors by specialization
-                $groupedDoctors = [];
+                // Group doctors by department (preferred) or specialization (fallback)
+                $doctorsByDept = [];
+                $doctorsBySpecialization = [];
+                $doctorsWithoutGroup = [];
+                
                 foreach ($doctors as $doctor) {
-                  $specialization = $doctor['specialization'] ?? 'General';
-                  if (!isset($groupedDoctors[$specialization])) {
-                    $groupedDoctors[$specialization] = [];
+                  if (!empty($doctor['department_name'])) {
+                    $deptName = $doctor['department_name'];
+                    if (!isset($doctorsByDept[$deptName])) {
+                      $doctorsByDept[$deptName] = [];
+                    }
+                    $doctorsByDept[$deptName][] = $doctor;
+                  } elseif (!empty($doctor['specialization'])) {
+                    $specialization = $doctor['specialization'];
+                    if (!isset($doctorsBySpecialization[$specialization])) {
+                      $doctorsBySpecialization[$specialization] = [];
+                    }
+                    $doctorsBySpecialization[$specialization][] = $doctor;
+                  } else {
+                    $doctorsWithoutGroup[] = $doctor;
                   }
-                  $groupedDoctors[$specialization][] = $doctor;
                 }
                 
-                // Sort specializations
-                ksort($groupedDoctors);
+                ksort($doctorsByDept);
+                ksort($doctorsBySpecialization);
                 
-                foreach ($groupedDoctors as $specialization => $docs) : ?>
+                // Display doctors grouped by department first
+                foreach ($doctorsByDept as $deptName => $deptDoctors): ?>
+                  <optgroup label="<?= esc($deptName) ?>">
+                    <?php foreach ($deptDoctors as $doctor) : 
+                      $doctorName = trim(($doctor['first_name'] ?? '') . ' ' . ($doctor['last_name'] ?? ''));
+                      $selected = (old('doctor_id') == $doctor['id']) ? 'selected' : '';
+                    ?>
+                      <option value="<?= esc($doctor['id']) ?>" <?= $selected ?>>
+                        Dr. <?= esc($doctorName) ?>
+                        <?php if (!empty($doctor['specialization'])): ?>
+                          - <?= esc($doctor['specialization']) ?>
+                        <?php endif; ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </optgroup>
+                <?php endforeach; ?>
+                
+                <?php foreach ($doctorsBySpecialization as $specialization => $docs) : ?>
                   <optgroup label="<?= esc($specialization) ?>">
                     <?php foreach ($docs as $doctor) : 
                       $doctorName = trim(($doctor['first_name'] ?? '') . ' ' . ($doctor['last_name'] ?? ''));
@@ -207,7 +234,23 @@
                       </option>
                     <?php endforeach; ?>
                   </optgroup>
-                <?php endforeach; 
+                <?php endforeach; ?>
+                
+                <?php if (!empty($doctorsWithoutGroup)): ?>
+                  <optgroup label="Other / No Department">
+                    <?php foreach ($doctorsWithoutGroup as $doctor) : 
+                      $doctorName = trim(($doctor['first_name'] ?? '') . ' ' . ($doctor['last_name'] ?? ''));
+                      $selected = (old('doctor_id') == $doctor['id']) ? 'selected' : '';
+                    ?>
+                      <option value="<?= esc($doctor['id']) ?>" <?= $selected ?>>
+                        Dr. <?= esc($doctorName) ?>
+                        <?php if (!empty($doctor['specialization'])): ?>
+                          - <?= esc($doctor['specialization']) ?>
+                        <?php endif; ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </optgroup>
+                <?php endif; 
               else: ?>
                 <option value="">No doctors available</option>
               <?php endif; ?>

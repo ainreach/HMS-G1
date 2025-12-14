@@ -100,13 +100,27 @@ class Reception extends BaseController
         helper('url');
         $userModel = model('App\Models\UserModel');
         $roomModel = model('App\Models\RoomModel');
+        $departmentModel = model('App\Models\DepartmentModel');
 
-        $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->findAll();
+        // Get all doctors with their departments
+        $doctors = $userModel
+            ->select('users.*, departments.name as department_name, departments.code as department_code')
+            ->join('departments', 'departments.id = users.department_id', 'left')
+            ->where('users.role', 'doctor')
+            ->where('users.is_active', 1)
+            ->orderBy('departments.name', 'ASC')
+            ->orderBy('users.first_name', 'ASC')
+            ->findAll();
+        
         $availableRooms = $roomModel->where('status', 'available')->findAll();
+        
+        // Get all departments for reference
+        $departments = $departmentModel->where('is_active', 1)->orderBy('name', 'ASC')->findAll();
 
         return view('Reception/patient_new', [
             'doctors' => $doctors,
-            'availableRooms' => $availableRooms
+            'availableRooms' => $availableRooms,
+            'departments' => $departments,
         ]);
     }
 
@@ -570,7 +584,28 @@ class Reception extends BaseController
     public function newAppointment()
     {
         helper('url');
-        return view('Reception/appointment_new');
+        $userModel = model('App\Models\UserModel');
+        $patientModel = model('App\Models\PatientModel');
+        $departmentModel = model('App\Models\DepartmentModel');
+        
+        // Get all doctors with their departments
+        $doctors = $userModel
+            ->select('users.*, departments.name as department_name, departments.code as department_code')
+            ->join('departments', 'departments.id = users.department_id', 'left')
+            ->where('users.role', 'doctor')
+            ->where('users.is_active', 1)
+            ->orderBy('departments.name', 'ASC')
+            ->orderBy('users.first_name', 'ASC')
+            ->findAll();
+        
+        $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(200);
+        $departments = $departmentModel->where('is_active', 1)->orderBy('name', 'ASC')->findAll();
+        
+        return view('Reception/appointment_new', [
+            'doctors' => $doctors,
+            'patients' => $patients,
+            'departments' => $departments,
+        ]);
     }
 
     public function storeAppointment()
@@ -622,7 +657,16 @@ class Reception extends BaseController
             ->findAll(50);
 
         $patients = $patientModel->where('is_active', 1)->orderBy('last_name', 'ASC')->findAll(100);
-        $doctors  = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('first_name', 'ASC')->findAll(50);
+        
+        // Get doctors with departments
+        $doctors = $userModel
+            ->select('users.*, departments.name as department_name, departments.code as department_code')
+            ->join('departments', 'departments.id = users.department_id', 'left')
+            ->where('users.role', 'doctor')
+            ->where('users.is_active', 1)
+            ->orderBy('departments.name', 'ASC')
+            ->orderBy('users.first_name', 'ASC')
+            ->findAll(50);
 
         return view('Reception/appointments', [
             'appointments' => $appointments,

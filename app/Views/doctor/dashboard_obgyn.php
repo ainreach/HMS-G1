@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Doctor Dashboard</title>
+  <title>OB-GYN Dashboard</title>
   <base href="<?= rtrim(base_url(), '/') ?>/">
   <link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -9,49 +9,33 @@
 <header class="dash-topbar" role="banner"><div class="topbar-inner">
     <div class="brand"><img src="<?= base_url('assets/img/logo.png') ?>" alt="HMS" />
     <div class="brand-text">
-      <h1 style="font-size:1.25rem;margin:0">
-        <?php if (!empty($doctorSpecialization)): ?>
-          <?= esc($doctorSpecialization) ?>
-        <?php else: ?>
-          Doctor
-        <?php endif; ?>
-      </h1>
-      <small>
-        <?php if (!empty($doctorDepartment)): ?>
-          <?= esc($doctorDepartment['name'] ?? '') ?> Department
-        <?php else: ?>
-          Patient records • Prescriptions • Requests
-        <?php endif; ?>
-      </small>
+      <h1 style="font-size:1.25rem;margin:0"><?= esc($doctorSpecialization ?? 'OB-GYN') ?></h1>
+      <small><?= esc($doctorDepartment['name'] ?? 'OB-GYN') ?> Department</small>
     </div>
   </div>
   <div class="top-right" aria-label="User session">
     <div style="display:flex;align-items:center;gap:12px">
-      <?php if (!empty($doctorSpecialization)): ?>
-        <span style="padding:6px 12px;background:#e0f2fe;color:#0369a1;border-radius:6px;font-size:0.875rem;font-weight:600">
-          <i class="fa-solid fa-user-doctor" style="margin-right:4px"></i>
-          <?= esc($doctorSpecialization) ?>
-        </span>
-      <?php endif; ?>
-      <span class="role"><i class="fa-regular fa-user"></i>
-        <?= esc(session('username') ?? session('role') ?? 'User') ?>
+      <span style="padding:6px 12px;background:#fce7f3;color:#db2777;border-radius:6px;font-size:0.875rem;font-weight:600">
+        <i class="fa-solid fa-baby" style="margin-right:4px"></i>
+        OB-GYN
       </span>
+      <span class="role"><i class="fa-regular fa-user"></i> <?= esc(session('username') ?? 'User') ?></span>
       <a href="<?= site_url('logout') ?>" class="logout-btn" style="text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
     </div>
   </div>
 </div></header>
 <div class="layout">
 <?= $this->include('doctor/sidebar', [
-  'specialization' => $doctorSpecialization ?? 'Doctor',
+  'specialization' => $doctorSpecialization ?? 'OB-GYN',
   'department' => $doctorDepartment ?? null,
   'currentPage' => 'dashboard'
 ]) ?>
   <main class="content">
     <?php if (!empty($highlightPatient)): ?>
-      <div style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
           <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-            <i class="fa-solid fa-user-doctor" style="font-size: 24px;"></i>
+            <i class="fa-solid fa-baby" style="font-size: 24px;"></i>
           </div>
           <div style="flex: 1;">
             <div style="font-weight: 700; font-size: 1rem; margin-bottom: 4px;">Patient Referred from Admin</div>
@@ -63,8 +47,8 @@
         </div>
         <div style="display: flex; gap: 8px; flex-shrink: 0;">
           <a href="<?= site_url('doctor/patients/consultation/' . $highlightPatientId) ?>" 
-             style="padding: 10px 20px; background: white; color: #16a34a; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
-             onmouseover="this.style.background='#f0fdf4'; this.style.transform='scale(1.05)'"
+             style="padding: 10px 20px; background: white; color: #ec4899; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;"
+             onmouseover="this.style.background='#fdf2f8'; this.style.transform='scale(1.05)'"
              onmouseout="this.style.background='white'; this.style.transform='scale(1)'">
             <i class="fa-solid fa-stethoscope"></i>
             Start Consultation
@@ -84,6 +68,7 @@
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Today Appointments</span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($todayAppointments ?? 0) ?></div></article>
       <article class="kpi-card kpi-info"><div class="kpi-head"><span>Pending Results</span><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($pendingLabResults ?? 0) ?></div></article>
       <article class="kpi-card" style="background:#f0fdf4;border-left:4px solid #16a34a"><div class="kpi-head"><span>Assigned Patients</span><i class="fa-solid fa-users" aria-hidden="true"></i></div><div class="kpi-value" style="color:#15803d" aria-live="polite"><?= esc(count($assignedPatients ?? [])) ?></div></article>
+      <article class="kpi-card" style="background:#fce7f3;border-left:4px solid #ec4899"><div class="kpi-head"><span>Prenatal Patients</span><i class="fa-solid fa-baby" aria-hidden="true"></i></div><div class="kpi-value" style="color:#db2777" aria-live="polite"><?= esc($prenatalPatients ?? 0) ?></div></article>
     </section>
 
     <section class="panel" style="margin-top:16px">
@@ -95,11 +80,11 @@
         <a class="btn" href="<?= site_url('doctor/admit-patients') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Admit Patient</a>
         <a class="btn" href="<?= site_url('doctor/prescriptions') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Prescriptions</a>
         <a class="btn" href="<?= site_url('doctor/lab-results') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Lab Results</a>
+        <a class="btn" href="<?= site_url('doctor/prenatal/new') ?>" style="padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;background:#fce7f3;color:#db2777"><i class="fa-solid fa-baby" style="margin-right:4px"></i>Prenatal Checkup</a>
       </div>
     </section>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-      <!-- Today's Appointments -->
       <section class="panel">
         <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Today's Appointments</h2></div>
         <div class="panel-body" style="overflow:auto">
@@ -136,7 +121,6 @@
         </div>
       </section>
 
-      <!-- My Assigned Patients (In-Patients) -->
       <section class="panel">
         <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">My Assigned Patients</h2></div>
         <div class="panel-body" style="overflow:auto">
@@ -184,18 +168,28 @@
     </div>
 
     <section class="panel" style="margin-top:16px">
+      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Prenatal Patients</h2></div>
+      <div class="panel-body" style="padding:20px;text-align:center;color:#6b7280">
+        <i class="fa-solid fa-baby" style="font-size:3rem;opacity:0.3;margin-bottom:12px;display:block"></i>
+        <p style="margin:0">Prenatal patients will be displayed here.</p>
+        <p style="margin:8px 0 0 0;font-size:0.875rem">Track and manage prenatal care for expecting mothers.</p>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Delivery Schedule</h2></div>
+      <div class="panel-body" style="padding:20px;text-align:center;color:#6b7280">
+        <i class="fa-solid fa-calendar-heart" style="font-size:3rem;opacity:0.3;margin-bottom:12px;display:block"></i>
+        <p style="margin:0">Delivery schedule will be displayed here.</p>
+        <p style="margin:8px 0 0 0;font-size:0.875rem">View upcoming deliveries and delivery room assignments.</p>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">My Weekly Schedule</h2></div>
       <div class="panel-body" style="overflow:auto">
         <?php
-          $dayNames = [
-            'monday' => 'Monday',
-            'tuesday' => 'Tuesday',
-            'wednesday' => 'Wednesday',
-            'thursday' => 'Thursday',
-            'friday' => 'Friday',
-            'saturday' => 'Saturday',
-            'sunday' => 'Sunday',
-          ];
+          $dayNames = ['monday' => 'Monday', 'tuesday' => 'Tuesday', 'wednesday' => 'Wednesday', 'thursday' => 'Thursday', 'friday' => 'Friday', 'saturday' => 'Saturday', 'sunday' => 'Sunday'];
         ?>
         <?php if (!empty($schedule)) : ?>
           <table class="table" style="width:100%;border-collapse:collapse">
@@ -209,15 +203,9 @@
             <tbody>
               <?php foreach ($schedule as $row) : ?>
                 <tr>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                    <?= esc($dayNames[strtolower($row['day_of_week'] ?? '')] ?? ucfirst($row['day_of_week'] ?? '')) ?>
-                  </td>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                    <?= esc(date('g:i A', strtotime($row['start_time'] ?? '00:00:00'))) ?>
-                  </td>
-                  <td style="padding:8px;border-bottom:1px solid #f3f4f6">
-                    <?= esc(date('g:i A', strtotime($row['end_time'] ?? '00:00:00'))) ?>
-                  </td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($dayNames[strtolower($row['day_of_week'] ?? '')] ?? ucfirst($row['day_of_week'] ?? '')) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(date('g:i A', strtotime($row['start_time'] ?? '00:00:00'))) ?></td>
+                  <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc(date('g:i A', strtotime($row['end_time'] ?? '00:00:00'))) ?></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
@@ -229,11 +217,8 @@
     </section>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;">
-      <!-- Recent Medical Records -->
       <section class="panel">
-        <div class="panel-head">
-          <h2 style="margin:0;font-size:1.1rem">Recent Medical Records</h2>
-        </div>
+        <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Recent Medical Records</h2></div>
         <div class="panel-body" style="overflow:auto">
           <table class="table" style="width:100%;border-collapse:collapse">
             <thead>
@@ -260,11 +245,8 @@
         </div>
       </section>
 
-      <!-- Pending Lab Tests -->
       <section class="panel">
-        <div class="panel-head">
-          <h2 style="margin:0;font-size:1.1rem">Pending Lab Tests</h2>
-        </div>
+        <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Pending Lab Tests</h2></div>
         <div class="panel-body" style="overflow:auto">
           <table class="table" style="width:100%;border-collapse:collapse">
             <thead>
@@ -294,3 +276,4 @@
   </main></div>
 <script src="<?= base_url('assets/js/rbac.js') ?>"></script>
 </body></html>
+

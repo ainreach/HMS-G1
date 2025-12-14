@@ -154,7 +154,8 @@
 
       <div class="form-row">
         <label>Username</label>
-        <input type="text" value="<?= esc($user['username'] ?? '') ?>" disabled>
+        <input type="text" name="username" value="<?= esc($user['username'] ?? '') ?>" required>
+        <small style="color: #6b7280; margin-top: 4px;">Username is used for login. Make sure it's unique.</small>
       </div>
 
       <div class="form-row">
@@ -178,22 +179,41 @@
         <input type="password" name="password" placeholder="Enter new password">
       </div>
 
-      <div class="form-row">
-        <label>Role</label>
-        <select name="role" required>
-          <?php 
-            $roles = ['admin','it_staff','doctor','nurse','receptionist','lab_staff','pharmacist','accountant']; 
-            foreach($roles as $r): 
-          ?>
-            <option value="<?= $r ?>" <?= ($user['role'] ?? '') === $r ? 'selected' : '' ?>><?= ucfirst($r) ?></option>
-          <?php endforeach; ?>
+      <div class="form-row" id="specializationRow" style="display: <?= ($user['role'] ?? '') === 'doctor' ? 'flex' : 'none' ?>;">
+        <label>Specialization</label>
+        <input type="text" name="specialization" value="<?= esc($user['specialization'] ?? '') ?>" placeholder="e.g., Pediatrician, Cardiologist">
+      </div>
+
+      <div class="form-row" id="departmentRow" style="display: <?= ($user['role'] ?? '') === 'doctor' ? 'flex' : 'none' ?>;">
+        <label>Department <small style="color: #6b7280;">(Required for doctors)</small></label>
+        <select name="department_id">
+          <option value="">-- Select Department --</option>
+          <?php if (!empty($departments)): ?>
+            <?php foreach ($departments as $dept): ?>
+              <option value="<?= $dept['id'] ?>" <?= ($user['department_id'] ?? null) == $dept['id'] ? 'selected' : '' ?>>
+                <?= esc($dept['name']) ?> (<?= esc($dept['code']) ?>)
+              </option>
+            <?php endforeach; ?>
+          <?php endif; ?>
         </select>
+        <small style="color: #6b7280; margin-top: 4px;">
+          Assign this doctor to a department. This helps organize doctors by medical specialty.
+        </small>
       </div>
 
       <div class="flex-row" style="margin-top: 20px;">
         <button type="submit" class="btn">💾 Save Changes</button>
         <a href="<?= site_url('admin/users') ?>" class="btn btn-secondary">Cancel</a>
       </div>
+
+      <script>
+        // Show/hide department and specialization fields based on role
+        document.getElementById('roleSelect').addEventListener('change', function() {
+          const isDoctor = this.value === 'doctor';
+          document.getElementById('departmentRow').style.display = isDoctor ? 'flex' : 'none';
+          document.getElementById('specializationRow').style.display = isDoctor ? 'flex' : 'none';
+        });
+      </script>
     </form>
   </main>
 

@@ -29,6 +29,22 @@ class Doctor extends BaseController
 
         $today = date('Y-m-d');
         $doctorId = session('user_id') ?: 1; // Fallback for testing
+        
+        // Get patient_id from query parameter (if sent from admin panel)
+        $highlightPatientId = (int) $this->request->getGet('patient_id');
+        $highlightPatient = null;
+        if ($highlightPatientId) {
+            $highlightPatient = $patientModel->find($highlightPatientId);
+        }
+
+        // Get doctor's information including specialization
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'General Practitioner';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
 
         // KPIs
         $todayAppointments = $appointmentModel
@@ -48,6 +64,14 @@ class Doctor extends BaseController
             ->where('DATE(appointments.appointment_date)', $today)
             ->where('appointments.doctor_id', $doctorId)
             ->orderBy('appointments.appointment_time', 'ASC')
+            ->findAll(10);
+
+        // Get patients assigned to this doctor (attending physician)
+        $assignedPatients = $patientModel
+            ->where('attending_physician_id', $doctorId)
+            ->where('is_active', 1)
+            ->where('(discharge_date IS NULL OR discharge_date = "")', null, false)
+            ->orderBy('admission_date', 'DESC')
             ->findAll(10);
 
         // Recent medical records
@@ -74,21 +98,230 @@ class Doctor extends BaseController
             ->orderBy('start_time', 'ASC')
             ->findAll(20);
 
-        return view('doctor/dashboard', [
+        // Prepare common data for all dashboards
+        $commonData = [
             'todayAppointments' => $todayAppointments,
             'pendingLabResults' => $pendingLabResults,
             'appointments' => $appointments,
+            'assignedPatients' => $assignedPatients,
             'recentRecords' => $recentRecords,
             'pendingTests' => $pendingTests,
             'schedule' => $schedule,
-        ]);
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment,
+            'doctor' => $doctor,
+            'highlightPatient' => $highlightPatient,
+            'highlightPatientId' => $highlightPatientId,
+        ];
+
+        // Determine which dashboard view to load based on specialization
+        $dashboardView = $this->getDashboardViewBySpecialization($doctorSpecialization);
+        
+        // Add specialization-specific data
+        $specializationData = $this->getSpecializationData($doctorSpecialization, $doctorId, $commonData);
+        $commonData = array_merge($commonData, $specializationData);
+
+        return view($dashboardView, $commonData);
+    }
+
+    /**
+     * Get dashboard view file based on specialization
+     */
+    private function getDashboardViewBySpecialization(string $specialization): string
+    {
+        $specialization = strtolower($specialization);
+        
+        // 1. Pediatrics
+        if (strpos($specialization, 'pediatric') !== false || 
+            strpos($specialization, 'neonatologist') !== false ||
+            strpos($specialization, 'pedia') !== false) {
+            return 'doctor/dashboard_pediatrician';
+        }
+        
+        // 2. Cardiology
+        if (strpos($specialization, 'cardio') !== false) {
+            return 'doctor/dashboard_cardio';
+        }
+        
+        // 3. Orthopedics
+        if (strpos($specialization, 'orthopedic') !== false ||
+            strpos($specialization, 'ortho') !== false) {
+            return 'doctor/dashboard_orthopedics';
+        }
+        
+        // 4. General Medicine - Default dashboard
+        if (strpos($specialization, 'general practitioner') !== false ||
+            strpos($specialization, 'general medicine') !== false ||
+            strpos($specialization, 'family medicine') !== false ||
+            strpos($specialization, 'internist') !== false ||
+            strpos($specialization, 'internal medicine') !== false) {
+            return 'doctor/dashboard';
+        }
+        
+        // 5. Surgery
+        if (strpos($specialization, 'surgeon') !== false || 
+            strpos($specialization, 'surgical') !== false ||
+            strpos($specialization, 'surgery') !== false) {
+            return 'doctor/dashboard_surgeon';
+        }
+        
+        // 6. OB-GYN
+        if (strpos($specialization, 'obstetrician') !== false || 
+            strpos($specialization, 'gynecologist') !== false ||
+            strpos($specialization, 'ob-gyn') !== false ||
+            strpos($specialization, 'obgyn') !== false) {
+            return 'doctor/dashboard_obgyn';
+        }
+        
+        // 7. Neurology
+        if (strpos($specialization, 'neurologist') !== false ||
+            strpos($specialization, 'neurology') !== false) {
+            return 'doctor/dashboard_neurology';
+        }
+        
+        // Default - General Practitioner, Family Medicine, Internist, etc.
+        return 'doctor/dashboard';
+    }
+
+    /**
+     * Get specialization-specific data
+     */
+    private function getSpecializationData(string $specialization, int $doctorId, array $commonData): array
+    {
+        $specialization = strtolower($specialization);
+        $data = [];
+        
+        // Pediatrics - Count pediatric patients (age < 18)
+        if (strpos($specialization, 'pediatric') !== false || 
+            strpos($specialization, 'neonatologist') !== false) {
+            $patientModel = model('App\Models\PatientModel');
+            $allPatients = $patientModel
+                ->where('attending_physician_id', $doctorId)
+                ->where('is_active', 1)
+                ->where('(discharge_date IS NULL OR discharge_date = "")', null, false)
+                ->findAll();
+            
+            $pediatricCount = 0;
+            foreach ($allPatients as $patient) {
+                if (!empty($patient['date_of_birth'])) {
+                    $age = (int)date('Y') - (int)date('Y', strtotime($patient['date_of_birth']));
+                    if ($age < 18) {
+                        $pediatricCount++;
+                    }
+                }
+            }
+            $data['pediatricPatients'] = $pediatricCount;
+        }
+        
+        // Cardiology - Count pending ECG
+        if (strpos($specialization, 'cardio') !== false) {
+            $labTestModel = model('App\Models\LabTestModel');
+            $ecgCount = $labTestModel
+                ->where('doctor_id', $doctorId)
+                ->like('test_name', 'ECG', 'both')
+                ->where('status !=', 'completed')
+                ->countAllResults();
+            $data['pendingECG'] = $ecgCount;
+        }
+        
+        // Emergency - Count emergency cases
+        if (strpos($specialization, 'emergency') !== false || 
+            strpos($specialization, 'critical care') !== false ||
+            strpos($specialization, 'intensivist') !== false) {
+            $patientModel = model('App\Models\PatientModel');
+            $emergencyCount = $patientModel
+                ->where('attending_physician_id', $doctorId)
+                ->where('is_active', 1)
+                ->where('admission_type', 'admission')
+                ->where('(discharge_date IS NULL OR discharge_date = "")', null, false)
+                ->countAllResults();
+            $data['emergencyCases'] = $emergencyCount;
+        }
+        
+        // OB-GYN - Count prenatal patients
+        if (strpos($specialization, 'obstetrician') !== false || 
+            strpos($specialization, 'gynecologist') !== false ||
+            strpos($specialization, 'ob-gyn') !== false ||
+            strpos($specialization, 'obgyn') !== false) {
+            $patientModel = model('App\Models\PatientModel');
+            $prenatalCount = $patientModel
+                ->where('attending_physician_id', $doctorId)
+                ->where('is_active', 1)
+                ->where('gender', 'Female')
+                ->where('(discharge_date IS NULL OR discharge_date = "")', null, false)
+                ->countAllResults();
+            $data['prenatalPatients'] = $prenatalCount;
+        }
+        
+        return $data;
     }
 
     public function newRecord()
     {
         helper('url');
         $patientId = $this->request->getGet('patient_id');
-        return view('doctor/record_new', ['patient_id' => $patientId]);
+        $appointmentId = $this->request->getGet('appointment_id');
+        
+        $patientModel = model('App\Models\PatientModel');
+        $appointmentModel = model('App\Models\AppointmentModel');
+        $userModel = model('App\Models\UserModel');
+        $db = \Config\Database::connect();
+        
+        $patient = null;
+        $appointment = null;
+        
+        if ($patientId) {
+            $patient = $patientModel->find($patientId);
+        }
+        
+        if ($appointmentId) {
+            $appointment = $appointmentModel->find($appointmentId);
+            if ($appointment && !$patientId) {
+                $patientId = $appointment['patient_id'];
+                $patient = $patientModel->find($patientId);
+            }
+        }
+
+        // Get all available medicines from pharmacy for medication prescription
+        $medicines = [];
+        if ($db->tableExists('pharmacy')) {
+            $medicines = $db->table('pharmacy')
+                ->where('quantity >', 0)
+                ->orderBy('item_name', 'ASC')
+                ->get()
+                ->getResultArray();
+        } elseif ($db->tableExists('medicines')) {
+            // Medicines table doesn't have 'stock' column - stock is managed in inventory table
+            // Join with inventory to get stock quantity
+            if ($db->tableExists('inventory')) {
+                $branchId = 1; // Default branch, can be made dynamic
+                $medicines = $db->table('medicines')
+                    ->select('medicines.*, COALESCE(SUM(inventory.quantity_in_stock), 0) as quantity, 
+                             COALESCE(MIN(inventory.minimum_stock_level), 0) as minimum_stock_level')
+                    ->join('inventory', 'inventory.medicine_id = medicines.id AND inventory.branch_id = ' . (int)$branchId, 'left')
+                    ->where('medicines.is_active', 1)
+                    ->groupBy('medicines.id')
+                    ->orderBy('medicines.name', 'ASC')
+                    ->get()
+                    ->getResultArray();
+            } else {
+                // If no inventory table, just get active medicines with 0 stock
+                $medicines = $db->table('medicines')
+                    ->select('medicines.*, 0 as quantity')
+                    ->where('is_active', 1)
+                    ->orderBy('name', 'ASC')
+                    ->get()
+                    ->getResultArray();
+            }
+        }
+        
+        return view('doctor/record_new', [
+            'patient_id' => $patientId,
+            'appointment_id' => $appointmentId,
+            'patient' => $patient,
+            'appointment' => $appointment,
+            'medicines' => $medicines,
+        ]);
     }
 
     public function storeRecord()
@@ -97,29 +330,66 @@ class Doctor extends BaseController
         $patientId = (int) $this->request->getPost('patient_id');
         $doctorId  = session('user_id') ?: (int) $this->request->getPost('doctor_id');
         $visitDate = $this->request->getPost('visit_date') ?: date('Y-m-d H:i:s');
+        
         if (!$patientId) {
             return redirect()->back()->with('error', 'Patient is required.')->withInput();
         }
+        
+        // Process vital signs - get from JSON or individual fields
+        $vitalSignsJson = $this->request->getPost('vital_signs');
+        if (empty($vitalSignsJson)) {
+            // Build from individual fields if JSON not provided
+            $vitalSigns = [];
+            if ($this->request->getPost('vital_bp')) $vitalSigns['bp'] = $this->request->getPost('vital_bp');
+            if ($this->request->getPost('vital_temp')) $vitalSigns['temp'] = $this->request->getPost('vital_temp');
+            if ($this->request->getPost('vital_pulse')) $vitalSigns['pulse'] = $this->request->getPost('vital_pulse');
+            if ($this->request->getPost('vital_respiratory')) $vitalSigns['respiratory'] = $this->request->getPost('vital_respiratory');
+            if ($this->request->getPost('vital_spo2')) $vitalSigns['spo2'] = $this->request->getPost('vital_spo2');
+            if ($this->request->getPost('vital_weight')) $vitalSigns['weight'] = $this->request->getPost('vital_weight');
+            if ($this->request->getPost('vital_height')) $vitalSigns['height'] = $this->request->getPost('vital_height');
+            if ($this->request->getPost('vital_bmi')) $vitalSigns['bmi'] = $this->request->getPost('vital_bmi');
+            $vitalSignsJson = !empty($vitalSigns) ? json_encode($vitalSigns) : null;
+        }
+        
+        // Process medications - get from JSON or array
+        $medicationsJson = $this->request->getPost('medications_prescribed');
+        if (empty($medicationsJson)) {
+            $medications = $this->request->getPost('medications');
+            if (!empty($medications) && is_array($medications)) {
+                // Filter out empty medications
+                $medications = array_filter($medications, function($med) {
+                    return !empty($med['drug']) || !empty($med['dose']) || !empty($med['frequency']) || !empty($med['duration']);
+                });
+                $medicationsJson = !empty($medications) ? json_encode(array_values($medications)) : null;
+            }
+        }
+        
         $data = [
             'record_number' => 'MR-' . date('YmdHis'),
             'patient_id' => $patientId,
             'appointment_id' => $this->request->getPost('appointment_id') ?: null,
             'doctor_id' => (int) $doctorId,
             'visit_date' => $visitDate,
-            'chief_complaint' => $this->request->getPost('chief_complaint') ?: null,
-            'history_present_illness' => $this->request->getPost('history_present_illness') ?: null,
-            'physical_examination' => $this->request->getPost('physical_examination') ?: null,
-            'vital_signs' => $this->request->getPost('vital_signs') ?: null,
-            'diagnosis' => $this->request->getPost('diagnosis') ?: null,
-            'treatment_plan' => $this->request->getPost('treatment_plan') ?: null,
-            'medications_prescribed' => $this->request->getPost('medications_prescribed') ?: null,
-            'follow_up_instructions' => $this->request->getPost('follow_up_instructions') ?: null,
+            'chief_complaint' => trim($this->request->getPost('chief_complaint')) ?: null,
+            'history_present_illness' => trim($this->request->getPost('history_present_illness')) ?: null,
+            'physical_examination' => trim($this->request->getPost('physical_examination')) ?: null,
+            'vital_signs' => $vitalSignsJson,
+            'diagnosis' => trim($this->request->getPost('diagnosis')) ?: null,
+            'treatment_plan' => trim($this->request->getPost('treatment_plan')) ?: null,
+            'medications_prescribed' => $medicationsJson,
+            'follow_up_instructions' => trim($this->request->getPost('follow_up_instructions')) ?: null,
             'next_visit_date' => $this->request->getPost('next_visit_date') ?: null,
             'branch_id' => 1,
         ];
+        
         $model = new \App\Models\MedicalRecordModel();
-        $model->insert($data);
-        return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Medical record saved.');
+        
+        if (!$model->insert($data)) {
+            $errors = $model->errors();
+            return redirect()->back()->with('error', 'Failed to save medical record: ' . implode(', ', $errors))->withInput();
+        }
+        
+        return redirect()->to(site_url('dashboard/doctor'))->with('success', 'Medical record saved successfully.');
     }
 
     public function newLabRequest()
@@ -436,6 +706,254 @@ class Doctor extends BaseController
         return view('doctor/prescriptions', ['prescriptions' => $prescriptions]);
     }
 
+    public function vaccinations()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $doctorId = session('user_id') ?: 1;
+
+        // Get doctor info
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'Pediatrician';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
+
+        // Get pediatric patients (age < 18) assigned to this doctor
+        $pediatricPatients = $patientModel
+            ->where('attending_physician_id', $doctorId)
+            ->where('is_active', 1)
+            ->findAll();
+
+        // Filter by age (pediatric patients)
+        $vaccinationPatients = [];
+        foreach ($pediatricPatients as $patient) {
+            if (!empty($patient['date_of_birth'])) {
+                $birthDate = new \DateTime($patient['date_of_birth']);
+                $today = new \DateTime();
+                $age = $today->diff($birthDate)->y;
+                if ($age < 18) {
+                    $vaccinationPatients[] = $patient;
+                }
+            }
+        }
+
+        return view('doctor/vaccinations', [
+            'patients' => $vaccinationPatients,
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment
+        ]);
+    }
+
+    public function scheduleSurgery()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $surgeryModel = model('App\\Models\\SurgeryModel');
+        $doctorId = session('user_id') ?: 1;
+
+        // Get doctor info
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'Surgeon';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
+
+        // Get patients assigned to this doctor
+        $patients = $patientModel
+            ->where('attending_physician_id', $doctorId)
+            ->where('is_active', 1)
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+
+        // Get scheduled surgeries for this doctor
+        $surgeries = $surgeryModel->getSurgeriesWithDetails($doctorId, null, 50);
+
+        return view('doctor/surgery_schedule', [
+            'patients' => $patients,
+            'surgeries' => $surgeries,
+            'doctorId' => $doctorId,
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment
+        ]);
+    }
+
+    public function storeSurgery()
+    {
+        helper('url');
+        $req = $this->request;
+        $surgeryModel = model('App\\Models\\SurgeryModel');
+        $doctorId = session('user_id') ?: 1;
+        
+        $patientId = (int) $req->getPost('patient_id');
+        $surgeryType = trim((string) $req->getPost('surgery_type'));
+        $surgeryDate = trim((string) $req->getPost('surgery_date'));
+        $surgeryTime = trim((string) $req->getPost('surgery_time'));
+        $notes = trim((string) $req->getPost('notes'));
+
+        if (empty($patientId) || empty($surgeryType) || empty($surgeryDate)) {
+            return redirect()->back()->with('error', 'Patient, surgery type, and date are required.')->withInput();
+        }
+
+        // Generate surgery number
+        $surgeryNumber = $surgeryModel->generateSurgeryNumber();
+
+        // Prepare data
+        $data = [
+            'surgery_number' => $surgeryNumber,
+            'patient_id' => $patientId,
+            'doctor_id' => $doctorId,
+            'surgery_type' => $surgeryType,
+            'surgery_date' => $surgeryDate,
+            'surgery_time' => $surgeryTime ?: null,
+            'status' => 'scheduled',
+            'notes' => $notes ?: null,
+        ];
+
+        // Save surgery
+        if ($surgeryModel->insert($data)) {
+            return redirect()->to(site_url('doctor/surgeries/schedule'))->with('success', 'Surgery scheduled successfully.');
+        } else {
+            $errors = $surgeryModel->errors();
+            return redirect()->back()->with('error', 'Failed to schedule surgery: ' . implode(', ', $errors))->withInput();
+        }
+    }
+
+    public function newPrenatal()
+    {
+        helper('url');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $prenatalModel = model('App\\Models\\PrenatalCheckupModel');
+        $doctorId = session('user_id') ?: 1;
+
+        // Get doctor info
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'OB-GYN';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
+
+        // Get female patients assigned to this doctor (for prenatal care)
+        $patients = $patientModel
+            ->where('attending_physician_id', $doctorId)
+            ->where('is_active', 1)
+            ->where('gender', 'female')
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+
+        // Get prenatal checkups for this doctor
+        $checkups = $prenatalModel->getCheckupsWithDetails($doctorId, null, 50);
+
+        return view('doctor/prenatal_new', [
+            'patients' => $patients,
+            'checkups' => $checkups,
+            'doctorId' => $doctorId,
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment
+        ]);
+    }
+
+    public function storePrenatal()
+    {
+        helper('url');
+        $req = $this->request;
+        $prenatalModel = model('App\\Models\\PrenatalCheckupModel');
+        $doctorId = session('user_id') ?: 1;
+        
+        $patientId = (int) $req->getPost('patient_id');
+        $checkupDate = trim((string) $req->getPost('checkup_date'));
+        $gestationalAge = trim((string) $req->getPost('gestational_age'));
+        $bloodPressure = trim((string) $req->getPost('blood_pressure'));
+        $weight = trim((string) $req->getPost('weight'));
+        $fetalHeartRate = trim((string) $req->getPost('fetal_heart_rate'));
+        $notes = trim((string) $req->getPost('notes'));
+
+        if (empty($patientId) || empty($checkupDate)) {
+            return redirect()->back()->with('error', 'Patient and checkup date are required.')->withInput();
+        }
+
+        // Generate checkup number
+        $checkupNumber = $prenatalModel->generateCheckupNumber();
+
+        // Prepare data
+        $data = [
+            'checkup_number' => $checkupNumber,
+            'patient_id' => $patientId,
+            'doctor_id' => $doctorId,
+            'checkup_date' => $checkupDate,
+            'gestational_age' => !empty($gestationalAge) ? (float)$gestationalAge : null,
+            'blood_pressure' => $bloodPressure ?: null,
+            'weight' => !empty($weight) ? (float)$weight : null,
+            'fetal_heart_rate' => !empty($fetalHeartRate) ? (int)$fetalHeartRate : null,
+            'notes' => $notes ?: null,
+        ];
+
+        // Save prenatal checkup
+        if ($prenatalModel->insert($data)) {
+            return redirect()->to(site_url('doctor/prenatal/new'))->with('success', 'Prenatal checkup recorded successfully.');
+        } else {
+            $errors = $prenatalModel->errors();
+            return redirect()->back()->with('error', 'Failed to record prenatal checkup: ' . implode(', ', $errors))->withInput();
+        }
+    }
+
+    public function neurologyImaging()
+    {
+        helper('url');
+        $labTestModel = model('App\\Models\\LabTestModel');
+        $patientModel = model('App\\Models\\PatientModel');
+        $userModel = model('App\\Models\\UserModel');
+        $doctorId = session('user_id') ?: 1;
+
+        // Get doctor info
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'Neurologist';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
+
+        // Get neurological imaging tests (CT, MRI, EEG, etc.)
+        $imagingTests = $labTestModel
+            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = lab_tests.patient_id')
+            ->where('lab_tests.doctor_id', $doctorId)
+            ->groupStart()
+                ->like('lab_tests.test_name', 'CT', 'both')
+                ->orLike('lab_tests.test_name', 'MRI', 'both')
+                ->orLike('lab_tests.test_name', 'EEG', 'both')
+                ->orLike('lab_tests.test_name', 'PET', 'both')
+                ->orLike('lab_tests.test_name', 'SPECT', 'both')
+            ->groupEnd()
+            ->orderBy('lab_tests.requested_date', 'DESC')
+            ->findAll(50);
+
+        // Get patients assigned to this doctor
+        $patients = $patientModel
+            ->where('attending_physician_id', $doctorId)
+            ->where('is_active', 1)
+            ->orderBy('first_name', 'ASC')
+            ->findAll();
+
+        return view('doctor/neurology_imaging', [
+            'imagingTests' => $imagingTests,
+            'patients' => $patients,
+            'doctorId' => $doctorId,
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment
+        ]);
+    }
+
     // Show complete schedule of consultations
     public function schedule()
     {
@@ -593,30 +1111,101 @@ class Doctor extends BaseController
     {
         helper('url');
         $patientModel = model('App\\Models\\PatientModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
+        $userModel = model('App\\Models\\UserModel');
         $doctorId = session('user_id') ?: 1;
         $today = date('Y-m-d');
+
+        // Get doctor info
+        $doctor = $userModel->find($doctorId);
+        $doctorSpecialization = $doctor['specialization'] ?? 'Doctor';
+        $doctorDepartment = null;
+        if (!empty($doctor['department_id'])) {
+            $departmentModel = model('App\Models\DepartmentModel');
+            $doctorDepartment = $departmentModel->find($doctor['department_id']);
+        }
         
-        $patients = $patientModel
+        // Get patients assigned to this doctor through:
+        // 1. attending_physician_id (in-patients)
+        // 2. appointments (out-patients with appointments)
+        $db = \Config\Database::connect();
+        
+        // Get patients where this doctor is the attending physician
+        $assignedPatients = $patientModel
+            ->where('attending_physician_id', $doctorId)
             ->where('is_active', 1)
             ->orderBy('last_name', 'ASC')
             ->findAll(100);
-
-        // Check consultation status for each patient
+        
+        // Get patient IDs from appointments with this doctor
+        $appointmentPatientIds = $appointmentModel
+            ->where('doctor_id', $doctorId)
+            ->select('patient_id')
+            ->distinct()
+            ->findAll();
+        
+        $appointmentPatientIdArray = array_column($appointmentPatientIds, 'patient_id');
+        
+        // Get patients from appointments (if not already in assigned patients)
+        $appointmentPatients = [];
+        if (!empty($appointmentPatientIdArray)) {
+            $appointmentPatients = $patientModel
+                ->whereIn('id', $appointmentPatientIdArray)
+                ->where('is_active', 1)
+                ->orderBy('last_name', 'ASC')
+                ->findAll(100);
+        }
+        
+        // Merge and deduplicate patients
+        $allPatientIds = [];
         $patientsWithStatus = [];
-        foreach ($patients as $patient) {
-            // Check if patient has a consultation today
-            $hasConsultationToday = $medicalRecordModel
-                ->where('patient_id', $patient['id'])
-                ->where('doctor_id', $doctorId)
-                ->where('DATE(visit_date)', $today)
-                ->countAllResults() > 0;
-            
-            $patient['consultation_done'] = $hasConsultationToday;
-            $patientsWithStatus[] = $patient;
+        
+        // Add assigned patients (attending physician)
+        foreach ($assignedPatients as $patient) {
+            if (!in_array($patient['id'], $allPatientIds)) {
+                $allPatientIds[] = $patient['id'];
+                $patient['assignment_type'] = 'attending_physician';
+                $patient['assignment_label'] = 'In-Patient (Attending Physician)';
+                
+                // Check if patient has consultation today
+                $hasConsultationToday = $medicalRecordModel
+                    ->where('patient_id', $patient['id'])
+                    ->where('doctor_id', $doctorId)
+                    ->where('DATE(visit_date)', $today)
+                    ->countAllResults() > 0;
+                $patient['consultation_done'] = $hasConsultationToday;
+                
+                $patientsWithStatus[] = $patient;
+            }
+        }
+        
+        // Add appointment patients (if not already added)
+        foreach ($appointmentPatients as $patient) {
+            if (!in_array($patient['id'], $allPatientIds)) {
+                $allPatientIds[] = $patient['id'];
+                $patient['assignment_type'] = 'appointment';
+                $patient['assignment_label'] = 'Out-Patient (Appointment)';
+                
+                // Check if patient has consultation today
+                $hasConsultationToday = $medicalRecordModel
+                    ->where('patient_id', $patient['id'])
+                    ->where('doctor_id', $doctorId)
+                    ->where('DATE(visit_date)', $today)
+                    ->countAllResults() > 0;
+                $patient['consultation_done'] = $hasConsultationToday;
+                
+                $patientsWithStatus[] = $patient;
+            }
         }
 
-        return view('doctor/patients', ['patients' => $patientsWithStatus]);
+        return view('doctor/patients', [
+            'patients' => $patientsWithStatus,
+            'totalAssigned' => count($assignedPatients),
+            'totalAppointments' => count($appointmentPatients),
+            'doctorSpecialization' => $doctorSpecialization,
+            'doctorDepartment' => $doctorDepartment
+        ]);
     }
 
     public function viewPatient($id)
@@ -693,12 +1282,28 @@ class Doctor extends BaseController
                 ->get()
                 ->getResultArray();
         } elseif ($db->tableExists('medicines')) {
-            $medicines = $db->table('medicines')
-                ->where('stock >', 0)
-                ->where('is_active', 1)
-                ->orderBy('name', 'ASC')
-                ->get()
-                ->getResultArray();
+            // Medicines table doesn't have 'stock' column - stock is managed in inventory table
+            // Join with inventory to get stock quantity
+            if ($db->tableExists('inventory')) {
+                $branchId = 1; // Default branch, can be made dynamic
+                $medicines = $db->table('medicines')
+                    ->select('medicines.*, COALESCE(SUM(inventory.quantity_in_stock), 0) as quantity, 
+                             COALESCE(MIN(inventory.minimum_stock_level), 0) as minimum_stock_level')
+                    ->join('inventory', 'inventory.medicine_id = medicines.id AND inventory.branch_id = ' . (int)$branchId, 'left')
+                    ->where('medicines.is_active', 1)
+                    ->groupBy('medicines.id')
+                    ->orderBy('medicines.name', 'ASC')
+                    ->get()
+                    ->getResultArray();
+            } else {
+                // If no inventory table, just get active medicines with 0 stock
+                $medicines = $db->table('medicines')
+                    ->select('medicines.*, 0 as quantity')
+                    ->where('is_active', 1)
+                    ->orderBy('name', 'ASC')
+                    ->get()
+                    ->getResultArray();
+            }
         }
         
         // Get all active nurses (for medication orders)
@@ -718,6 +1323,26 @@ class Doctor extends BaseController
             if ($db->tableExists('lab_test_catalog')) {
                 $labTestCatalogModel = model('App\\Models\\LabTestCatalogModel');
                 $labTests = $labTestCatalogModel->getActiveTestsGroupedByCategory();
+                
+                // Fallback: If grouped method returns empty, try getting all active tests
+                if (empty($labTests)) {
+                    $allTests = $labTestCatalogModel->getActiveTests();
+                    if (!empty($allTests)) {
+                        // Manually group them
+                        foreach ($allTests as $test) {
+                            $category = $test['specimen_category'] ?? 'with_specimen';
+                            $type = $test['test_type'] ?? 'Other';
+                            
+                            if (!isset($labTests[$category])) {
+                                $labTests[$category] = [];
+                            }
+                            if (!isset($labTests[$category][$type])) {
+                                $labTests[$category][$type] = [];
+                            }
+                            $labTests[$category][$type][] = $test;
+                        }
+                    }
+                }
             } elseif ($db->tableExists('lab_tests')) {
                 $labTestModel = model('App\\Models\\LabTestModel');
                 $distinctTests = $db->table('lab_tests')

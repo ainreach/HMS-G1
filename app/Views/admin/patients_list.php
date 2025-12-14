@@ -303,13 +303,14 @@
                     <i class="fa-solid fa-pencil"></i>
                   </a>
                   <?php if ($patient['status'] === 'admitted'): ?>
-                    <a href="<?= site_url('doctor/discharge-patients') ?>" 
+                    <button type="button"
+                       onclick="showDoctorCardModal(<?= $patient['id'] ?>, '<?= esc(addslashes(trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? '')))) ?>', this)"
                        class="btn btn-sm" 
-                       style="padding:6px 10px;font-size:0.75rem;text-decoration:none;border-radius:4px;background:#16a34a;color:white"
-                       title="Discharge Patient"
-                       aria-label="Discharge patient <?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?>">
-                      <i class="fa-solid fa-sign-out-alt"></i>
-                    </a>
+                       style="padding:6px 10px;font-size:0.75rem;border:none;border-radius:4px;background:#16a34a;color:white;cursor:pointer"
+                       title="Send to Doctor"
+                       aria-label="Send patient <?= esc($patient['first_name'] . ' ' . $patient['last_name']) ?> to doctor">
+                      <i class="fa-solid fa-user-doctor"></i>
+                    </button>
                   <?php endif; ?>
                 </div>
               </td>
@@ -584,5 +585,131 @@
       e.target.click();
     }
   });
+
+  // Floating Doctor Card Modal
+  function showDoctorCardModal(patientId, patientName, buttonElement) {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('doctorCardModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    const rect = buttonElement.getBoundingClientRect();
+    const modal = document.createElement('div');
+    modal.id = 'doctorCardModal';
+    modal.style.cssText = `
+      position: fixed;
+      top: ${rect.bottom + 10}px;
+      left: ${rect.right - 280}px;
+      width: 280px;
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+      z-index: 1000;
+      animation: slideUp 0.3s ease-out;
+      border: 2px solid rgba(255,255,255,0.2);
+    `;
+    
+    modal.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i class="fa-solid fa-user-doctor" style="font-size: 24px;"></i>
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 700; font-size: 0.875rem; margin-bottom: 4px;">Send to Doctor</div>
+          <div style="font-size: 0.75rem; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${patientName}</div>
+        </div>
+        <button onclick="closeDoctorCardModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+          <i class="fa-solid fa-times" style="font-size: 12px;"></i>
+        </button>
+      </div>
+      <div>
+        <a href="<?= site_url('doctor/patients/consultation/' . '${patientId}') ?>" 
+           style="display: block; width: 100%; padding: 12px; background: white; color: #16a34a; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+           onmouseover="this.style.background='#f0fdf4'; this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'"
+           onmouseout="this.style.background='white'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+          <i class="fa-solid fa-stethoscope" style="margin-right: 6px;"></i>
+          Start Consultation
+        </a>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Position adjustment if modal goes off screen
+    setTimeout(() => {
+      const modalRect = modal.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // Adjust horizontal position
+      if (modalRect.right > windowWidth) {
+        modal.style.left = (rect.left - 280) + 'px';
+      }
+      if (modalRect.left < 0) {
+        modal.style.left = '10px';
+      }
+      
+      // Adjust vertical position
+      if (modalRect.bottom > windowHeight) {
+        modal.style.top = (rect.top - modalRect.height - 10) + 'px';
+      }
+      if (modalRect.top < 0) {
+        modal.style.top = '10px';
+      }
+    }, 0);
+    
+    // Close modal when clicking outside
+    setTimeout(() => {
+      document.addEventListener('click', function closeOnOutsideClick(e) {
+        if (!modal.contains(e.target) && e.target !== buttonElement) {
+          closeDoctorCardModal();
+          document.removeEventListener('click', closeOnOutsideClick);
+        }
+      });
+    }, 100);
+  }
+  
+  function closeDoctorCardModal() {
+    const modal = document.getElementById('doctorCardModal');
+    if (modal) {
+      modal.style.animation = 'slideDown 0.2s ease-out';
+      setTimeout(() => {
+        if (modal && modal.parentNode) {
+          modal.remove();
+        }
+      }, 200);
+    }
+  }
+  
+  // Add CSS animations
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+    }
+  `;
+  document.head.appendChild(style);
 </script>
 <?= $this->endSection() ?>

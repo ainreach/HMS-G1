@@ -1,11 +1,17 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+    <?php if (session('success')): ?>
+      <div class="alert alert-success" style="margin-bottom: 1rem;"><?= esc(session('success')) ?></div>
+    <?php endif; ?>
+    <?php if (session('error')): ?>
+      <div class="alert alert-error" style="margin-bottom: 1rem;"><?= esc(session('error')) ?></div>
+    <?php endif; ?>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h2 style="margin:0">Users</h2>
       <div style="display:flex;gap:8px">
         <a class="btn" href="<?= site_url('admin/users/new') ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Create User</a>
-        <a class="btn" href="<?= site_url('admin/roles/assign') ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none">Assign Role</a>
+        <a class="btn" href="<?= site_url('admin/fix-doctor-credentials') ?>" style="padding:8px 12px;border:1px solid #10b981;border-radius:8px;text-decoration:none;background:#10b981;color:white" onclick="return confirm('This will set usernames and passwords for all doctors. Continue?')">🔧 Fix Doctor Credentials</a>
       </div>
     </div>
 
@@ -15,8 +21,10 @@
           <thead>
             <tr>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Employee ID</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Name</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Username</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Role</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Department</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Created</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Actions</th>
             </tr>
@@ -25,8 +33,31 @@
             <?php if (!empty($users)): foreach ($users as $u): ?>
               <tr>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($u['employee_id'] ?? '') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($u['username'] ?? '') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?= esc(trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? ''))) ?: esc($u['username'] ?? '') ?>
+                  <?php if (!empty($u['specialization'])): ?>
+                    <br><small style="color:#6b7280"><?= esc($u['specialization']) ?></small>
+                  <?php endif; ?>
+                </td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?php if (!empty($u['username'])): ?>
+                    <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:0.9em;"><?= esc($u['username']) ?></code>
+                  <?php else: ?>
+                    <span style="color:#ef4444;font-size:0.85em;">⚠️ Not set</span>
+                  <?php endif; ?>
+                </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.85em;"><?= esc($u['role'] ?? '') ?></span></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?php if (!empty($u['department_name'])): ?>
+                    <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#d1fae5;color:#065f46;font-size:.85em;">
+                      <?= esc($u['department_name']) ?>
+                    </span>
+                  <?php elseif ($u['role'] === 'doctor'): ?>
+                    <span style="color:#9ca3af;font-size:.85em;">Not assigned</span>
+                  <?php else: ?>
+                    <span style="color:#9ca3af;font-size:.85em;">—</span>
+                  <?php endif; ?>
+                </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($u['created_at'] ?? '') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <?php if ($u['id'] == session('user_id')): ?>
@@ -37,7 +68,7 @@
                 </td>
               </tr>
             <?php endforeach; else: ?>
-              <tr><td colspan="5" style="padding:12px;text-align:center;color:#6b7280">No users found.</td></tr>
+              <tr><td colspan="7" style="padding:12px;text-align:center;color:#6b7280">No users found.</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -55,7 +86,6 @@
       </div>
     </div>
 
-</main>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>

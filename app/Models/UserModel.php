@@ -14,7 +14,7 @@ class UserModel extends Model
 
     protected $allowedFields    = [
         'employee_id', 'username', 'email', 'password', 'first_name', 'last_name', 'phone',
-        'role', 'branch_id', 'specialization', 'license_number', 'is_active', 'profile_image'
+        'role', 'branch_id', 'specialization', 'department_id', 'license_number', 'is_active', 'profile_image'
     ];
 
     protected $useTimestamps = true;
