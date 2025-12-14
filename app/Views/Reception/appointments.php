@@ -79,10 +79,7 @@
                     <?= csrf_field() ?>
                     <button type="submit" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb">Check-in</button>
                   </form>
-                  <form action="<?= site_url('reception/appointments/' . ($a['id'] ?? 0) . '/cancel') ?>" method="post" style="display:inline" onsubmit="return confirm('Cancel this appointment?')">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff0f0;color:#991b1b">Cancel</button>
-                  </form>
+                  <button type="button" class="btn cancel-btn" data-id="<?= $a['id'] ?? 0 ?>" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff0f0;color:#991b1b">Cancel</button>
                 </td>
               </tr>
             <?php endforeach; else: ?>
@@ -95,6 +92,27 @@
       </div>
     </section>
   </main></div>
+
+<!-- Modal for Cancellation Reason -->
+<div id="cancelAppointmentModal" class="modal-overlay" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.55);z-index:50;">
+  <div class="modal-card" style="background:white;border-radius:var(--radius);width:90%;max-width:500px;">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);">
+      <h3 style="margin:0;font-size:1.05rem;font-weight:600;">Cancel Appointment</h3>
+      <button id="closeCancelModal" type="button" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <form id="cancelAppointmentForm" method="post" action="">
+        <?= csrf_field() ?>
+        <label for="cancellation_reason">Reason for cancellation:</label>
+        <textarea name="cancellation_reason" id="cancellation_reason" rows="4" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;margin-top:8px;"></textarea>
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end;">
+          <button type="submit" class="btn btn-danger" style="background:#ef4444;color:white;">Confirm Cancellation</button>
+          <button type="button" class="btn" onclick="document.getElementById('cancelAppointmentModal').style.display='none'">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- Floating modal for New Appointment (stays on /reception/appointments) -->
 <div id="newAppointmentModal" class="modal-overlay" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.55);z-index:50;">
@@ -283,5 +301,36 @@
 
   setupAutocomplete('patientSearch', 'patientIdField', 'patientSuggestions', patientsData);
   setupAutocomplete('doctorSearch', 'doctorIdField', 'doctorSuggestions', doctorsData);
+
+  // --- Cancel Appointment Modal ---
+  const cancelModal = document.getElementById('cancelAppointmentModal');
+  const closeCancelModal = document.getElementById('closeCancelModal');
+  const cancelForm = document.getElementById('cancelAppointmentForm');
+  const appointmentIdField = document.getElementById('appointmentIdField');
+
+  document.querySelectorAll('.cancel-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const appointmentId = this.dataset.id;
+      if (appointmentId && cancelForm) {
+        let action = '<?= site_url('reception/appointments') ?>/' + appointmentId + '/cancel';
+        cancelForm.action = action;
+        if (cancelModal) cancelModal.style.display = 'flex';
+      }
+    });
+  });
+
+  if (closeCancelModal) {
+    closeCancelModal.addEventListener('click', () => {
+      if (cancelModal) cancelModal.style.display = 'none';
+    });
+  }
+
+  if (cancelModal) {
+    cancelModal.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.style.display = 'none';
+      }
+    });
+  }
 </script>
 </body></html>

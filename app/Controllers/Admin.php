@@ -710,7 +710,7 @@ class Admin extends BaseController
         $patients = $patientModel
                     ->select('id, patient_id, first_name, last_name, phone, email, created_at')
                     ->orderBy('created_at', 'DESC')
-                    ->findAll($perPage, $offset
+                    ->findAll($perPage, $offset);
         $data = [
             'patients' => $patients,
             'page' => $page,

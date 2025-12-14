@@ -789,16 +789,21 @@ class Reception extends BaseController
 
     public function cancelAppointment($id)
     {
-        helper('url');
+        helper(['url', 'form']);
         $apptModel = model('App\\Models\\AppointmentModel');
-        
-        $appointment = $apptModel->find($id);
-        if (!$appointment) {
+        $appt = $apptModel->find($id);
+        if (!$appt) {
             return redirect()->to(site_url('reception/appointments'))->with('error', 'Appointment not found.');
+        }
+
+        $reason = $this->request->getPost('cancellation_reason');
+        if (empty(trim($reason))) {
+            return redirect()->back()->with('error', 'A reason for cancellation is required.');
         }
 
         $apptModel->update($id, [
             'status' => 'cancelled',
+            'cancellation_reason' => trim($reason),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
