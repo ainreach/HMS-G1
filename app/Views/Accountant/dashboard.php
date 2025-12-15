@@ -17,13 +17,8 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>" class="active" aria-current="page"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>" data-feature="billing"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
-  <a href="<?= site_url('accountant/pending-charges') ?>" data-feature="pending-charges"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
-  <a href="<?= site_url('accountant/insurance') ?>" data-feature="insurance"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>" data-feature="reports"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-</nav></aside>
+<div class="layout">
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'overview']) ?>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Invoices Today</span><i class="fa-solid fa-receipt" aria-hidden="true"></i></div><div class="kpi-value" aria-live="polite"><?= esc($invoicesToday ?? 0) ?></div></article>

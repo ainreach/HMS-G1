@@ -21,12 +21,8 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>">Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>">Billing & Payments</a>
-  <a href="<?= site_url('accountant/insurance') ?>">Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>">Financial Reports</a>
-</nav></aside>
+<div class="layout">
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'payments']) ?>
   <main class="content">
     <section class="panel">
       <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center">

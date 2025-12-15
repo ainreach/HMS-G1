@@ -1161,14 +1161,28 @@ class Accountant extends BaseController
         }
         
         // Get pending lab tests that need approval (not yet approved)
-        $pendingTests = $labTestModel
-            ->select('lab_tests.*, patients.first_name, patients.last_name, patients.patient_id as patient_code, users.username as doctor_name')
-            ->join('patients', 'patients.id = lab_tests.patient_id', 'left')
-            ->join('users', 'users.id = lab_tests.doctor_id', 'left')
-            ->where('lab_tests.accountant_approved', 0)
-            ->where('lab_tests.status !=', 'cancelled')
-            ->orderBy('lab_tests.requested_date', 'DESC')
-            ->findAll(100);
+        // Prioritize imaging tests (CT Scan, MRI, EEG, etc.) and urgent/STAT priority
+        $db = \Config\Database::connect();
+        $pendingTests = $db->query("
+            SELECT 
+                lab_tests.*,
+                patients.first_name,
+                patients.last_name,
+                patients.patient_id as patient_code,
+                users.username as doctor_name
+            FROM lab_tests
+            LEFT JOIN patients ON patients.id = lab_tests.patient_id
+            LEFT JOIN users ON users.id = lab_tests.doctor_id
+            WHERE lab_tests.accountant_approved = 0
+            AND lab_tests.status != 'cancelled'
+            ORDER BY 
+                CASE WHEN lab_tests.test_category = 'imaging' THEN 0 ELSE 1 END,
+                CASE WHEN lab_tests.priority = 'stat' THEN 0 
+                     WHEN lab_tests.priority = 'urgent' THEN 1 
+                     ELSE 2 END,
+                lab_tests.requested_date DESC
+            LIMIT 100
+        ")->getResultArray();
         
         // Check payment status for each test
         $testsWithPaymentStatus = [];
@@ -1680,19 +1694,43 @@ class Accountant extends BaseController
         
         if ($this->request->getMethod() === 'post') {
             $billingModel = new BillingModel();
+            $patientModel = new PatientModel();
             
+            $insuranceProvider = $this->request->getPost('insurance_provider');
             $insuranceClaimNumber = $this->request->getPost('insurance_claim_number');
+            $insurancePercentage = (float)$this->request->getPost('insurance_percentage');
             $insuranceAmount = (float)$this->request->getPost('insurance_amount');
             $notes = $this->request->getPost('notes');
             
             // Get or create active bill
             $bill = $billingModel->getOrCreateActiveBill($patientId, 1, session('user_id'));
             
-            // Update insurance information
-            $billingModel->update($bill['id'], [
+            // Calculate insurance amount from percentage if provided
+            if ($insurancePercentage > 0 && $insuranceAmount == 0) {
+                $insuranceAmount = ($bill['total_amount'] * $insurancePercentage) / 100;
+            }
+            
+            // Update insurance information in billing
+            $updateData = [
                 'insurance_claim_number' => $insuranceClaimNumber ?? null,
                 'notes' => $notes ?? null,
-            ]);
+            ];
+            
+            // Store insurance provider in billing if field exists
+            $db = \Config\Database::connect();
+            $billingFields = $db->getFieldNames('billing');
+            if (in_array('insurance_provider', $billingFields)) {
+                $updateData['insurance_provider'] = $insuranceProvider ?? null;
+            }
+            
+            $billingModel->update($bill['id'], $updateData);
+            
+            // Update patient's insurance provider if provided
+            if ($insuranceProvider) {
+                $patientModel->update($patientId, [
+                    'insurance_provider' => $insuranceProvider,
+                ]);
+            }
             
             // If insurance amount is provided, add as discount
             if ($insuranceAmount > 0) {
@@ -1703,7 +1741,7 @@ class Accountant extends BaseController
                 $billingModel->recalculateBill($bill['id']);
             }
             
-            AuditLogger::log('insurance_applied', 'patient_id=' . $patientId . ' claim=' . ($insuranceClaimNumber ?? 'n/a'));
+            AuditLogger::log('insurance_applied', 'patient_id=' . $patientId . ' provider=' . ($insuranceProvider ?? 'n/a') . ' claim=' . ($insuranceClaimNumber ?? 'n/a'));
             return redirect()->to(site_url('accountant/consolidated-bill/' . $patientId))
                 ->with('success', 'Insurance applied successfully.');
         }

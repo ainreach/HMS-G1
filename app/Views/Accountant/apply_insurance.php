@@ -69,7 +69,22 @@
         </div>
         <?php endif; ?>
 
-        <form method="post" action="<?= site_url('accountant/apply-insurance/' . $patient['id']) ?>" style="display:grid;gap:16px">
+        <form method="post" action="<?= site_url('accountant/apply-insurance/' . $patient['id']) ?>" id="insuranceForm" style="display:grid;gap:16px">
+          <div>
+            <label>Insurance Provider *
+              <select name="insurance_provider" id="insurance_provider" class="form-control" required onchange="setInsurancePercentage()">
+                <option value="">-- Select Insurance Provider --</option>
+                <option value="PhilHealth" data-percentage="30" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'PhilHealth' ? 'selected' : '' ?>>PhilHealth (30%)</option>
+                <option value="Maxicare" data-percentage="50" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Maxicare' ? 'selected' : '' ?>>Maxicare (50%)</option>
+                <option value="Medicard" data-percentage="70" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Medicard' ? 'selected' : '' ?>>Medicard (70%)</option>
+                <option value="Intellicare" data-percentage="60" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Intellicare' ? 'selected' : '' ?>>Intellicare (60%)</option>
+                <option value="Pacific Cross" data-percentage="80" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Pacific Cross' ? 'selected' : '' ?>>Pacific Cross (80%)</option>
+                <option value="Generali" data-percentage="65" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Generali' ? 'selected' : '' ?>>Generali (65%)</option>
+                <option value="Other" data-percentage="0" <?= ($bill['insurance_provider'] ?? $patient['insurance_provider'] ?? '') === 'Other' ? 'selected' : '' ?>>Other / Not Listed</option>
+              </select>
+              <small style="color:#6b7280;font-size:0.875rem">Select insurance provider - percentage will be auto-filled</small>
+            </label>
+          </div>
           <div>
             <label>Insurance Claim Number
               <input type="text" name="insurance_claim_number" class="form-control" 
@@ -77,13 +92,39 @@
                      placeholder="Enter insurance claim number">
             </label>
           </div>
-          <div>
-            <label>Insurance Coverage Amount ($)
-              <input type="number" name="insurance_amount" class="form-control" step="0.01" min="0" 
-                     placeholder="0.00" 
-                     title="This amount will be applied as a discount to the bill">
-              <small style="color:#6b7280;font-size:0.875rem">Enter the amount covered by insurance. This will be deducted from the total bill.</small>
-            </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <label>Coverage Percentage (%)
+                <input type="number" name="insurance_percentage" id="insurance_percentage" class="form-control" 
+                       step="0.01" min="0" max="100" 
+                       placeholder="0.00" 
+                       oninput="calculateInsuranceAmount()">
+                <small style="color:#6b7280;font-size:0.875rem">Auto-filled from provider selection (can be adjusted)</small>
+              </label>
+            </div>
+            <div>
+              <label>Coverage Amount ($)
+                <input type="number" name="insurance_amount" id="insurance_amount" class="form-control" 
+                       step="0.01" min="0" 
+                       placeholder="0.00" 
+                       oninput="calculateInsurancePercentage()">
+                <small style="color:#6b7280;font-size:0.875rem">Or enter fixed amount covered</small>
+              </label>
+            </div>
+          </div>
+          <div style="background:#e0e7ff;padding:12px;border-radius:6px;border-left:4px solid #6366f1">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="color:#4f46e5;font-weight:600">Total Bill:</span>
+              <strong style="color:#4f46e5" id="total_bill_display">$<?= number_format((float)($bill['total_amount'] ?? 0), 2) ?></strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="color:#6366f1">Insurance Coverage:</span>
+              <strong style="color:#6366f1" id="coverage_display">$0.00</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #c7d2fe">
+              <span style="color:#1e40af;font-weight:600">New Balance:</span>
+              <strong style="color:#1e40af;font-size:1.1rem" id="new_balance_display">$<?= number_format((float)($bill['balance'] ?? $bill['total_amount'] ?? 0), 2) ?></strong>
+            </div>
           </div>
           <div>
             <label>Notes
@@ -103,6 +144,66 @@
     </section>
   </main>
 </div>
+<script>
+const totalBill = <?= (float)($bill['total_amount'] ?? 0) ?>;
+const currentBalance = <?= (float)($bill['balance'] ?? $bill['total_amount'] ?? 0) ?>;
+
+function calculateInsuranceAmount() {
+  const percentage = parseFloat(document.getElementById('insurance_percentage').value) || 0;
+  const amount = (totalBill * percentage) / 100;
+  document.getElementById('insurance_amount').value = amount.toFixed(2);
+  updateDisplay();
+}
+
+function calculateInsurancePercentage() {
+  const amount = parseFloat(document.getElementById('insurance_amount').value) || 0;
+  const percentage = totalBill > 0 ? (amount / totalBill) * 100 : 0;
+  document.getElementById('insurance_percentage').value = percentage.toFixed(2);
+  updateDisplay();
+}
+
+function setInsurancePercentage() {
+  const select = document.getElementById('insurance_provider');
+  const selectedOption = select.options[select.selectedIndex];
+  const percentage = selectedOption ? parseFloat(selectedOption.getAttribute('data-percentage') || 0) : 0;
+  
+  if (percentage > 0) {
+    document.getElementById('insurance_percentage').value = percentage;
+    calculateInsuranceAmount();
+  } else if (selectedOption && selectedOption.value === 'Other') {
+    // Clear percentage for "Other" so user can enter manually
+    document.getElementById('insurance_percentage').value = '';
+    document.getElementById('insurance_amount').value = '';
+    updateDisplay();
+  }
+}
+
+function updateDisplay() {
+  const coverageAmount = parseFloat(document.getElementById('insurance_amount').value) || 0;
+  const newBalance = Math.max(0, currentBalance - coverageAmount);
+  
+  document.getElementById('coverage_display').textContent = '$' + coverageAmount.toFixed(2);
+  document.getElementById('new_balance_display').textContent = '$' + newBalance.toFixed(2);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Pre-fill from patient's insurance if available
+  const patientInsurance = '<?= esc($patient['insurance_provider'] ?? '') ?>';
+  if (patientInsurance) {
+    const select = document.getElementById('insurance_provider');
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === patientInsurance) {
+        select.selectedIndex = i;
+        setInsurancePercentage(); // Auto-set percentage
+        break;
+      }
+    }
+  }
+  
+  updateDisplay();
+});
+</script>
 </body>
 </html>
 

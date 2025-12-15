@@ -20,12 +20,8 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
-  <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>" class="active" aria-current="page"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-</nav></aside>
+<div class="layout">
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'reports']) ?>
   <main class="content">
     <section class="kpi-grid" aria-label="Key indicators">
       <article class="kpi-card kpi-primary"><div class="kpi-head"><span>Revenue (30d)</span><i class="fa-solid fa-sack-dollar"></i></div><div class="kpi-value">$<?= number_format((float)($revenue30d ?? 0), 2) ?></div></article>

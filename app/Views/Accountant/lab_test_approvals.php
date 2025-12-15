@@ -52,14 +52,8 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
-  <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
-  <a href="<?= site_url('accountant/lab-test-approvals') ?>" class="active" aria-current="page"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
-  <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-</nav></aside>
+<div class="layout">
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'lab-test-approvals']) ?>
   <main class="content">
     <?php if (session()->getFlashdata('error')): ?>
       <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
@@ -97,7 +91,7 @@ ADD COLUMN `accountant_approved_at` DATETIME NULL AFTER `accountant_approved_by`
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Test #</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Patient</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Doctor</th>
-              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Test Name</th>
+              <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Test Name / Category</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Specimen</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Payment</th>
               <th style="text-align:left;padding:8px;border-bottom:1px solid #e5e7eb">Requested</th>
@@ -107,15 +101,36 @@ ADD COLUMN `accountant_approved_at` DATETIME NULL AFTER `accountant_approved_by`
           <tbody>
           <?php if (!empty($tests)) : ?>
             <?php foreach ($tests as $item): ?>
-              <?php $test = $item['test']; $hasPaid = $item['has_paid']; ?>
-              <tr>
+              <?php 
+                $test = $item['test']; 
+                $hasPaid = $item['has_paid'];
+                $testCategory = strtolower($test['test_category'] ?? '');
+                $isImaging = ($testCategory === 'imaging');
+                $rowStyle = $isImaging ? 'background:#f3e8ff;border-left:3px solid #7c3aed;' : '';
+              ?>
+              <tr style="<?= $rowStyle ?>">
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($test['test_number'] ?? 'N/A') ?></td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <strong><?= esc(($test['first_name'] ?? '') . ' ' . ($test['last_name'] ?? '')) ?></strong>
                   <br><small style="color:#6b7280"><?= esc($test['patient_code'] ?? '') ?></small>
                 </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($test['doctor_name'] ?? 'N/A') ?></td>
-                <td style="padding:8px;border-bottom:1px solid #f3f4f6"><?= esc($test['test_name'] ?? '') ?></td>
+                <td style="padding:8px;border-bottom:1px solid #f3f4f6">
+                  <?php 
+                    $testName = esc($test['test_name'] ?? '');
+                    $testCategory = strtolower($test['test_category'] ?? '');
+                    $isImaging = ($testCategory === 'imaging');
+                  ?>
+                  <?php if ($isImaging): ?>
+                    <span style="display:inline-flex;align-items:center;gap:4px">
+                      <i class="fa-solid fa-brain" style="color:#7c3aed;font-size:0.875rem"></i>
+                      <strong style="color:#7c3aed"><?= $testName ?></strong>
+                    </span>
+                    <br><small style="color:#7c3aed;font-size:0.75rem">Neurological Imaging</small>
+                  <?php else: ?>
+                    <?= $testName ?>
+                  <?php endif; ?>
+                </td>
                 <td style="padding:8px;border-bottom:1px solid #f3f4f6">
                   <?php if ($test['requires_specimen'] == 1): ?>
                     <span class="specimen-badge specimen-yes">With Specimen</span>

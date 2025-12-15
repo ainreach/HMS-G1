@@ -31,18 +31,7 @@
 </header>
 
 <div class="layout">
-  <aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation">
-    <nav class="side-nav">
-      <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-      <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing &amp; Payments</a>
-      <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
-      <a href="<?= site_url('accountant/lab-test-approvals') ?>"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
-      <a href="<?= site_url('accountant/patients/bills') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Patient Room Bills</a>
-      <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-      <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-      <a href="<?= site_url('accountant/medication-billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-pills" style="margin-right:8px"></i>Medication Billing</a>
-    </nav>
-  </aside>
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'billing']) ?>
 
   <main class="content" style="padding:16px">
     <?php if (session()->getFlashdata('error')): ?>

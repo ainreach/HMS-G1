@@ -29,17 +29,7 @@
 </header>
 
 <div class="layout">
-  <aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation">
-    <nav class="side-nav">
-      <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-      <a href="<?= site_url('accountant/billing') ?>"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
-      <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
-      <a href="<?= site_url('accountant/invoices') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>Invoices</a>
-      <a href="<?= site_url('accountant/payments') ?>"><i class="fa-solid fa-sack-dollar" style="margin-right:8px"></i>Payments</a>
-      <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-      <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-    </nav>
-  </aside>
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'invoices']) ?>
 
   <main class="content">
     <?php if (session()->getFlashdata('error')): ?>

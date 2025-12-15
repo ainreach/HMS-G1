@@ -20,16 +20,8 @@
     <a href="<?= site_url('logout') ?>" class="logout-btn" style="margin-left:12px;text-decoration:none;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px">Logout</a>
   </div>
 </div></header>
-<div class="layout"><aside class="simple-sidebar" role="navigation" aria-label="Accountant navigation"><nav class="side-nav">
-  <a href="<?= site_url('dashboard/accountant') ?>"><i class="fa-solid fa-chart-pie" style="margin-right:8px"></i>Overview</a>
-  <a href="<?= site_url('accountant/billing') ?>" class="active" aria-current="page"><i class="fa-solid fa-file-invoice-dollar" style="margin-right:8px"></i>Billing & Payments</a>
-  <a href="<?= site_url('accountant/consolidated-bills') ?>"><i class="fa-solid fa-file-invoice" style="margin-right:8px"></i>Consolidated Bills</a>
-  <a href="<?= site_url('accountant/pending-charges') ?>"><i class="fa-solid fa-dollar-sign" style="margin-right:8px"></i>Pending Charges</a>
-  <a href="<?= site_url('accountant/lab-test-approvals') ?>"><i class="fa-solid fa-vial" style="margin-right:8px"></i>Lab Test Approvals</a>
-  <a href="<?= site_url('accountant/patients/bills') ?>"><i class="fa-solid fa-bed" style="margin-right:8px"></i>Patient Room Bills</a>
-  <a href="<?= site_url('accountant/insurance') ?>"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i>Insurance</a>
-  <a href="<?= site_url('accountant/reports') ?>"><i class="fa-solid fa-chart-line" style="margin-right:8px"></i>Financial Reports</a>
-</nav></aside>
+<div class="layout">
+<?= $this->include('Accountant/sidebar', ['currentPage' => 'billing']) ?>
   <main class="content">
     <section class="panel">
       <div class="panel-head"><h2 style="margin:0;font-size:1.1rem">Quick Actions</h2></div>
