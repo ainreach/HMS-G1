@@ -282,20 +282,22 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
             <label class="form-label-custom">
               Patient <span class="text-required">*</span>
             </label>
-            <div class="search-input-wrapper">
-              <input type="text" 
-                     id="patientSearch" 
-                     class="form-control form-control-custom" 
-                     placeholder="Search by name or patient ID..." 
-                     autocomplete="off"
-                     value="<?= old('patient_search') ?>">
-              <input type="hidden" name="patient_id" id="patientIdField" value="<?= esc(old('patient_id') ?? '') ?>" required>
-              <div id="patientSuggestions" class="suggestions-dropdown"></div>
-            </div>
-            <div id="patientInfoCard" class="patient-info-card" style="display:none;">
-              <strong id="patientName"></strong><br>
-              <small id="patientDetails"></small>
-            </div>
+            <select name="patient_id" id="patientSelect" class="form-select form-select-custom" required>
+              <option value="">-- Select Patient --</option>
+              <?php if (!empty($patients)): ?>
+                <?php foreach ($patients as $patient): ?>
+                  <?php
+                    $patientName = trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''));
+                    $patientId = $patient['id'] ?? '';
+                    $patientCode = $patient['patient_id'] ?? 'N/A';
+                    $selected = (old('patient_id') == $patientId) ? 'selected' : '';
+                  ?>
+                  <option value="<?= esc($patientId) ?>" <?= $selected ?>>
+                    <?= esc($patientName) ?> (ID: <?= esc($patientCode) ?>)
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
           </div>
           <div class="col-md-6">
             <label class="form-label-custom">
@@ -555,16 +557,7 @@ $doctors = $userModel->where('role', 'doctor')->where('is_active', 1)->orderBy('
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const patientsData = <?= json_encode(array_map(function($p){
-    return [
-      'id' => (int)($p['id'] ?? 0),
-      'patient_id' => $p['patient_id'] ?? '',
-      'name' => trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')),
-      'phone' => $p['phone'] ?? '',
-      'label' => trim(($p['patient_id'] ?? '') . ' • ' . ($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? ''))
-    ];
-  }, $patients ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-
+// Patient and Doctor dropdowns are now used instead of autocomplete - no JavaScript needed for selection
 const doctorsData = <?= json_encode(array_map(function($d){
     return [
       'id' => (int)($d['id'] ?? 0),
@@ -576,89 +569,6 @@ const doctorsData = <?= json_encode(array_map(function($d){
       'label' => trim('Dr. ' . ($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '') . ' (' . ($d['username'] ?? 'doctor') . ')')
     ];
   }, $doctors ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-
-function setupAutocomplete(inputId, hiddenId, suggestionsId, infoCardId, items, displayFields) {
-  const input = document.getElementById(inputId);
-  const hidden = document.getElementById(hiddenId);
-  const suggestions = document.getElementById(suggestionsId);
-  const infoCard = document.getElementById(infoCardId);
-  
-  if (!input || !hidden || !suggestions) return;
-  
-  function hideSuggestions() {
-    suggestions.style.display = 'none';
-  }
-  
-  function showSuggestions(term) {
-    const t = term.trim().toLowerCase();
-    suggestions.innerHTML = '';
-    if (!t) { 
-      hideSuggestions();
-      return;
-    }
-    
-    const matches = items.filter(it => it.label.toLowerCase().includes(t));
-    if (!matches.length) { 
-      hideSuggestions();
-      return;
-    }
-    
-    matches.slice(0, 10).forEach(it => {
-      const item = document.createElement('div');
-      item.className = 'suggestion-item';
-      item.textContent = it.label;
-      item.addEventListener('click', () => {
-        input.value = it.label;
-        hidden.value = it.id;
-        hideSuggestions();
-        
-        // Show info card
-        if (infoCard && displayFields) {
-          const selectedItem = items.find(i => i.id == it.id);
-          if (selectedItem) {
-            let infoHTML = '<strong>' + (selectedItem[displayFields.name] || '') + '</strong><br>';
-            if (displayFields.details) {
-              infoHTML += '<small>' + selectedItem[displayFields.details] + '</small>';
-            }
-            infoCard.innerHTML = infoHTML;
-            infoCard.style.display = 'block';
-          }
-        }
-      });
-      suggestions.appendChild(item);
-    });
-    
-    suggestions.style.display = 'block';
-  }
-  
-  input.addEventListener('input', function() {
-    if (this.value.trim() === '') {
-      hidden.value = '';
-      hideSuggestions();
-      if (infoCard) infoCard.style.display = 'none';
-    } else {
-      showSuggestions(this.value);
-    }
-  });
-  
-  input.addEventListener('focus', function() {
-    if (this.value.trim() !== '') {
-      showSuggestions(this.value);
-    }
-  });
-  
-  document.addEventListener('click', function(e) {
-    if (!suggestions.contains(e.target) && e.target !== input) {
-      hideSuggestions();
-    }
-  });
-}
-
-// Setup patient autocomplete
-setupAutocomplete('patientSearch', 'patientIdField', 'patientSuggestions', 'patientInfoCard', patientsData, {
-  name: 'name',
-  details: 'phone'
-});
 
 // Setup doctor dropdown info display
 const doctorSelect = document.getElementById('doctorIdField');

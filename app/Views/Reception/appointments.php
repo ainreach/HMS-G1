@@ -128,31 +128,65 @@
       <form id="newAppointmentForm" method="post" action="<?= site_url('reception/appointments') ?>" class="form">
         <?= csrf_field() ?>
         <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <label>Patient
-            <input type="text" id="patientSearch" placeholder="Search patient..." autocomplete="off" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;">
-            <input type="hidden" name="patient_id" id="patientIdField" value="<?= esc(old('patient_id') ?? '') ?>">
-            <div id="patientSuggestions" style="position:relative;z-index:60;">
-              <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
-            </div>
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Patient <span style="color:#dc2626">*</span>
+            <select name="patient_id" id="patientSelect" required style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
+              <option value="">Select patient...</option>
+              <?php if (!empty($patients)): ?>
+                <?php foreach ($patients as $patient): ?>
+                  <?php
+                    $patientName = trim(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? ''));
+                    $patientId = $patient['id'] ?? '';
+                    $patientCode = $patient['patient_id'] ?? 'N/A';
+                    $selected = (old('patient_id') == $patientId) ? 'selected' : '';
+                  ?>
+                  <option value="<?= esc($patientId) ?>" <?= $selected ?>>
+                    <?= esc($patientName) ?> (ID: <?= esc($patientCode) ?>)
+                  </option>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </select>
           </label>
-          <label>Doctor
-            <input type="text" id="doctorSearch" placeholder="Search doctor..." autocomplete="off" style="width:100%;padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;">
-            <input type="hidden" name="doctor_id" id="doctorIdField" value="<?= esc(old('doctor_id') ?? '') ?>">
-            <div id="doctorSuggestions" style="position:relative;z-index:60;">
-              <div class="suggestions-inner" style="position:absolute;top:4px;left:0;right:0;background:white;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 10px 25px rgba(15,23,42,0.15);max-height:220px;overflow-y:auto;display:none;"></div>
-            </div>
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Doctor <span style="color:#dc2626">*</span>
+            <select name="doctor_id" id="doctorSelect" required style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
+              <option value="">Select doctor...</option>
+              <?php if (!empty($doctors)): ?>
+                <?php 
+                  $currentDept = '';
+                  foreach ($doctors as $doctor): 
+                    $doctorName = trim(($doctor['first_name'] ?? '') . ' ' . ($doctor['last_name'] ?? ''));
+                    $doctorId = $doctor['id'] ?? '';
+                    $specialization = $doctor['specialization'] ?? 'General';
+                    $deptName = $doctor['department_name'] ?? 'General';
+                    $selected = (old('doctor_id') == $doctorId) ? 'selected' : '';
+                    
+                    // Group by department
+                    if ($currentDept !== $deptName) {
+                      if ($currentDept !== '') {
+                        echo '</optgroup>';
+                      }
+                      echo '<optgroup label="' . esc($deptName) . '">';
+                      $currentDept = $deptName;
+                    }
+                ?>
+                  <option value="<?= esc($doctorId) ?>" <?= $selected ?>>
+                    Dr. <?= esc($doctorName) ?> - <?= esc($specialization) ?>
+                  </option>
+                <?php endforeach; ?>
+                <?php if ($currentDept !== '') echo '</optgroup>'; ?>
+              <?php endif; ?>
+            </select>
           </label>
-          <label>Date
-            <input type="date" name="appointment_date" value="<?= old('appointment_date') ?>" required>
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Date <span style="color:#dc2626">*</span>
+            <input type="date" name="appointment_date" value="<?= old('appointment_date') ?: date('Y-m-d') ?>" required style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
           </label>
-          <label>Time
-            <input type="time" name="appointment_time" value="<?= old('appointment_time') ?>" required>
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Time <span style="color:#dc2626">*</span>
+            <input type="time" name="appointment_time" value="<?= old('appointment_time') ?>" required style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
           </label>
-          <label>Duration (minutes)
-            <input type="number" name="duration" value="<?= old('duration') ?: 30 ?>" min="5" max="240">
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Duration (minutes)
+            <input type="number" name="duration" value="<?= old('duration') ?: 30 ?>" min="5" max="240" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
           </label>
-          <label>Type
-            <select name="type">
+          <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Type
+            <select name="type" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.95rem">
               <option value="consultation" <?= old('type') === 'consultation' ? 'selected' : '' ?>>Consultation</option>
               <option value="follow_up" <?= old('type') === 'follow_up' ? 'selected' : '' ?>>Follow-up</option>
               <option value="emergency" <?= old('type') === 'emergency' ? 'selected' : '' ?>>Emergency</option>
@@ -161,11 +195,11 @@
             </select>
           </label>
         </div>
-        <label>Reason
-          <textarea name="reason" rows="3"><?= old('reason') ?></textarea>
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Reason
+          <textarea name="reason" rows="3" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.875rem;resize:vertical"><?= old('reason') ?></textarea>
         </label>
-        <label>Notes
-          <textarea name="notes" rows="3"><?= old('notes') ?></textarea>
+        <label style="display:block;margin-bottom:8px;font-weight:600;color:#374151;font-size:0.875rem">Notes
+          <textarea name="notes" rows="3" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.875rem;resize:vertical"><?= old('notes') ?></textarea>
         </label>
         <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end;">
           <button type="submit" class="btn btn-primary">Save</button>
@@ -221,86 +255,7 @@
     });
   }
 
-  // --- Autocomplete search for Patient & Doctor ---
-  const patientsData = <?= json_encode(array_values(array_map(function($p){
-      return [
-        'id' => (int)($p['id'] ?? 0),
-        'label' => trim(($p['patient_id'] ?? '') . ' • ' . ($p['last_name'] ?? '') . ', ' . ($p['first_name'] ?? '')),
-      ];
-    }, $patients ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-
-  const doctorsData = <?= json_encode(array_values(array_map(function($d){
-      return [
-        'id' => (int)($d['id'] ?? 0),
-        'label' => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '') . ' (' . ($d['username'] ?? 'doctor') . ')'),
-      ];
-    }, $doctors ?? [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-
-  function setupAutocomplete(inputId, hiddenId, containerId, items) {
-    const input   = document.getElementById(inputId);
-    const hidden  = document.getElementById(hiddenId);
-    const wrapper = document.getElementById(containerId);
-    if (!input || !hidden || !wrapper) return;
-    const listEl  = wrapper.querySelector('.suggestions-inner');
-    if (!listEl) return;
-
-    function hideList() { listEl.style.display = 'none'; }
-
-    function showSuggestions(term) {
-      const t = term.trim().toLowerCase();
-      listEl.innerHTML = '';
-      if (!t) { hideList(); return; }
-      const matches = items.filter(it => it.label.toLowerCase().includes(t));
-      if (!matches.length) { hideList(); return; }
-
-      matches.slice(0, 20).forEach(it => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = it.label;
-        btn.style.display = 'block';
-        btn.style.width = '100%';
-        btn.style.textAlign = 'left';
-        btn.style.padding = '6px 10px';
-        btn.style.border = 'none';
-        btn.style.background = 'white';
-        btn.style.cursor = 'pointer';
-        btn.addEventListener('mouseenter', () => btn.style.background = '#eff6ff');
-        btn.addEventListener('mouseleave', () => btn.style.background = 'white');
-        btn.addEventListener('click', () => {
-          input.value  = it.label;
-          hidden.value = it.id;
-          hideList();
-        });
-        listEl.appendChild(btn);
-      });
-
-      listEl.style.display = 'block';
-    }
-
-    input.addEventListener('input', function () {
-      if (this.value.trim() === '') {
-        hidden.value = '';
-        hideList();
-      } else {
-        showSuggestions(this.value);
-      }
-    });
-
-    input.addEventListener('focus', function () {
-      if (this.value.trim() !== '') {
-        showSuggestions(this.value);
-      }
-    });
-
-    document.addEventListener('click', function (e) {
-      if (!wrapper.contains(e.target) && e.target !== input) {
-        hideList();
-      }
-    });
-  }
-
-  setupAutocomplete('patientSearch', 'patientIdField', 'patientSuggestions', patientsData);
-  setupAutocomplete('doctorSearch', 'doctorIdField', 'doctorSuggestions', doctorsData);
+  // Dropdowns are now used instead of autocomplete - no JavaScript needed for selection
 
   // --- Cancel Appointment Modal ---
   const cancelModal = document.getElementById('cancelAppointmentModal');
