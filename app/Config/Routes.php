@@ -57,7 +57,17 @@ $routes->post('/admin/appointments/delete/(:num)', 'Admin::deleteAppointment/$1'
 $routes->get('/admin/staff-schedules', 'Admin::staffSchedules', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules', 'Admin::storeStaffSchedule', ['filter' => 'role:admin']);
 $routes->post('/admin/staff-schedules/delete/(:num)', 'Admin::deleteStaffSchedule/$1', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules/yearly', 'Admin::storeYearlyStaffSchedule', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules/weekly', 'Admin::store_weekly_schedule', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules/update-daily/(:num)', 'Admin::update_daily_schedule/$1', ['filter' => 'role:admin']);
 $routes->get('/admin/staff-schedules/year-events', 'Admin::staffScheduleYearEvents', ['filter' => 'role:admin']);
+$routes->post('/admin/staff-schedules/delete-yearly/(:num)', 'Admin::deleteYearlyStaffSchedule/$1', ['filter' => 'role:admin']);
+$routes->get('staff-schedules', 'Admin::staff_schedules', ['filter' => 'role:admin']);
+$routes->get('staff-schedules/daily', 'Admin::daily_schedules_index', ['filter' => 'role:admin']);
+$routes->post('staff-schedules/daily', 'Admin::store_daily_schedule', ['filter' => 'role:admin']);
+$routes->get('staff-schedules/yearly', 'Admin::yearly_schedules_index', ['filter' => 'role:admin']);
+$routes->post('staff-schedules/yearly', 'Admin::store_yearly_schedule', ['filter' => 'role:admin']);
+$routes->post('staff-schedules/delete-yearly/(:num)', 'Admin::delete_yearly_schedule/$1', ['filter' => 'role:admin']);
 
 // Medical Records Management Routes
 $routes->get('/admin/medical-records', 'Admin::medicalRecords', ['filter' => 'role:admin']);
@@ -70,8 +80,10 @@ $routes->post('/admin/medical-records/(:num)/restore', 'Admin::restoreMedicalRec
 // Financial Management Routes
 $routes->get('/admin/invoices', 'Admin::invoices', ['filter' => 'role:admin,accountant']);
 $routes->get('/admin/payments', 'Admin::payments', ['filter' => 'role:admin,accountant']);
+$routes->get('/admin/payments/patient-bills', 'Admin::getPatientBills', ['filter' => 'role:admin,accountant']);
 $routes->get('/admin/payments/(:num)', 'Admin::viewPayment/$1', ['filter' => 'role:admin,accountant']);
 $routes->get('/admin/insurance-claims', 'Admin::insuranceClaims', ['filter' => 'role:admin,accountant']);
+$routes->post('/admin/insurance-claims', 'Admin::storeInsuranceClaim', ['filter' => 'role:admin,accountant']);
 // Detailed billing view (reuses Accountant::viewBilling)
 $routes->get('/admin/billing/view/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:admin,accountant']);
 $routes->get('/accountant/billing/view/(:num)', 'Accountant::viewBilling/$1', ['filter' => 'role:accountant']);
@@ -261,14 +273,18 @@ $routes->get('/doctor/schedule', 'Doctor::schedule', ['filter' => 'role:doctor']
 $routes->post('/doctor/schedule', 'Doctor::storeSchedule', ['filter' => 'role:doctor']);
 // Doctor vaccinations (for pediatricians)
 $routes->get('/doctor/vaccinations', 'Doctor::vaccinations', ['filter' => 'role:doctor']);
+$routes->post('/doctor/vaccinations', 'Doctor::storeVaccination', ['filter' => 'role:doctor']);
 // Doctor surgeries (for surgeons)
 $routes->get('/doctor/surgeries/schedule', 'Doctor::scheduleSurgery', ['filter' => 'role:doctor']);
 $routes->post('/doctor/surgeries', 'Doctor::storeSurgery', ['filter' => 'role:doctor']);
 // Doctor prenatal (for OB-GYN)
 $routes->get('/doctor/prenatal/new', 'Doctor::newPrenatal', ['filter' => 'role:doctor']);
+$routes->get('/doctor/prenatal/history', 'Doctor::prenatalHistory', ['filter' => 'role:doctor']);
 $routes->post('/doctor/prenatal', 'Doctor::storePrenatal', ['filter' => 'role:doctor']);
 // Doctor neurology imaging (for neurologists)
 $routes->get('/doctor/neurology/imaging', 'Doctor::neurologyImaging', ['filter' => 'role:doctor']);
+$routes->get('/doctor/neurology/imaging/new', 'Doctor::newNeurologyImagingRequest', ['filter' => 'role:doctor']);
+$routes->post('/doctor/neurology/imaging', 'Doctor::storeNeurologyImagingRequest', ['filter' => 'role:doctor']);
 
 // Nurse functional routes
 // Dashboard
@@ -282,6 +298,7 @@ $routes->post('/nurse/vitals/store', 'Nurse::storeVitals', ['filter' => 'role:nu
 
 // Notes Management
 $routes->get('/nurse/notes/new', 'Nurse::newNote', ['filter' => 'role:nurse']);
+$routes->get('/nurse/notes/appointments', 'Nurse::getAppointmentsForNote', ['filter' => 'role:nurse']);
 $routes->post('/nurse/notes', 'Nurse::storeNote', ['filter' => 'role:nurse']);
 $routes->post('/nurse/notes/store', 'Nurse::storeNote', ['filter' => 'role:nurse']);
 

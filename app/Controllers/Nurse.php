@@ -10,7 +10,7 @@ class Nurse extends BaseController
         $apptModel = model('App\\Models\\AppointmentModel');
         $medicalRecordModel = model('App\\Models\\MedicalRecordModel');
         $labTestModel = model('App\\Models\\LabTestModel');
-        $scheduleModel = model('App\\Models\\StaffScheduleModel');
+        $dailyScheduleModel = model('App\\Models\\DailyScheduleModel');
 
         $today = date('Y-m-d');
         $nurseId = session('user_id') ?: 1; // Fallback for testing
@@ -80,11 +80,19 @@ class Nurse extends BaseController
             ->findAll(10);
 
         // Weekly schedule for this nurse
-        $schedule = $scheduleModel
+        $startOfWeek = date('Y-m-d', strtotime('sunday this week'));
+        $endOfWeek = date('Y-m-d', strtotime('saturday this week'));
+
+        log_message('error', 'Fetching schedule for nurse ID: ' . $nurseId . ' from ' . $startOfWeek . ' to ' . $endOfWeek);
+
+        $schedule = $dailyScheduleModel
             ->where('user_id', $nurseId)
-            ->orderBy('day_of_week', 'ASC')
-            ->orderBy('start_time', 'ASC')
-            ->findAll(20);
+            ->where('schedule_date >=', $startOfWeek)
+            ->where('schedule_date <=', $endOfWeek)
+            ->orderBy('schedule_date', 'ASC')
+            ->findAll();
+
+        log_message('error', 'Schedules found: ' . count($schedule));
 
         // Pending admissions - patients marked for admission but not yet fully admitted
         // Get patients with admission_type='admission' and no admission_date set
@@ -327,7 +335,47 @@ class Nurse extends BaseController
     public function newNote()
     {
         helper('url');
-        return view('nurse/note_new');
+        $patientModel = model('App\\Models\\PatientModel');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+        $userModel = model('App\\Models\\UserModel');
+        
+        // Get patient_id from query string if provided
+        $patientIdFromQuery = (int) ($this->request->getGet('patient_id') ?? 0);
+        
+        // Get all active patients
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll(200);
+        
+        // Get appointments (for the selected patient if provided)
+        $appointments = [];
+        if ($patientIdFromQuery > 0) {
+            $appointments = $appointmentModel
+                ->select('appointments.*, patients.first_name, patients.last_name, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+                ->join('patients', 'patients.id = appointments.patient_id')
+                ->join('users', 'users.id = appointments.doctor_id', 'left')
+                ->where('appointments.patient_id', $patientIdFromQuery)
+                ->orderBy('appointments.appointment_date', 'DESC')
+                ->orderBy('appointments.appointment_time', 'DESC')
+                ->findAll(50);
+        }
+        
+        // Get all active doctors
+        $doctors = $userModel
+            ->where('role', 'doctor')
+            ->where('is_active', 1)
+            ->orderBy('first_name', 'ASC')
+            ->orderBy('last_name', 'ASC')
+            ->findAll(100);
+        
+        return view('nurse/note_new', [
+            'patients' => $patients,
+            'appointments' => $appointments,
+            'doctors' => $doctors,
+            'patient_id' => $patientIdFromQuery
+        ]);
     }
 
     public function storeNote()
@@ -338,11 +386,14 @@ class Nurse extends BaseController
         if (!$patientId || $note === '') {
             return redirect()->back()->with('error', 'Patient and note are required.')->withInput();
         }
+        $appointmentId = $this->request->getPost('appointment_id');
+        $doctorId = $this->request->getPost('doctor_id');
+        
         $data = [
             'record_number' => 'NN-' . date('YmdHis'),
             'patient_id' => $patientId,
-            'appointment_id' => $this->request->getPost('appointment_id') ?: null,
-            'doctor_id' => (int) ($this->request->getPost('doctor_id') ?: 0),
+            'appointment_id' => (!empty($appointmentId) && $appointmentId !== '') ? (int) $appointmentId : null,
+            'doctor_id' => (!empty($doctorId) && $doctorId !== '') ? (int) $doctorId : null,
             'visit_date' => date('Y-m-d H:i:s'),
             'treatment_plan' => $note,
             'branch_id' => 1,
@@ -350,6 +401,38 @@ class Nurse extends BaseController
         $model = new \App\Models\MedicalRecordModel();
         $model->insert($data);
         return redirect()->to(site_url('dashboard/nurse'))->with('success', 'Note saved.');
+    }
+
+    public function getAppointmentsForNote()
+    {
+        helper('url');
+        $appointmentModel = model('App\\Models\\AppointmentModel');
+        $patientId = (int) ($this->request->getGet('patient_id') ?? 0);
+        
+        if (!$patientId) {
+            return $this->response->setJSON(['appointments' => []]);
+        }
+        
+        $appointments = $appointmentModel
+            ->select('appointments.id, appointments.appointment_date, appointments.appointment_time, users.first_name as doctor_first_name, users.last_name as doctor_last_name')
+            ->join('users', 'users.id = appointments.doctor_id', 'left')
+            ->where('appointments.patient_id', $patientId)
+            ->where('appointments.status !=', 'cancelled')
+            ->orderBy('appointments.appointment_date', 'DESC')
+            ->orderBy('appointments.appointment_time', 'DESC')
+            ->findAll(50);
+        
+        $formattedAppointments = [];
+        foreach ($appointments as $apt) {
+            $formattedAppointments[] = [
+                'id' => $apt['id'],
+                'date' => !empty($apt['appointment_date']) ? date('M j, Y', strtotime($apt['appointment_date'])) : '',
+                'time' => !empty($apt['appointment_time']) ? date('g:i A', strtotime($apt['appointment_time'])) : '',
+                'doctor' => trim(($apt['doctor_first_name'] ?? '') . ' ' . ($apt['doctor_last_name'] ?? ''))
+            ];
+        }
+        
+        return $this->response->setJSON(['appointments' => $formattedAppointments]);
     }
 
     public function wardPatients()
