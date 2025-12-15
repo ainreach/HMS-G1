@@ -740,29 +740,107 @@ class Accountant extends BaseController
     public function newClaim()
     {
         helper(['url']);
-        return view('Accountant/claim_new');
+        $patientModel = model('App\\Models\\PatientModel');
+        $billingModel = model('App\\Models\\BillingModel');
+        
+        // Get patients for dropdown
+        $patients = $patientModel
+            ->where('is_active', 1)
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->findAll(200);
+        
+        // Get billing records for dropdown
+        $billings = $billingModel
+            ->select('billing.*, patients.first_name, patients.last_name, patients.patient_id as patient_code')
+            ->join('patients', 'patients.id = billing.patient_id')
+            ->where('billing.payment_status !=', 'cancelled')
+            ->where('billing.deleted_at IS NULL', null, false)
+            ->orderBy('billing.created_at', 'DESC')
+            ->findAll(200);
+        
+        return view('Accountant/claim_new', [
+            'patients' => $patients,
+            'billings' => $billings
+        ]);
     }
 
     public function storeClaim()
     {
-        helper(['url']);
+        helper(['url', 'form']);
         $claimsModel = model('App\\Models\\InsuranceClaimModel');
-
+        $patientModel = model('App\\Models\\PatientModel');
+        $billingModel = model('App\\Models\\BillingModel');
+        
+        // Validate required fields
+        $rules = [
+            'patient_id' => 'required|integer',
+            'billing_id' => 'required|integer',
+            'provider' => 'required|max_length[100]',
+            'policy_no' => 'required|max_length[50]',
+            'amount_claimed' => 'required|decimal|greater_than[0]',
+        ];
+        
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('error', 'Please fill in all required fields.')->withInput();
+        }
+        
+        $patientId = (int) $this->request->getPost('patient_id');
+        $billingId = (int) $this->request->getPost('billing_id');
+        
+        // Get patient and billing details
+        $patient = $patientModel->find($patientId);
+        $billing = $billingModel->find($billingId);
+        
+        if (!$patient) {
+            return redirect()->back()->with('error', 'Patient not found.')->withInput();
+        }
+        
+        if (!$billing) {
+            return redirect()->back()->with('error', 'Billing record not found.')->withInput();
+        }
+        
+        // Generate claim number if not provided
+        $claimNo = $this->request->getPost('claim_no');
+        if (empty($claimNo)) {
+            $claimNo = 'CLAIM-' . date('Ymd') . '-' . time() . '-' . rand(100, 999);
+        }
+        
+        // Get invoice number from billing if available
+        $invoiceNo = $this->request->getPost('invoice_no');
+        if (empty($invoiceNo) && !empty($billing['invoice_number'])) {
+            $invoiceNo = $billing['invoice_number'];
+        }
+        
         $data = [
-            'claim_no' => $this->request->getPost('claim_no'),
-            'invoice_no' => $this->request->getPost('invoice_no'),
-            'patient_name' => $this->request->getPost('patient_name'),
+            'claim_no' => $claimNo,
+            'invoice_no' => $invoiceNo ?: null,
+            'billing_id' => $billingId,
+            'patient_name' => trim($patient['first_name'] . ' ' . $patient['last_name']),
             'provider' => $this->request->getPost('provider'),
             'policy_no' => $this->request->getPost('policy_no'),
-            'amount_claimed' => (float)$this->request->getPost('amount_claimed'),
-            'amount_approved' => (float)($this->request->getPost('amount_approved') ?: 0),
+            'amount_claimed' => (float) $this->request->getPost('amount_claimed'),
+            'amount_approved' => (float) ($this->request->getPost('amount_approved') ?: 0),
             'status' => $this->request->getPost('status') ?: 'submitted',
             'submitted_at' => $this->request->getPost('submitted_at') ?: date('Y-m-d H:i:s'),
+            'notes' => $this->request->getPost('notes') ?: null,
         ];
-
-        $claimsModel->insert($data);
-        AuditLogger::log('claim_create', 'claim_no=' . ($data['claim_no'] ?: 'n/a') . ' invoice_no=' . ($data['invoice_no'] ?: 'n/a'));
-        return redirect()->to(site_url('accountant/insurance'));
+        
+        // Only add patient_id if the column exists in the table
+        $db = \Config\Database::connect();
+        $fields = $db->getFieldNames('insurance_claims');
+        if (in_array('patient_id', $fields, true)) {
+            $data['patient_id'] = $patientId;
+        }
+        
+        if ($claimsModel->insert($data)) {
+            AuditLogger::log('claim_create', 'claim_no=' . ($data['claim_no'] ?: 'n/a') . ' invoice_no=' . ($data['invoice_no'] ?: 'n/a'));
+            return redirect()->to(site_url('accountant/insurance'))->with('success', 'Insurance claim created successfully.');
+        } else {
+            $errors = $claimsModel->errors();
+            $errorMessage = !empty($errors) ? implode(', ', $errors) : 'Failed to create insurance claim.';
+            return redirect()->back()->with('error', $errorMessage)->withInput();
+        }
     }
 
     public function viewClaim($id)
